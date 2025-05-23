@@ -444,7 +444,7 @@
             userProfile.engagementScore += 10;
             
             // Send to backend API
-            fetch('http://localhost:3001/api/trigger-automation', {
+            fetch('/api/trigger-automation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userProfile)
@@ -584,7 +584,7 @@
             trackInteraction('email_capture', { email });
             
             try {
-                const response = await fetch('http://localhost:3001/api/capture-lead-email', {
+                const response = await fetch('/api/capture-lead-email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -614,7 +614,7 @@
             trackInteraction('page_view', { url: window.location.href });
             
             // Track visitor
-            fetch(`http://localhost:3001/api/track-visitor?uid=${userProfile.uid}`)
+            fetch(`/api/track-visitor?uid=${userProfile.uid}`)
                 .catch(console.error);
         });
     </script>
