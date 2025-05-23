@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalculiQ Test - Lead Capture</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; padding: 40px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 3rem; color: #2c3e50; margin-bottom: 10px; }
+        .calculator-card { background: #f8f9fa; border-radius: 15px; padding: 30px; margin: 20px 0; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 8px; color: #2c3e50; }
+        .form-input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; }
+        .calc-button { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; margin: 20px 0; }
+        .calc-results { background: white; border-radius: 10px; padding: 20px; margin-top: 20px; display: none; border-left: 5px solid #27ae60; }
+        .calc-results.show { display: block; }
+        .result-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .result-value { font-weight: 700; color: #27ae60; font-size: 1.2rem; }
+        .status { text-align: center; padding: 15px; margin-bottom: 20px; border-radius: 10px; font-weight: 600; }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 CalculiQ Test</h1>
+            <p>Testing Lead Capture System</p>
+        </div>
+        
+        <div id="systemStatus" class="status">🔄 Checking backend connection...</div>
+        
+        <div class="calculator-card">
+            <h3 style="text-align: center; margin-bottom: 20px;">🏠 Mortgage Calculator</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Home Price ($)</label>
+                <input type="number" class="form-input" id="homePrice" value="400000">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Down Payment ($)</label>
+                <input type="number" class="form-input" id="downPayment" value="80000">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Interest Rate (%)</label>
+                <input type="number" class="form-input" id="interestRate" value="6.5" step="0.1">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Loan Term (years)</label>
+                <input type="number" class="form-input" id="loanTerm" value="30">
+            </div>
+            
+            <button class="calc-button" onclick="calculateMortgage()">🧮 Calculate</button>
+            
+            <div class="calc-results" id="mortgageResults">
+                <h4 style="margin-bottom: 15px;">Your Results</h4>
+                <div class="result-item">
+                    <span>Monthly Payment:</span>
+                    <span class="result-value" id="monthlyPayment">$0</span>
+                </div>
+                <div class="result-item">
+                    <span>Total Interest:</span>
+                    <span class="result-value" id="totalInterest">$0</span>
+                </div>
+                <div class="result-item">
+                    <span>Total Paid:</span>
+                    <span class="result-value" id="totalPaid">$0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check backend connection
+        async function checkBackend() {
+            const statusEl = document.getElementById('systemStatus');
+            try {
+                const response = await fetch('http://localhost:3001/api/automation-status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusEl.className = 'status status-success';
+                    statusEl.innerHTML = '✅ Backend connected! Lead capture system ready.';
+                } else {
+                    throw new Error('Backend not ready');
+                }
+            } catch (error) {
+                statusEl.className = 'status status-error';
+                statusEl.innerHTML = '❌ Backend connection failed. Make sure server is running.';
+            }
+        }
+
+        function calculateMortgage() {
+            const homePrice = parseFloat(document.getElementById('homePrice').value) || 400000;
+            const downPayment = parseFloat(document.getElementById('downPayment').value) || 80000;
+            const interestRate = parseFloat(document.getElementById('interestRate').value) || 6.5;
+            const loanTerm = parseFloat(document.getElementById('loanTerm').value) || 30;
+
+            const loanAmount = homePrice - downPayment;
+            const monthlyRate = (interestRate / 100) / 12;
+            const numPayments = loanTerm * 12;
+
+            const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+            const totalPaid = monthlyPayment * numPayments;
+            const totalInterest = totalPaid - loanAmount;
+
+            document.getElementById('monthlyPayment').textContent = '$' + monthlyPayment.toFixed(2);
+            document.getElementById('totalInterest').textContent = '$' + totalInterest.toFixed(2);
+            document.getElementById('totalPaid').textContent = '$' + totalPaid.toFixed(2);
+            document.getElementById('mortgageResults').classList.add('show');
+
+            // Test lead capture API
+            testLeadCapture({
+                monthlyPayment: monthlyPayment,
+                totalInterest: totalInterest,
+                totalPaid: totalPaid,
+                homePrice: homePrice
+            });
+        }
+
+        async function testLeadCapture(results) {
+            try {
+                const response = await fetch('http://localhost:3001/api/capture-lead-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        calculatorType: 'mortgage',
+                        results: results,
+                        source: 'test_page'
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Lead capture test:', result);
+                
+                if (result.success) {
+                    alert('✅ Lead capture system working! Check your dashboard for the test lead.');
+                } else {
+                    alert('⚠️ Lead capture returned: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Lead capture test failed:', error);
+                alert('❌ Lead capture test failed: ' + error.message);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', checkBackend);
+    </script>
+</body>
+</html>

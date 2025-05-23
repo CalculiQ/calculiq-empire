@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalculiQ Enhanced Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .dashboard-header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border-radius: 20px;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            padding: 40px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .metric-display {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #27ae60;
+            margin: 15px 0;
+        }
+        
+        .control-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .control-button.success-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+        
+        .lead-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .lead-email {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .lead-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .lead-score {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .score-hot { background: #ff6b6b; color: white; }
+        .score-warm { background: #ffa726; color: white; }
+        .score-qualified { background: #42a5f5; color: white; }
+        .score-nurture { background: #ab47bc; color: white; }
+        .score-cold { background: #78909c; color: white; }
+        
+        .leads-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .connection-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .connection-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .connection-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .connection-testing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">🚀 CalculiQ Enhanced Dashboard</h1>
+        <div class="status-indicator" id="systemStatus">System Loading...</div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Lead Capture Metrics -->
+        <div class="dashboard-card">
+            <h2 class="card-title">💰 Lead Generation</h2>
+            <div class="metric-display" id="totalLeads">0</div>
+            <p>Total Leads Captured</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #e74c3c;" id="hotLeads">0</div>
+                    <div style="font-size: 0.9rem;">Hot Leads</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: #3498db;" id="qualifiedLeads">0</div>
+                    <div style="font-size: 0.9rem;">Qualified</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 15px 0;">
+                <div style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">Est. Revenue: $<span id="leadRevenue">0</span></div>
+            </div>
+            <button class="control-button success-btn" onclick="refreshLeadMetrics()">📊 Refresh Leads</button>
+        </div>
+
+        <!-- Recent Leads -->
+        <div class="dashboard-card">
+            <h2 class="card-title">👥 Recent Leads</h2>
+            <div class="leads-list" id="leadsList">
+                <div style="text-align: center; color: #666; padding: 20px;">
+                    Loading leads...
+                </div>
+            </div>
+            <button class="control-button" onclick="viewAllLeads()">📋 View All Leads</button>
+            <button class="control-button" onclick="exportLeads()">📥 Export Leads</button>
+        </div>
+
+        <!-- Revenue Metrics -->
+        <div class="dashboard-card">
+            <h2 class="card-title">📊 Revenue Metrics</h2>
+            <div class="metric-display" id="monthlyRevenue">$0</div>
+            <p>Monthly Revenue</p>
+            <div style="margin-top: 20px;">
+                <div>Today: $<span id="todayRevenue">0</span></div>
+                <div>Visitors: <span id="todayVisitors">0</span></div>
+                <div>Conversion: <span id="conversionRate">0%</span></div>
+            </div>
+            <button class="control-button" onclick="refreshMetrics()">Refresh Metrics</button>
+        </div>
+
+        <!-- System Testing -->
+        <div class="dashboard-card">
+            <h2 class="card-title">🔧 System Testing</h2>
+            <div id="connectionStatus" class="connection-status" style="display: none;"></div>
+            <div style="display: grid; gap: 15px; margin-top: 20px;">
+                <button class="control-button" onclick="testBackendConnection()">🔗 Test Backend</button>
+                <button class="control-button" onclick="testLeadCapture()">📧 Test Lead Capture</button>
+                <button class="control-button" onclick="viewDatabase()">🗄️ View Database</button>
+                <button class="control-button" onclick="openCalculatorTest()">🧮 Open Calculator Test</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base
+        const API_BASE = 'http://localhost:3001';
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkSystemStatus();
+            await loadLeadMetrics();
+            await loadRecentLeads();
+            await refreshMetrics();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadLeadMetrics, 30000);
+        });
+
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/automation-status`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('systemStatus').textContent = '🟢 CalculiQ Online';
+                    document.getElementById('systemStatus').style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+                } else {
+                    throw new Error('Backend not ready');
+                }
+            } catch (error) {
+                document.getElementById('systemStatus').textContent = '🔴 System Offline';
+                document.getElementById('systemStatus').style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+            }
+        }
+
+        async function loadLeadMetrics() {
+            try {
+                const response = await fetch(`${API_BASE}/api/lead-metrics`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const metrics = data.metrics;
+                    document.getElementById('totalLeads').textContent = metrics.totalLeads || 0;
+                    document.getElementById('hotLeads').textContent = metrics.hotLeads || 0;
+                    document.getElementById('qualifiedLeads').textContent = metrics.qualifiedLeads || 0;
+                    document.getElementById('leadRevenue').textContent = (metrics.estimatedRevenue || 0).toLocaleString();
+                    
+                    console.log('Lead metrics loaded:', metrics);
+                }
+            } catch (error) {
+                console.error('Failed to load lead metrics:', error);
+            }
+        }
+
+        async function loadRecentLeads() {
+            try {
+                const response = await fetch(`${API_BASE}/api/leads?limit=10`);
+                const data = await response.json();
+                
+                if (data.success && data.leads) {
+                    displayLeads(data.leads);
+                } else {
+                    document.getElementById('leadsList').innerHTML = 
+                        '<div style="text-align: center; color: #666; padding: 20px;">No leads captured yet</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load leads:', error);
+                document.getElementById('leadsList').innerHTML = 
+                    '<div style="text-align: center; color: #e74c3c; padding: 20px;">Error loading leads</div>';
+            }
+        }
+
+        function displayLeads(leads) {
+            const leadsList = document.getElementById('leadsList');
+            
+            if (leads.length === 0) {
+                leadsList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No leads found</div>';
+                return;
+            }
+            
+            leadsList.innerHTML = leads.map(lead => {
+                const date = new Date(lead.created_at).toLocaleDateString();
+                const time = new Date(lead.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                return `
+                    <div class="lead-item">
+                        <div class="lead-email">${lead.email || 'No email'}</div>
+                        <div class="lead-meta">
+                            ${lead.calculator_type || 'Unknown'} • ${date} ${time}
+                            ${lead.first_name ? `• ${lead.first_name}` : ''}
+                            ${lead.phone ? `• ${lead.phone}` : ''}
+                        </div>
+                        <div class="lead-score score-${lead.lead_tier || 'cold'}">
+                            ${(lead.lead_tier || 'cold').toUpperCase()} (${lead.lead_score || 0} pts)
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function testBackendConnection() {
+            showConnectionStatus('Testing backend connection...', 'testing');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/automation-status`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showConnectionStatus('✅ Backend connection successful! Lead capture system is active.', 'success');
+                } else {
+                    throw new Error('Backend status check failed');
+                }
+            } catch (error) {
+                showConnectionStatus('❌ Backend connection failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testLeadCapture() {
+            showConnectionStatus('Testing lead capture system...', 'testing');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/capture-lead-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: `test${Date.now()}@dashboard.com`,
+                        calculatorType: 'mortgage',
+                        results: { monthlyPayment: 2500, totalInterest: 150000 },
+                        source: 'dashboard_test'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showConnectionStatus('✅ Lead capture test successful! Check the leads list above.', 'success');
+                    setTimeout(() => {
+                        loadLeadMetrics();
+                        loadRecentLeads();
+                    }, 1000);
+                } else {
+                    showConnectionStatus('❌ Lead capture test failed: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showConnectionStatus('❌ Lead capture test error: ' + error.message, 'error');
+            }
+        }
+
+        async function refreshLeadMetrics() {
+            await loadLeadMetrics();
+            await loadRecentLeads();
+            showConnectionStatus('✅ Lead metrics refreshed!', 'success');
+        }
+
+        async function viewAllLeads() {
+            try {
+                const response = await fetch(`${API_BASE}/api/leads?limit=100`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`📊 Total Leads: ${data.leads.length}\n\nCheck console for detailed lead data.`);
+                    console.log('All Leads:', data.leads);
+                } else {
+                    alert('❌ Failed to load leads');
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        function exportLeads() {
+            showConnectionStatus('📥 Leads can be exported from your calculiq_empire.db database file', 'testing');
+        }
+
+        function viewDatabase() {
+            showConnectionStatus('🗄️ Database location: ./calculiq_empire.db in your project folder', 'testing');
+        }
+
+        function openCalculatorTest() {
+            window.open('/test-calculator.html', '_blank');
+        }
+
+        async function refreshMetrics() {
+            try {
+                const response = await fetch(`${API_BASE}/api/revenue-metrics`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const metrics = data.metrics;
+                    document.getElementById('monthlyRevenue').textContent = '$' + (metrics.monthly.revenue || 0).toLocaleString();
+                    document.getElementById('todayRevenue').textContent = (metrics.today.revenue || 0).toLocaleString();
+                    document.getElementById('todayVisitors').textContent = metrics.today.visitors || 0;
+                    document.getElementById('conversionRate').textContent = (metrics.today.conversionRate || 0) + '%';
+                }
+            } catch (error) {
+                console.error('Metrics refresh failed:', error);
+            }
+        }
+
+        function showConnectionStatus(message, type) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            statusDiv.className = `connection-status ${type === 'success' ? 'connection-success' : type === 'error' ? 'connection-error' : 'connection-testing'}`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

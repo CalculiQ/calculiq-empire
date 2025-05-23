@@ -1,0 +1,85 @@
+{
+  "business": {
+    "name": "CalculiQ",
+    "email": "contact@calculiq.com",
+    "phone": "+1-555-0123",
+    "website": "https://calculiq.com"
+  },
+  "automation": {
+    "contentGeneration": false,
+    "emailSequences": false,
+    "aiContent": false,
+    "liveMode": false,
+    "autoPublish": false
+  },
+  "calculators": [
+    {
+      "name": "Mortgage Calculator",
+      "type": "mortgage",
+      "affiliates": [
+        "LendingTree",
+        "Rocket Mortgage",
+        "Quicken Loans"
+      ],
+      "commission": "$50-500 per lead"
+    },
+    {
+      "name": "Investment Calculator",
+      "type": "investment",
+      "affiliates": [
+        "TD Ameritrade",
+        "E*TRADE",
+        "Charles Schwab"
+      ],
+      "commission": "$100-600 per account"
+    },
+    {
+      "name": "Loan Calculator",
+      "type": "loan",
+      "affiliates": [
+        "SoFi",
+        "Marcus",
+        "LightStream"
+      ],
+      "commission": "$25-200 per approval"
+    },
+    {
+      "name": "Insurance Calculator",
+      "type": "insurance",
+      "affiliates": [
+        "Geico",
+        "Progressive",
+        "State Farm"
+      ],
+      "commission": "$75-300 per policy"
+    },
+    {
+      "name": "Business Finance Calculator",
+      "type": "business",
+      "affiliates": [
+        "Kabbage",
+        "OnDeck",
+        "BlueVine"
+      ],
+      "commission": "$200-800 per funding"
+    }
+  ],
+  "revenueProjections": {
+    "month1": {
+      "visitors": 1000,
+      "revenue": 2000
+    },
+    "month3": {
+      "visitors": 5000,
+      "revenue": 15000
+    },
+    "month6": {
+      "visitors": 20000,
+      "revenue": 56000
+    },
+    "month12": {
+      "visitors": 50000,
+      "revenue": 120000
+    }
+  }
+}

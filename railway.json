@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "nixpacks"
+  },
+  "deploy": {
+    "startCommand": "node automation-server.js",
+    "healthcheckPath": "/api/automation-status"
+  }
+}
