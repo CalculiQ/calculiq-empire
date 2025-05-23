@@ -2,25 +2,37 @@
   "name": "calculiq-empire",
   "version": "2.0.0",
   "description": "Complete Automated Revenue Empire with Full Backend",
-  "main": "main.js",
+  "main": "automation-server.js",
   "scripts": {
-    "start": "electron .",
-    "server": "node automation-server.js",
-    "dev": "concurrently \"npm run server\" \"npm start\"",
-    "setup": "node setup.js"
+    "start": "node automation-server.js",
+    "dev": "node automation-server.js",
+    "build": "echo 'Build completed'",
+    "test": "echo 'No tests specified'"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "dependencies": {
-    "electron": "^22.3.25",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "sqlite3": "^5.1.6",
     "nodemailer": "^6.9.7",
     "node-cron": "^3.0.2",
     "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
-    "concurrently": "^8.2.2"
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  }
+  },
+  "keywords": [
+    "calculiq",
+    "financial",
+    "calculator",
+    "automation",
+    "revenue",
+    "lead-generation"
+  ],
+  "author": "CalculiQ Team",
+  "license": "MIT"
 }
