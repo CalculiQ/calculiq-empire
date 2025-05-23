@@ -179,7 +179,21 @@ class CalculiQAutomationServer {
 
         // Root endpoint
         this.app.get('/', (req, res) => {
-            res.sendFile(path.join(__dirname, 'index.html'));
+            res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalculiQ - Smart Financial Calculators</title>
+    <style>
+        /* Add your CSS here */
+    </style>
+</head>
+<body>
+    <h1>🚀 CalculiQ Calculators</h1>
+    <p>Calculators coming soon!</p>
+</body>
+</html>`);
         });
 
         // Basic lead capture endpoint
