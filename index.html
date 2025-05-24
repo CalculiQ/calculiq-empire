@@ -783,20 +783,19 @@
         </div>
     </div>
 
-    <!-- CTA Section -->
+    <!-- CTA Section - UPDATED FOR NEWSLETTER -->
     <section class="cta-section">
-        <h2>Ready to Calculate?</h2>
-        <p>Use our free calculators to explore your financial options</p>
+        <h2>Stay Informed</h2>
+        <p>Get weekly financial tips, rate updates, and money-saving strategies delivered to your inbox</p>
         
-        <form class="email-form" onsubmit="handleEmailSubmit(event)">
-            <input type="email" class="email-input" placeholder="Enter your email for personalized quotes" required>
-            <button type="submit" class="email-submit">Get Quotes</button>
+        <form class="email-form" onsubmit="handleNewsletterSubmit(event)">
+            <input type="email" class="email-input" placeholder="Enter your email for financial tips" required>
+            <button type="submit" class="email-submit">Subscribe Free</button>
         </form>
         
         <p style="font-size: 0.85rem; margin-top: 20px; opacity: 0.8;">
-    By submitting your information, you agree to be contacted by lenders and partners 
-    about relevant financial services.
-</p>
+            Weekly financial insights • Rate alerts • No spam • Unsubscribe anytime
+        </p>
     </section>
 
     <!-- Footer -->
@@ -978,25 +977,31 @@
             }
         }
 
-        async function handleEmailSubmit(event) {
+        // UPDATED NEWSLETTER FUNCTION
+        async function handleNewsletterSubmit(event) {
             event.preventDefault();
             const email = event.target.querySelector('.email-input').value;
             
             try {
-                const response = await fetch('/api/capture-lead-email', {
+                const response = await fetch('/api/subscribe-newsletter', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email,
-                        calculatorType: 'general',
-                        source: 'footer_cta'
+                        source: 'footer_newsletter'
                     })
                 });
                 
-                alert('Success! Check your email for exclusive offers.');
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ Subscribed! Welcome to CalculiQ financial insights.');
+                } else {
+                    alert('✅ Thanks for subscribing! Welcome to our newsletter.');
+                }
                 event.target.reset();
             } catch (error) {
-                alert('Thanks for signing up! We\'ll be in touch soon.');
+                alert('✅ Thanks for subscribing! Welcome to our newsletter.');
+                event.target.reset();
             }
         }
 
