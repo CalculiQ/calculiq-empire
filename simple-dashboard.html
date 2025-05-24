@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalculiQ Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a56db;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .leads-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        table {
+            width: 100%;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        th {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-sold {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .btn {
+            background: #1a56db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #1e40af;
+        }
+        
+        .refresh-time {
+            text-align: center;
+            color: #6b7280;
+            margin-top: 20px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CalculiQ Lead Dashboard</h1>
+        <p style="color: #6b7280; margin-top: 5px;">Simple Lead Tracking System</p>
+    </div>
+    
+    <div class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p class="stat-label">Today's Leads</p>
+                <p class="stat-value" id="todayLeads">0</p>
+            </div>
+            
+            <div class="stat-card">
+                <p class="stat-label">Today's Revenue</p>
+                <p class="stat-value" id="todayRevenue">$0</p>
+            </div>
+            
+            <div class="stat-card">
+                <p class="stat-label">Total Revenue</p>
+                <p class="stat-value" id="totalRevenue">$0</p>
+            </div>
+        </div>
+        
+        <!-- Recent Leads -->
+        <div class="leads-table">
+            <div class="table-header">
+                <h2>Recent Leads</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date/Time</th>
+                        <th>Email</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                        <th>Sold To</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #6b7280;">
+                            Loading leads...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <p class="refresh-time" id="refreshTime">Last updated: Never</p>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn" onclick="testLead()">Test Lead Capture</button>
+            <button class="btn" onclick="refreshData()">Refresh Now</button>
+        </div>
+    </div>
+    
+    <script>
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadLeads();
+            
+            // Refresh every 30 seconds
+            setInterval(() => {
+                loadStats();
+                loadLeads();
+            }, 30000);
+        });
+        
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('todayLeads').textContent = data.stats.todayLeads;
+                    document.getElementById('todayRevenue').textContent = `$${data.stats.todayRevenue || 0}`;
+                    document.getElementById('totalRevenue').textContent = `$${data.stats.totalRevenue || 0}`;
+                    
+                    document.getElementById('refreshTime').textContent = 
+                        `Last updated: ${new Date().toLocaleTimeString()}`;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        async function loadLeads() {
+            try {
+                // For now, using a simple query to get recent leads
+                // You'd add an endpoint to fetch leads
+                const tbody = document.getElementById('leadsTableBody');
+                
+                // This is just example data - you'd fetch from your API
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #6b7280;">
+                            No leads yet. Use the calculators to generate leads!
+                        </td>
+                    </tr>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading leads:', error);
+            }
+        }
+        
+        async function testLead() {
+            const testEmail = `test${Date.now()}@example.com`;
+            
+            try {
+                const response = await fetch('/api/capture-lead', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: testEmail,
+                        calculatorType: 'mortgage',
+                        results: { loanAmount: 350000, monthlyPayment: 2500 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Test lead created: ${testEmail}`);
+                    refreshData();
+                } else {
+                    alert('Error creating test lead');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        function refreshData() {
+            loadStats();
+            loadLeads();
+        }
+    </script>
+</body>
+</html>
