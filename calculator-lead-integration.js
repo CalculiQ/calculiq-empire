@@ -1,10 +1,9 @@
 // calculator-lead-integration.js
 // Frontend Lead Capture Integration for CalculiQ Calculators
-// UPDATED: No false report promises - honest lead capture only
+// FIXED: All API calls use relative URLs - works on both localhost and Railway
 
 class CalculiQLeadIntegration {
     constructor() {
-        this.apiBase = window.location.origin;
         this.userProfile = {
             uid: this.generateUID(),
             interactions: [],
@@ -32,7 +31,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // HONEST LEAD CAPTURE SYSTEM (NO FALSE REPORTS)
+    // PROGRESSIVE LEAD CAPTURE SYSTEM
     // ======================
 
     generateProgressiveLeadForm(calculatorType, results) {
@@ -325,7 +324,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // EXIT INTENT CAPTURE (HONEST VERSION)
+    // EXIT INTENT CAPTURE SYSTEM
     // ======================
 
     generateExitIntentModal(calculatorType, results) {
@@ -611,151 +610,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // API COMMUNICATION (UPDATED MESSAGES)
-    // ======================
-
-    async submitEmailCapture(calculatorType) {
-            console.log('submitEmailCapture called with:', calculatorType);
-    	const email = document.getElementById('leadEmailInput')?.value;
-    console.log('Email value:', email);
-        
-        if (!email || !email.includes('@')) {
-            this.showError('Please enter a valid email address');
-            return;
-        }
-        console.log('About to make fetch request');
-        try {
-            const response = await fetch('/api/capture-lead-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    calculatorType: calculatorType,
-                    results: this.currentResults,
-                    source: 'progressive_form'
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.leadCaptured = true;
-                this.userProfile.email = email;
-                
-                // Move to step 2
-                this.showStep('profileCaptureStep');
-                
-                this.trackInteraction('email_captured', {
-                    email: email,
-                    leadScore: result.leadScore
-                });
-                
-                console.log('📧 Email captured successfully', result);
-            } else {
-                this.showError('Please try again');
-            }
-            
-        } catch (error) {
-            console.error('Email capture error:', error);
-            this.showError('Connection error - please try again');
-        }
-    }
-
-    async submitProfileCapture(calculatorType) {
-        const email = this.userProfile.email;
-        const firstName = document.getElementById('firstNameInput')?.value;
-        const lastName = document.getElementById('lastNameInput')?.value;
-        const phone = document.getElementById('phoneInput')?.value;
-        const creditScore = document.getElementById('creditScoreInput')?.value;
-        
-        if (!firstName || !phone) {
-            this.showError('Please fill in all required fields');
-            return;
-        }
-        
-        try {
-            const response = await fetch(`${this.apiBase}/api/capture-lead-profile`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    firstName: firstName,
-                    lastName: lastName,
-                    phone: phone,
-                    creditScore: creditScore,
-                    behavioral: this.userProfile.behavioralData
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // Show success step
-                this.showStep('successStep');
-                
-                this.trackInteraction('profile_completed', {
-                    leadScore: result.leadScore,
-                    tier: result.tier
-                });
-                
-                // Auto-close after 5 seconds
-                setTimeout(() => {
-                    this.hideLeadCapture();
-                }, 5000);
-                
-                console.log('👤 Profile completed successfully', result);
-            } else {
-                this.showError('Please try again');
-            }
-            
-        } catch (error) {
-            console.error('Profile capture error:', error);
-            this.showError('Connection error - please try again');
-        }
-    }
-
-    async captureExitEmail(calculatorType) {
-        const email = document.getElementById('exitIntentEmail')?.value;
-        
-        if (!email || !email.includes('@')) {
-            this.showError('Please enter a valid email address');
-            return;
-        }
-        
-        try {
-            const response = await fetch(`${this.apiBase}/api/capture-exit-intent`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    calculatorType: calculatorType,
-                    results: this.currentResults,
-                    source: 'exit_intent'
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.leadCaptured = true;
-                this.closeExitIntent();
-                
-                // Show success message
-                this.showSuccessMessage('✅ Success! Our verified lenders will contact you within 24 hours with personalized quotes.');
-                
-                this.trackInteraction('exit_email_captured', { email: email });
-                
-                console.log('🚪 Exit intent email captured');
-            }
-            
-        } catch (error) {
-            console.error('Exit email capture error:', error);
-            this.showError('Connection error - please try again');
-        }
-    }
-
-    // ======================
-    // CALCULATOR INTEGRATION METHODS (UNCHANGED)
+    // CALCULATOR INTEGRATION METHODS
     // ======================
 
     integrateWithCalculator(calculatorType, calculatorElement) {
@@ -817,7 +672,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // EVENT HANDLERS (UNCHANGED)
+    // EVENT HANDLERS
     // ======================
 
     setupExitIntentHandlers() {
@@ -921,7 +776,154 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // UI HELPER METHODS (UNCHANGED)
+    // API COMMUNICATION - FIXED (NO LOCALHOST)
+    // ======================
+
+    async submitEmailCapture(calculatorType) {
+        console.log('submitEmailCapture called with:', calculatorType);
+        const email = document.getElementById('leadEmailInput')?.value;
+        console.log('Email value:', email);
+        
+        if (!email || !email.includes('@')) {
+            console.log('Email validation failed');
+            this.showError('Please enter a valid email address');
+            return;
+        }
+        
+        console.log('About to make fetch request');
+        try {
+            const response = await fetch('/api/capture-lead-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    calculatorType: calculatorType,
+                    results: this.currentResults,
+                    source: 'progressive_form'
+                })
+            });
+            
+            const result = await response.json();
+            console.log('API response:', result);
+            
+            if (result.success) {
+                this.leadCaptured = true;
+                this.userProfile.email = email;
+                
+                // Move to step 2
+                this.showStep('profileCaptureStep');
+                
+                this.trackInteraction('email_captured', {
+                    email: email,
+                    leadScore: result.leadScore
+                });
+                
+                console.log('📧 Email captured successfully', result);
+            } else {
+                this.showError('Please try again');
+            }
+            
+        } catch (error) {
+            console.error('Email capture error:', error);
+            this.showError('Connection error - please try again');
+        }
+    }
+
+    async submitProfileCapture(calculatorType) {
+        const email = this.userProfile.email;
+        const firstName = document.getElementById('firstNameInput')?.value;
+        const lastName = document.getElementById('lastNameInput')?.value;
+        const phone = document.getElementById('phoneInput')?.value;
+        const creditScore = document.getElementById('creditScoreInput')?.value;
+        
+        if (!firstName || !phone) {
+            this.showError('Please fill in all required fields');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/capture-lead-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    firstName: firstName,
+                    lastName: lastName,
+                    phone: phone,
+                    creditScore: creditScore,
+                    behavioral: this.userProfile.behavioralData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Show success step
+                this.showStep('successStep');
+                
+                this.trackInteraction('profile_completed', {
+                    leadScore: result.leadScore,
+                    tier: result.tier
+                });
+                
+                // Auto-close after 5 seconds
+                setTimeout(() => {
+                    this.hideLeadCapture();
+                }, 5000);
+                
+                console.log('👤 Profile completed successfully', result);
+            } else {
+                this.showError('Please try again');
+            }
+            
+        } catch (error) {
+            console.error('Profile capture error:', error);
+            this.showError('Connection error - please try again');
+        }
+    }
+
+    async captureExitEmail(calculatorType) {
+        const email = document.getElementById('exitIntentEmail')?.value;
+        
+        if (!email || !email.includes('@')) {
+            this.showError('Please enter a valid email address');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/capture-exit-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    calculatorType: calculatorType,
+                    results: this.currentResults,
+                    source: 'exit_intent'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.leadCaptured = true;
+                this.closeExitIntent();
+                
+                // Show success message
+                this.showSuccessMessage('✅ Success! Our verified lenders will contact you within 24 hours with personalized quotes.');
+                
+                this.trackInteraction('exit_email_captured', { email: email });
+                
+                console.log('🚪 Exit intent email captured');
+            }
+            
+        } catch (error) {
+            console.error('Exit email capture error:', error);
+            this.showError('Connection error - please try again');
+        }
+    }
+
+    // ======================
+    // UI HELPER METHODS
     // ======================
 
     showStep(stepId) {
@@ -998,7 +1000,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // TRACKING & ANALYTICS (UNCHANGED)
+    // TRACKING & ANALYTICS - FIXED (NO LOCALHOST)
     // ======================
 
     trackInteraction(type, data = {}) {
@@ -1011,8 +1013,8 @@ class CalculiQLeadIntegration {
         
         this.userProfile.interactions.push(interaction);
         
-        // Send to backend
-        fetch(`${this.apiBase}/api/track-lead-interaction`, {
+        // Send to backend - FIXED: Use relative URL
+        fetch('/api/track-lead-interaction', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1047,7 +1049,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // UTILITY METHODS (UPDATED MESSAGING)
+    // UTILITY METHODS
     // ======================
 
     isMobile() {
