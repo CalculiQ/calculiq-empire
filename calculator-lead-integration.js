@@ -615,15 +615,17 @@ class CalculiQLeadIntegration {
     // ======================
 
     async submitEmailCapture(calculatorType) {
-        const email = document.getElementById('leadEmailInput')?.value;
+            console.log('submitEmailCapture called with:', calculatorType);
+    	const email = document.getElementById('leadEmailInput')?.value;
+    console.log('Email value:', email);
         
         if (!email || !email.includes('@')) {
             this.showError('Please enter a valid email address');
             return;
         }
-        
+        console.log('About to make fetch request');
         try {
-            const response = await fetch(`${this.apiBase}/api/capture-lead-email`, {
+            const response = await fetch('/api/capture-lead-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
