@@ -4,7 +4,7 @@
 
 class CalculiQLeadIntegration {
     constructor() {
-        this.apiBase = 'http://localhost:3001';
+        this.apiBase = window.location.origin;
         this.userProfile = {
             uid: this.generateUID(),
             interactions: [],
