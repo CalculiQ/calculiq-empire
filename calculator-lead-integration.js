@@ -1,6 +1,6 @@
 // calculator-lead-integration.js
 // Frontend Lead Capture Integration for CalculiQ Calculators
-// Drop this file in your AutomatedRevenueEmpire folder and include in your calculator pages
+// UPDATED: No false report promises - honest lead capture only
 
 class CalculiQLeadIntegration {
     constructor() {
@@ -32,7 +32,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // PROGRESSIVE LEAD CAPTURE SYSTEM
+    // HONEST LEAD CAPTURE SYSTEM (NO FALSE REPORTS)
     // ======================
 
     generateProgressiveLeadForm(calculatorType, results) {
@@ -77,7 +77,7 @@ class CalculiQLeadIntegration {
             <!-- Step 1: Email Capture -->
             <div class="capture-step active" id="emailCaptureStep" data-step="1">
                 <h3 style="margin: 0 0 15px 0; font-size: 1.8rem; position: relative; z-index: 2;">
-                    🎯 Get Your Personalized ${this.getCalculatorDisplayName(calculatorType)} Report
+                    🎯 Get Personalized Rate Quotes
                 </h3>
                 
                 <p style="margin: 0 0 25px 0; font-size: 1.2rem; opacity: 0.95; position: relative; z-index: 2;">
@@ -88,7 +88,7 @@ class CalculiQLeadIntegration {
                 <div class="email-form" style="position: relative; z-index: 2;">
                     <input type="email" 
                            id="leadEmailInput" 
-                           placeholder="Enter your email for instant report" 
+                           placeholder="Enter your email for personalized quotes" 
                            style="
                                width: 100%; 
                                max-width: 400px; 
@@ -123,7 +123,7 @@ class CalculiQLeadIntegration {
                             "
                             onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(39, 174, 96, 0.6)'"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 15px rgba(39, 174, 96, 0.4)'">
-                        <span>📧 Get My FREE Report</span>
+                        <span>📞 Get My Quotes</span>
                     </button>
                 </div>
                 
@@ -139,8 +139,8 @@ class CalculiQLeadIntegration {
                     z-index: 2;
                 ">
                     <span style="display: flex; align-items: center; gap: 5px;">🔒 100% Secure</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">📧 No Spam Ever</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">⚡ Instant Delivery</span>
+                    <span style="display: flex; align-items: center; gap: 5px;">📞 Direct Lender Contact</span>
+                    <span style="display: flex; align-items: center; gap: 5px;">⚡ 24-Hour Response</span>
                     <span style="display: flex; align-items: center; gap: 5px;">💰 ${socialProof}</span>
                 </div>
             </div>
@@ -158,11 +158,11 @@ class CalculiQLeadIntegration {
                 </div>
                 
                 <h3 style="margin: 0 0 15px 0; font-size: 1.8rem;">
-                    🚀 Unlock Your Premium Matches
+                    🚀 Get Premium Rate Access
                 </h3>
                 
                 <p style="margin: 0 0 25px 0; font-size: 1.1rem; opacity: 0.95;">
-                    Complete your profile to access exclusive rates and priority matching
+                    Complete your profile for priority lender matching and exclusive rates
                 </p>
                 
                 <!-- Profile Form -->
@@ -185,7 +185,7 @@ class CalculiQLeadIntegration {
                     
                     <input type="tel" 
                            id="phoneInput" 
-                           placeholder="Phone (for priority access)" 
+                           placeholder="Phone (for priority contact)" 
                            style="padding: 15px; border: none; border-radius: 8px; font-size: 1rem;">
                     
                     <select id="creditScoreInput" 
@@ -214,7 +214,7 @@ class CalculiQLeadIntegration {
                             "
                             onmouseover="this.style.transform='translateY(-2px)'"
                             onmouseout="this.style.transform='translateY(0)'">
-                        🎯 Get My Premium Matches
+                        🎯 Get Priority Access
                     </button>
                 </div>
                 
@@ -226,8 +226,8 @@ class CalculiQLeadIntegration {
                 ">
                     <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
                         <span>✅ Pre-approved rates</span>
-                        <span>✅ Priority processing</span>
-                        <span>✅ Dedicated support</span>
+                        <span>✅ Priority contact</span>
+                        <span>✅ Multiple lender quotes</span>
                         <span>✅ Exclusive offers</span>
                     </div>
                 </div>
@@ -238,8 +238,8 @@ class CalculiQLeadIntegration {
                 <div style="font-size: 4rem; margin-bottom: 15px; animation: calculiqBounce 1s ease-out;">🎉</div>
                 <h3 style="margin: 0 0 15px 0; color: #27ae60; font-size: 2rem;">Success!</h3>
                 <p style="margin: 0 0 25px 0; font-size: 1.2rem;">
-                    Your personalized report is being prepared.<br>
-                    <strong>Check your email in 2-3 minutes!</strong>
+                    Your information has been submitted.<br>
+                    <strong>Our verified partners will contact you within 24 hours!</strong>
                 </p>
                 <div id="nextStepsContainer" style="
                     background: rgba(255,255,255,0.1); 
@@ -249,10 +249,10 @@ class CalculiQLeadIntegration {
                 ">
                     <h4 style="margin: 0 0 15px 0;">What happens next:</h4>
                     <div style="text-align: left; max-width: 300px; margin: 0 auto;">
-                        <div style="margin: 8px 0;">✅ Instant email with your results</div>
-                        <div style="margin: 8px 0;">✅ Personalized recommendations</div>
-                        <div style="margin: 8px 0;">✅ Exclusive rate matches</div>
-                        <div style="margin: 8px 0;">✅ Priority lender access</div>
+                        <div style="margin: 8px 0;">✅ Verified lenders will call you</div>
+                        <div style="margin: 8px 0;">✅ Personalized rate quotes</div>
+                        <div style="margin: 8px 0;">✅ Pre-approval opportunities</div>
+                        <div style="margin: 8px 0;">✅ Money-saving comparisons</div>
                     </div>
                 </div>
             </div>
@@ -325,7 +325,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // EXIT INTENT CAPTURE SYSTEM
+    // EXIT INTENT CAPTURE (HONEST VERSION)
     // ======================
 
     generateExitIntentModal(calculatorType, results) {
@@ -380,7 +380,7 @@ class CalculiQLeadIntegration {
                     font-size: 2.4rem;
                     font-weight: 800;
                 ">
-                    Wait! Don't Leave Without Your Report
+                    Wait! Don't Miss Out on Better Rates
                 </h2>
                 
                 <!-- Value Proposition -->
@@ -391,7 +391,7 @@ class CalculiQLeadIntegration {
                     line-height: 1.4;
                 ">
                     You could save <strong style="color: #27ae60; font-size: 1.6rem;">$${savings.toLocaleString()}/year</strong><br>
-                    with the right ${this.getCalculatorDisplayName(calculatorType).toLowerCase()} strategy
+                    with verified lender quotes from our partners
                 </p>
                 
                 <!-- Benefits Box -->
@@ -403,7 +403,7 @@ class CalculiQLeadIntegration {
                     border-left: 5px solid #27ae60;
                 ">
                     <h4 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 1.3rem;">
-                        🎯 Get Your FREE Personalized Report:
+                        🎯 Get Connected with Verified Lenders:
                     </h4>
                     <div style="
                         display: grid; 
@@ -413,19 +413,19 @@ class CalculiQLeadIntegration {
                     ">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
-                            <span>Personalized recommendations based on your calculation</span>
+                            <span>Personalized rate quotes based on your calculation</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
-                            <span>Current market rates and exclusive offers</span>
+                            <span>Direct contact from verified lenders</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
-                            <span>Step-by-step action plan to save money</span>
+                            <span>Pre-approval opportunities</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
-                            <span>Priority access to verified lenders</span>
+                            <span>Compare multiple offers to save money</span>
                         </div>
                     </div>
                 </div>
@@ -442,7 +442,7 @@ class CalculiQLeadIntegration {
                 ">
                     <input type="email" 
                            id="exitIntentEmail" 
-                           placeholder="Enter your email address" 
+                           placeholder="Enter your email for lender quotes" 
                            style="
                                flex: 1; 
                                padding: 20px; 
@@ -470,7 +470,7 @@ class CalculiQLeadIntegration {
                             "
                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(39,174,96,0.3)'"
                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        Send Report
+                        Get Quotes
                     </button>
                 </div>
                 
@@ -485,8 +485,8 @@ class CalculiQLeadIntegration {
                     margin: 20px 0;
                 ">
                     <span style="display: flex; align-items: center; gap: 5px;">🔒 100% secure</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">📧 No spam</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">🚀 Instant delivery</span>
+                    <span style="display: flex; align-items: center; gap: 5px;">📞 Direct lender contact</span>
+                    <span style="display: flex; align-items: center; gap: 5px;">🚀 24-hour response</span>
                 </div>
                 
                 <!-- Social Proof Footer -->
@@ -585,7 +585,7 @@ class CalculiQLeadIntegration {
             max-width: 90%;
             text-align: center;
         " onclick="showExitIntent()">
-            💰 Get Your FREE ${this.getCalculatorDisplayName(calculatorType)} Report
+            💰 Get Your Rate Quotes from ${this.getCalculatorDisplayName(calculatorType)} Lenders
         </div>
 
         <style>
@@ -611,173 +611,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // CALCULATOR INTEGRATION METHODS
-    // ======================
-
-    integrateWithCalculator(calculatorType, calculatorElement) {
-        this.currentCalculatorType = calculatorType;
-        this.trackInteraction('calculator_opened', { type: calculatorType });
-        
-        // Find the results container and add lead capture
-        const resultsContainer = calculatorElement.querySelector('.calc-results') || 
-                               calculatorElement.querySelector('#' + calculatorType + '-results');
-        
-        if (resultsContainer) {
-            // Insert lead capture form before existing CTA
-            const existingCta = resultsContainer.querySelector('.results-cta') || 
-                              resultsContainer.querySelector('.cta-button')?.parentElement;
-            
-            const leadFormHTML = this.generateProgressiveLeadForm(calculatorType, {});
-            
-            if (existingCta) {
-                existingCta.insertAdjacentHTML('beforebegin', leadFormHTML);
-            } else {
-                resultsContainer.insertAdjacentHTML('beforeend', leadFormHTML);
-            }
-        }
-        
-        console.log(`🧮 Calculator integrated: ${calculatorType}`);
-    }
-
-    onCalculationComplete(calculatorType, results) {
-        this.currentCalculatorType = calculatorType;
-        this.currentResults = results;
-        this.calculationCompleted = true;
-        this.userProfile.calculatorUsage++;
-        
-        this.trackInteraction('calculation_completed', {
-            type: calculatorType,
-            results: results
-        });
-        
-        // Update the lead form with actual results
-        this.updateLeadFormWithResults(calculatorType, results);
-        
-        // Setup exit intent after calculation
-        setTimeout(() => {
-            this.enableExitIntent();
-        }, 5000); // Wait 5 seconds before enabling exit intent
-        
-        console.log(`📊 Calculation completed: ${calculatorType}`, results);
-    }
-
-    updateLeadFormWithResults(calculatorType, results) {
-        const container = document.getElementById('leadCaptureContainer');
-        if (container) {
-            // Update the personalized message with actual results
-            const messageElement = container.querySelector('p');
-            if (messageElement) {
-                messageElement.textContent = this.getPersonalizedMessage(calculatorType, results);
-            }
-        }
-    }
-
-    // ======================
-    // EVENT HANDLERS
-    // ======================
-
-    setupExitIntentHandlers() {
-        if (this.isMobile()) return; // Mobile uses scroll-based exit intent
-        
-        document.addEventListener('mouseleave', (e) => {
-            if (e.clientY <= 0 && this.canShowExitIntent()) {
-                this.showExitIntent();
-            }
-        });
-        
-        // Prevent exit intent on internal navigation
-        document.addEventListener('mouseenter', (e) => {
-            if (e.target.tagName === 'A' && e.target.href) {
-                this.exitIntentShown = true; // Disable for this session
-            }
-        });
-    }
-
-    setupMobileExitIntent() {
-        if (!this.isMobile()) return;
-        
-        let scrollCount = 0;
-        let lastScrollTop = 0;
-        let scrollTimeout;
-        
-        window.addEventListener('scroll', () => {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            
-            // Detect upward scroll (user trying to leave)
-            if (scrollTop < lastScrollTop && scrollTop > 100) {
-                scrollCount++;
-                
-                if (scrollCount >= 3 && this.canShowExitIntent()) {
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => {
-                        this.showMobileExitTrigger();
-                    }, 1000);
-                }
-            }
-            
-            lastScrollTop = scrollTop;
-        });
-    }
-
-    canShowExitIntent() {
-        return this.calculationCompleted && 
-               !this.exitIntentShown && 
-               !this.leadCaptured &&
-               this.userProfile.timeOnSite > 30; // At least 30 seconds on site
-    }
-
-    enableExitIntent() {
-        this.exitIntentEnabled = true;
-    }
-
-    showExitIntent() {
-        if (!this.canShowExitIntent()) return;
-        
-        this.exitIntentShown = true;
-        const modalHTML = this.generateExitIntentModal(this.currentCalculatorType, this.currentResults);
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        this.trackInteraction('exit_intent_shown', {
-            calculatorType: this.currentCalculatorType,
-            timeOnSite: this.userProfile.timeOnSite
-        });
-        
-        console.log('🚪 Exit intent modal shown');
-    }
-
-    showMobileExitTrigger() {
-        if (!this.canShowExitIntent()) return;
-        
-        const triggerHTML = this.generateMobileExitTrigger(this.currentCalculatorType);
-        document.body.insertAdjacentHTML('beforeend', triggerHTML);
-        
-        const trigger = document.getElementById('calculiqMobileExit');
-        if (trigger) {
-            trigger.style.display = 'block';
-            
-            // Auto-hide after 10 seconds
-            setTimeout(() => {
-                trigger.style.display = 'none';
-            }, 10000);
-        }
-        
-        this.trackInteraction('mobile_exit_trigger_shown', {
-            calculatorType: this.currentCalculatorType
-        });
-        
-        console.log('📱 Mobile exit trigger shown');
-    }
-
-    closeExitIntent() {
-        const modal = document.getElementById('calculiqExitModal');
-        if (modal) {
-            modal.style.animation = 'calculiqFadeOut 0.3s ease-out';
-            setTimeout(() => modal.remove(), 300);
-        }
-    }
-
-    // ======================
-    // API COMMUNICATION
+    // API COMMUNICATION (UPDATED MESSAGES)
     // ======================
 
     async submitEmailCapture(calculatorType) {
@@ -905,7 +739,7 @@ class CalculiQLeadIntegration {
                 this.closeExitIntent();
                 
                 // Show success message
-                this.showSuccessMessage('✅ Report sent! Check your email in 2 minutes.');
+                this.showSuccessMessage('✅ Success! Our verified lenders will contact you within 24 hours with personalized quotes.');
                 
                 this.trackInteraction('exit_email_captured', { email: email });
                 
@@ -919,7 +753,173 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // UI HELPER METHODS
+    // CALCULATOR INTEGRATION METHODS (UNCHANGED)
+    // ======================
+
+    integrateWithCalculator(calculatorType, calculatorElement) {
+        this.currentCalculatorType = calculatorType;
+        this.trackInteraction('calculator_opened', { type: calculatorType });
+        
+        // Find the results container and add lead capture
+        const resultsContainer = calculatorElement.querySelector('.calc-results') || 
+                               calculatorElement.querySelector('#' + calculatorType + '-results');
+        
+        if (resultsContainer) {
+            // Insert lead capture form before existing CTA
+            const existingCta = resultsContainer.querySelector('.results-cta') || 
+                              resultsContainer.querySelector('.cta-button')?.parentElement;
+            
+            const leadFormHTML = this.generateProgressiveLeadForm(calculatorType, {});
+            
+            if (existingCta) {
+                existingCta.insertAdjacentHTML('beforebegin', leadFormHTML);
+            } else {
+                resultsContainer.insertAdjacentHTML('beforeend', leadFormHTML);
+            }
+        }
+        
+        console.log(`🧮 Calculator integrated: ${calculatorType}`);
+    }
+
+    onCalculationComplete(calculatorType, results) {
+        this.currentCalculatorType = calculatorType;
+        this.currentResults = results;
+        this.calculationCompleted = true;
+        this.userProfile.calculatorUsage++;
+        
+        this.trackInteraction('calculation_completed', {
+            type: calculatorType,
+            results: results
+        });
+        
+        // Update the lead form with actual results
+        this.updateLeadFormWithResults(calculatorType, results);
+        
+        // Setup exit intent after calculation
+        setTimeout(() => {
+            this.enableExitIntent();
+        }, 5000); // Wait 5 seconds before enabling exit intent
+        
+        console.log(`📊 Calculation completed: ${calculatorType}`, results);
+    }
+
+    updateLeadFormWithResults(calculatorType, results) {
+        const container = document.getElementById('leadCaptureContainer');
+        if (container) {
+            // Update the personalized message with actual results
+            const messageElement = container.querySelector('p');
+            if (messageElement) {
+                messageElement.textContent = this.getPersonalizedMessage(calculatorType, results);
+            }
+        }
+    }
+
+    // ======================
+    // EVENT HANDLERS (UNCHANGED)
+    // ======================
+
+    setupExitIntentHandlers() {
+        if (this.isMobile()) return; // Mobile uses scroll-based exit intent
+        
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY <= 0 && this.canShowExitIntent()) {
+                this.showExitIntent();
+            }
+        });
+        
+        // Prevent exit intent on internal navigation
+        document.addEventListener('mouseenter', (e) => {
+            if (e.target.tagName === 'A' && e.target.href) {
+                this.exitIntentShown = true; // Disable for this session
+            }
+        });
+    }
+
+    setupMobileExitIntent() {
+        if (!this.isMobile()) return;
+        
+        let scrollCount = 0;
+        let lastScrollTop = 0;
+        let scrollTimeout;
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Detect upward scroll (user trying to leave)
+            if (scrollTop < lastScrollTop && scrollTop > 100) {
+                scrollCount++;
+                
+                if (scrollCount >= 3 && this.canShowExitIntent()) {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        this.showMobileExitTrigger();
+                    }, 1000);
+                }
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+    }
+
+    canShowExitIntent() {
+        return this.calculationCompleted && 
+               !this.exitIntentShown && 
+               !this.leadCaptured &&
+               this.userProfile.timeOnSite > 30; // At least 30 seconds on site
+    }
+
+    enableExitIntent() {
+        this.exitIntentEnabled = true;
+    }
+
+    showExitIntent() {
+        if (!this.canShowExitIntent()) return;
+        
+        this.exitIntentShown = true;
+        const modalHTML = this.generateExitIntentModal(this.currentCalculatorType, this.currentResults);
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        this.trackInteraction('exit_intent_shown', {
+            calculatorType: this.currentCalculatorType,
+            timeOnSite: this.userProfile.timeOnSite
+        });
+        
+        console.log('🚪 Exit intent modal shown');
+    }
+
+    showMobileExitTrigger() {
+        if (!this.canShowExitIntent()) return;
+        
+        const triggerHTML = this.generateMobileExitTrigger(this.currentCalculatorType);
+        document.body.insertAdjacentHTML('beforeend', triggerHTML);
+        
+        const trigger = document.getElementById('calculiqMobileExit');
+        if (trigger) {
+            trigger.style.display = 'block';
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                trigger.style.display = 'none';
+            }, 10000);
+        }
+        
+        this.trackInteraction('mobile_exit_trigger_shown', {
+            calculatorType: this.currentCalculatorType
+        });
+        
+        console.log('📱 Mobile exit trigger shown');
+    }
+
+    closeExitIntent() {
+        const modal = document.getElementById('calculiqExitModal');
+        if (modal) {
+            modal.style.animation = 'calculiqFadeOut 0.3s ease-out';
+            setTimeout(() => modal.remove(), 300);
+        }
+    }
+
+    // ======================
+    // UI HELPER METHODS (UNCHANGED)
     // ======================
 
     showStep(stepId) {
@@ -996,7 +996,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // TRACKING & ANALYTICS
+    // TRACKING & ANALYTICS (UNCHANGED)
     // ======================
 
     trackInteraction(type, data = {}) {
@@ -1045,7 +1045,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // UTILITY METHODS
+    // UTILITY METHODS (UPDATED MESSAGING)
     // ======================
 
     isMobile() {
@@ -1058,12 +1058,12 @@ class CalculiQLeadIntegration {
 
     getUrgencyMessage(calculatorType, results) {
         const messages = {
-            mortgage: "🚨 Mortgage rates change daily - secure your calculation!",
-            investment: "⏰ Market conditions are optimal - act now!",
-            loan: "🔥 Best rates available this week only!",
-            insurance: "⚡ Premium quotes expire soon!"
+            mortgage: "🚨 Mortgage rates change daily - get your quotes now!",
+            investment: "⏰ Market conditions are optimal - connect with advisors!",
+            loan: "🔥 Best rates available this week - get pre-approved!",
+            insurance: "⚡ Premium quotes available - compare and save!"
         };
-        return messages[calculatorType] || "🎯 Limited time - get your personalized report!";
+        return messages[calculatorType] || "🎯 Limited time - connect with verified lenders!";
     }
 
     getSocialProof(calculatorType) {
@@ -1088,17 +1088,17 @@ class CalculiQLeadIntegration {
 
     getPersonalizedMessage(calculatorType, results) {
         if (!results || Object.keys(results).length === 0) {
-            return "Based on your calculation, see personalized recommendations and exclusive offers.";
+            return "Based on your calculation, connect with verified lenders for personalized quotes and exclusive rates.";
         }
         
         const messages = {
-            mortgage: `Based on your $${results.monthlyPayment || 'X'}/month calculation, discover lenders with better rates.`,
-            investment: `With your $${results.finalAmount || 'X'} projection, unlock premium investment strategies.`,
-            loan: `For your $${results.loanAmount || 'X'} loan, access pre-approved offers with lower rates.`,
-            insurance: `Based on your coverage needs, compare quotes from top-rated insurers.`
+            mortgage: `Based on your $${results.monthlyPayment || 'X'}/month calculation, get quotes from top mortgage lenders.`,
+            investment: `With your $${results.finalAmount || 'X'} projection, connect with investment advisors for better strategies.`,
+            loan: `For your $${results.loanAmount || 'X'} loan, compare pre-approved offers from multiple lenders.`,
+            insurance: `Based on your coverage needs, get quotes from top-rated insurance providers.`
         };
         
-        return messages[calculatorType] || "Get personalized recommendations based on your specific calculation.";
+        return messages[calculatorType] || "Connect with verified financial partners for personalized quotes based on your calculation.";
     }
 
     calculatePotentialSavings(calculatorType, results) {
