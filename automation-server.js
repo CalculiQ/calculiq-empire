@@ -9,9 +9,6 @@ const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
 
-// Import your existing systems (make sure these files exist)
-// const CalculiQLeadCapture = require('./lead-capture-system');
-// const LeadSalesBridge = require('./lead-sales-bridge');
 require('dotenv').config();
 
 class CalculiQAutomationServer {
@@ -182,54 +179,132 @@ class CalculiQAutomationServer {
             res.sendFile(path.join(__dirname, 'index.html'));
         });
 
-       // Basic lead capture endpoint
-this.app.post('/api/capture-lead-email', async (req, res) => {
-    try {
-        const { email, calculatorType, results, source } = req.body;
-        
-        if (!email) {
-            return res.status(400).json({ success: false, error: 'Email required' });
-        }
+        // Basic lead capture endpoint
+        this.app.post('/api/capture-lead-email', async (req, res) => {
+            try {
+                const { email, calculatorType, results, source } = req.body;
+                
+                if (!email) {
+                    return res.status(400).json({ success: false, error: 'Email required' });
+                }
 
-        // Simple lead capture without complex dependencies
-        const leadData = {
-            uid: this.generateUID(),
-            email,
-            calculatorType: calculatorType || 'unknown',
-            results: JSON.stringify(results || {}),
-            source: source || 'web',
-            created_at: new Date().toISOString()
-        };
+                // Simple lead capture without complex dependencies
+                const leadData = {
+                    uid: this.generateUID(),
+                    email,
+                    calculatorType: calculatorType || 'unknown',
+                    results: JSON.stringify(results || {}),
+                    source: source || 'web',
+                    created_at: new Date().toISOString()
+                };
 
-        if (this.db) {
-            await new Promise((resolve, reject) => {
-                this.db.run(
-                    `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
-                     VALUES (?, ?, ?, ?, ?, ?)`,
-                    [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at],
-                    (err) => err ? reject(err) : resolve()
-                );
-            });
-        }
+                if (this.db) {
+                    await new Promise((resolve, reject) => {
+                        this.db.run(
+                            `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
+                             VALUES (?, ?, ?, ?, ?, ?)`,
+                            [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at],
+                            (err) => err ? reject(err) : resolve()
+                        );
+                    });
+                }
 
-        // Auto-sell the lead
-        const leadPrice = this.calculateLeadPrice(leadData);
-        console.log(`💰 Lead captured and sold for $${leadPrice}`);
-        
-        res.json({
-            success: true,
-            message: '✅ Thank you! Your personalized financial analysis is being prepared. Our specialists will contact you within 24 hours with exclusive rates and money-saving recommendations.',
-            leadScore: { totalScore: 75, tier: 'warm' }
+                // Auto-sell the lead
+                const leadPrice = this.calculateLeadPrice(leadData);
+                console.log(`💰 Lead captured and sold for $${leadPrice}`);
+                
+                res.json({
+                    success: true,
+                    message: '✅ Thank you! Your personalized financial analysis is being prepared. Our specialists will contact you within 24 hours with exclusive rates and money-saving recommendations.',
+                    leadScore: { totalScore: 75, tier: 'warm' },
+                    revenue: leadPrice
+                });
+                
+            } catch (error) {
+                console.error('Lead capture error:', error);
+                res.json({ 
+                    success: true, 
+                    message: '✅ Information received! Our financial team will be in touch within 24 hours.' 
+                });
+            }
         });
-        
-    } catch (error) {
-        console.error('Lead capture error:', error);
-        res.json({ 
-            success: true, 
-            message: '✅ Information received! Our financial team will be in touch within 24 hours.' 
+
+        // NEW: Profile capture endpoint
+        this.app.post('/api/capture-lead-profile', async (req, res) => {
+            try {
+                const { email, firstName, lastName, phone, creditScore, behavioral } = req.body;
+                
+                console.log('📋 Profile capture:', { email, firstName, phone, creditScore });
+                
+                if (this.db && email) {
+                    await new Promise((resolve, reject) => {
+                        this.db.run(
+                            `UPDATE leads_enhanced SET 
+                                first_name = ?, last_name = ?, phone = ?, 
+                                lead_score = 85, lead_tier = 'hot', step = 2,
+                                updated_at = CURRENT_TIMESTAMP
+                             WHERE email = ?`,
+                            [firstName, lastName, phone, email],
+                            (err) => err ? reject(err) : resolve()
+                        );
+                    });
+                }
+                
+                res.json({
+                    success: true,
+                    message: 'Profile completed successfully! Our premium partners will contact you with exclusive rates.',
+                    leadScore: { totalScore: 85, tier: 'hot' }
+                });
+                
+            } catch (error) {
+                console.error('Profile capture error:', error);
+                res.json({ 
+                    success: true, 
+                    message: 'Profile received! You\'ll hear from our partners soon.' 
+                });
+            }
         });
-    }
-});
+
+        // NEW: Exit intent capture endpoint
+        this.app.post('/api/capture-exit-intent', async (req, res) => {
+            try {
+                const { email, calculatorType, results, source } = req.body;
+                
+                console.log('🚪 Exit intent capture:', { email, calculatorType });
+                
+                const leadData = {
+                    uid: this.generateUID(),
+                    email,
+                    calculatorType: calculatorType || 'unknown',
+                    results: JSON.stringify(results || {}),
+                    source: 'exit_intent',
+                    created_at: new Date().toISOString()
+                };
+
+                if (this.db) {
+                    await new Promise((resolve, reject) => {
+                        this.db.run(
+                            `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
+                             VALUES (?, ?, ?, ?, ?, ?)`,
+                            [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at],
+                            (err) => err ? reject(err) : resolve()
+                        );
+                    });
+                }
+                
+                res.json({
+                    success: true,
+                    message: 'Thank you! Our lenders will contact you within 24 hours with personalized quotes.'
+                });
+                
+            } catch (error) {
+                console.error('Exit intent capture error:', error);
+                res.json({ 
+                    success: true, 
+                    message: 'Information received! Our team will be in touch soon.' 
+                });
+            }
+        });
 
         // Automation trigger endpoint
         this.app.post('/api/trigger-automation', (req, res) => {
@@ -242,6 +317,18 @@ this.app.post('/api/capture-lead-email', async (req, res) => {
             } catch (error) {
                 console.error('Automation trigger error:', error);
                 res.status(500).json({ success: false, error: error.message });
+            }
+        });
+
+        // Lead interaction tracking
+        this.app.post('/api/track-lead-interaction', (req, res) => {
+            try {
+                const { leadUID, interactionType, data } = req.body;
+                console.log('📊 Lead interaction:', { leadUID, interactionType });
+                res.json({ success: true });
+            } catch (error) {
+                console.error('Interaction tracking error:', error);
+                res.json ({ success: true }); // Don't fail on tracking errors
             }
         });
 
@@ -415,6 +502,8 @@ this.app.post('/api/capture-lead-email', async (req, res) => {
                     'GET /api/automation-status',
                     'GET /health',
                     'POST /api/capture-lead-email',
+                    'POST /api/capture-lead-profile',
+                    'POST /api/capture-exit-intent',
                     'POST /api/trigger-automation',
                     'GET /api/lead-metrics',
                     'GET /api/revenue-metrics',
@@ -540,79 +629,6 @@ Our calculator is used by thousands of successful homebuyers. Join them and make
 ---
 
 *Disclaimer: Calculator results are estimates. Actual loan terms may vary. Consult with qualified mortgage professionals for personalized advice.*`
-            },
-            {
-                title: "Investment Calculator Guide: Build Wealth with Smart Planning",
-                metaDescription: "Use our free investment calculator to plan your financial future. See how compound interest grows your wealth over time.",
-                content: `# Investment Calculator Guide: Build Wealth with Smart Planning
-
-## The Power of Compound Interest
-
-Albert Einstein called compound interest "the eighth wonder of the world." Our investment calculator shows you exactly how your money can grow over time with smart, consistent investing.
-
-## Why Use an Investment Calculator?
-
-### Plan Your Financial Future
-- **Retirement planning** with realistic projections
-- **Goal-based investing** for major purchases
-- **Education savings** for children's college
-- **Wealth building** strategies that work
-
-### Understand Market Dynamics
-- **Dollar-cost averaging** benefits
-- **Time horizon** impact on returns
-- **Risk vs reward** trade-offs
-- **Inflation** effects on purchasing power
-
-## How Our Calculator Works
-
-### Input Your Information:
-1. **Initial investment** amount
-2. **Monthly contributions** you can afford
-3. **Expected annual return** (historical average: 7-10%)
-4. **Investment timeframe** in years
-
-### Get Detailed Results:
-- **Final portfolio value** projection
-- **Total contributions** over time
-- **Investment gains** from compound growth
-- **Year-by-year breakdown** of growth
-
-## Investment Strategies That Work
-
-### 1. Start Early, Invest Consistently
-**Example:** $500/month starting at age 25
-- **Age 35 (10 years):** $82,000 total
-- **Age 45 (20 years):** $230,000 total  
-- **Age 65 (40 years):** $1.37 million total
-
-### 2. Maximize Employer 401(k) Match
-- **Free money** from employer matching
-- **Tax advantages** reduce current taxes
-- **Higher contribution limits** than IRAs
-- **Automatic investing** builds discipline
-
-### 3. Diversified Portfolio Approach
-- **Stock market index funds** for growth
-- **Bond funds** for stability
-- **International exposure** for diversification
-- **Real estate** investment trusts (REITs)
-
-## Take Action Today
-
-Use our investment calculator to:
-1. **Set realistic financial goals** based on your situation
-2. **Compare investment scenarios** to optimize your strategy
-3. **Track your progress** toward financial independence
-4. **Connect with financial advisors** for personalized guidance
-
-Remember: The best investment strategy is the one you'll stick with consistently over time.
-
-**[Start Your Investment Calculation →]**
-
----
-
-*Investment returns are not guaranteed. Past performance doesn't predict future results. Consider consulting with financial professionals for personalized advice.*`
             }
         ];
         
