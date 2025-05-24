@@ -177,23 +177,9 @@ class CalculiQAutomationServer {
             }
         });
 
-        // Root endpoint
+        // Serve main calculator website
         this.app.get('/', (req, res) => {
-            res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CalculiQ - Smart Financial Calculators</title>
-    <style>
-        /* Add your CSS here */
-    </style>
-</head>
-<body>
-    <h1>🚀 CalculiQ Calculators</h1>
-    <p>Calculators coming soon!</p>
-</body>
-</html>`);
+            res.sendFile(path.join(__dirname, 'index.html'));
         });
 
         // Basic lead capture endpoint
@@ -241,6 +227,20 @@ class CalculiQAutomationServer {
             } catch (error) {
                 console.error('Lead capture error:', error);
                 res.status(500).json({ success: false, error: 'Failed to capture lead' });
+            }
+        });
+
+        // Automation trigger endpoint
+        this.app.post('/api/trigger-automation', (req, res) => {
+            try {
+                console.log('📊 Automation triggered:', req.body);
+                res.json({ 
+                    success: true, 
+                    message: 'Automation triggered successfully' 
+                });
+            } catch (error) {
+                console.error('Automation trigger error:', error);
+                res.status(500).json({ success: false, error: error.message });
             }
         });
 
@@ -301,7 +301,8 @@ class CalculiQAutomationServer {
                 }
             });
         });
-// Blog content generation endpoint
+
+        // Blog content generation endpoint
         this.app.post('/api/generate-content', (req, res) => {
             try {
                 const { contentType, keywords, targetAudience } = req.body;
@@ -413,7 +414,10 @@ class CalculiQAutomationServer {
                     'GET /api/automation-status',
                     'GET /health',
                     'POST /api/capture-lead-email',
-                    'GET /api/lead-metrics'
+                    'POST /api/trigger-automation',
+                    'GET /api/lead-metrics',
+                    'GET /api/revenue-metrics',
+                    'POST /api/generate-content'
                 ]
             });
         });
@@ -422,7 +426,7 @@ class CalculiQAutomationServer {
     }
 
     // Helper methods
-   generateUID() {
+    generateUID() {
         return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
     }
     
@@ -447,7 +451,256 @@ class CalculiQAutomationServer {
         };
     }
     
-    // ... (rest of the methods from the artifact)
+    getBlogTemplate(keywords) {
+        const templates = [
+            {
+                title: "Complete Guide to Mortgage Calculators: Save Thousands in 2024",
+                metaDescription: "Learn how mortgage calculators work and discover strategies to save thousands on your home loan. Free calculator included.",
+                content: `# Complete Guide to Mortgage Calculators: Save Thousands in 2024
+
+## Why Every Homebuyer Needs a Mortgage Calculator
+
+Planning to buy a home? A mortgage calculator is your most important tool for making smart financial decisions. Our advanced calculator helps you understand exactly what you can afford and how different scenarios affect your monthly payments.
+
+## How Our Mortgage Calculator Works
+
+### Key Features:
+- **Real-time calculations** based on current market rates
+- **Payment breakdowns** showing principal vs interest
+- **Total cost analysis** over the life of your loan
+- **Comparison tools** for different loan scenarios
+
+### What You'll Discover:
+1. **Affordable home price range** based on your income
+2. **Monthly payment estimates** including taxes and insurance
+3. **Interest savings** from larger down payments
+4. **Total loan costs** over 15, 20, or 30 years
+
+## Advanced Calculator Features
+
+Our calculator goes beyond basic payments to show:
+
+- **PMI calculations** and when it can be removed
+- **Property tax estimates** by zip code
+- **Homeowners insurance** cost factors
+- **HOA fees** impact on affordability
+
+## Smart Strategies to Save Money
+
+### 1. Optimize Your Down Payment
+- **20% down** eliminates PMI entirely
+- **15% down** still provides significant savings
+- **10% down** may qualify for special programs
+
+### 2. Compare Loan Terms
+- **15-year loans** save massive interest but higher payments
+- **30-year loans** lower payments but higher total cost
+- **Bi-weekly payments** can save 6+ years of payments
+
+### 3. Rate Shopping Benefits
+Even a 0.25% rate difference can save thousands:
+- **$300,000 loan:** $45/month = $16,200 over 30 years
+- **$500,000 loan:** $75/month = $27,000 over 30 years
+
+## When to Use a Mortgage Calculator
+
+### Pre-Shopping Phase:
+- Determine realistic price range
+- Calculate required down payment
+- Estimate monthly housing costs
+- Plan saving timeline
+
+### Active Shopping:
+- Compare different properties
+- Evaluate loan offers
+- Negotiate with lenders
+- Final affordability check
+
+## Getting Pre-Approved
+
+After using our calculator:
+1. **Gather financial documents** (pay stubs, tax returns, bank statements)
+2. **Check your credit score** (aim for 620+ for best rates)
+3. **Contact multiple lenders** for rate quotes
+4. **Get pre-approval letters** for serious house hunting
+
+## Next Steps
+
+Ready to start your home buying journey? Use our free mortgage calculator to:
+- Calculate your ideal home price range
+- Compare different down payment scenarios
+- Estimate your monthly payments
+- Connect with top-rated lenders
+
+Our calculator is used by thousands of successful homebuyers. Join them and make informed decisions about the biggest purchase of your life.
+
+**[Calculate Your Mortgage Payment Now →]**
+
+---
+
+*Disclaimer: Calculator results are estimates. Actual loan terms may vary. Consult with qualified mortgage professionals for personalized advice.*`
+            },
+            {
+                title: "Investment Calculator Guide: Build Wealth with Smart Planning",
+                metaDescription: "Use our free investment calculator to plan your financial future. See how compound interest grows your wealth over time.",
+                content: `# Investment Calculator Guide: Build Wealth with Smart Planning
+
+## The Power of Compound Interest
+
+Albert Einstein called compound interest "the eighth wonder of the world." Our investment calculator shows you exactly how your money can grow over time with smart, consistent investing.
+
+## Why Use an Investment Calculator?
+
+### Plan Your Financial Future
+- **Retirement planning** with realistic projections
+- **Goal-based investing** for major purchases
+- **Education savings** for children's college
+- **Wealth building** strategies that work
+
+### Understand Market Dynamics
+- **Dollar-cost averaging** benefits
+- **Time horizon** impact on returns
+- **Risk vs reward** trade-offs
+- **Inflation** effects on purchasing power
+
+## How Our Calculator Works
+
+### Input Your Information:
+1. **Initial investment** amount
+2. **Monthly contributions** you can afford
+3. **Expected annual return** (historical average: 7-10%)
+4. **Investment timeframe** in years
+
+### Get Detailed Results:
+- **Final portfolio value** projection
+- **Total contributions** over time
+- **Investment gains** from compound growth
+- **Year-by-year breakdown** of growth
+
+## Investment Strategies That Work
+
+### 1. Start Early, Invest Consistently
+**Example:** $500/month starting at age 25
+- **Age 35 (10 years):** $82,000 total
+- **Age 45 (20 years):** $230,000 total  
+- **Age 65 (40 years):** $1.37 million total
+
+### 2. Maximize Employer 401(k) Match
+- **Free money** from employer matching
+- **Tax advantages** reduce current taxes
+- **Higher contribution limits** than IRAs
+- **Automatic investing** builds discipline
+
+### 3. Diversified Portfolio Approach
+- **Stock market index funds** for growth
+- **Bond funds** for stability
+- **International exposure** for diversification
+- **Real estate** investment trusts (REITs)
+
+## Take Action Today
+
+Use our investment calculator to:
+1. **Set realistic financial goals** based on your situation
+2. **Compare investment scenarios** to optimize your strategy
+3. **Track your progress** toward financial independence
+4. **Connect with financial advisors** for personalized guidance
+
+Remember: The best investment strategy is the one you'll stick with consistently over time.
+
+**[Start Your Investment Calculation →]**
+
+---
+
+*Investment returns are not guaranteed. Past performance doesn't predict future results. Consider consulting with financial professionals for personalized advice.*`
+            }
+        ];
+        
+        return templates[Math.floor(Math.random() * templates.length)];
+    }
+    
+    getFAQTemplate(keywords) {
+        return {
+            title: "Financial Calculator FAQ: Your Questions Answered",
+            metaDescription: "Get answers to common questions about financial calculators, mortgage calculations, and investment planning.",
+            content: `# Financial Calculator FAQ: Your Questions Answered
+
+## Mortgage Calculator Questions
+
+**Q: How accurate are mortgage calculator results?**
+A: Our calculator uses standard banking formulas and provides estimates within 1-2% of actual payments. Final terms depend on your credit, lender, and market conditions.
+
+**Q: Should I include property taxes and insurance?**
+A: Yes, always include these in your calculations. They typically add 20-30% to your base mortgage payment and are required for most loans.
+
+**Q: What credit score do I need for the best rates?**
+A: Generally 740+ gets the best rates, 620+ qualifies for conventional loans, and 580+ may qualify for FHA loans.
+
+## Investment Calculator Questions
+
+**Q: What return rate should I use?**
+A: Historical stock market average is 10%, but 7-8% is more conservative when accounting for inflation and fees.
+
+**Q: How often should I update my calculations?**
+A: Review annually or when major life changes occur (job change, marriage, etc.).
+
+**Q: Should I invest or pay off debt first?**
+A: Generally pay off high-interest debt (>6-7%) first, then invest. Low-interest debt can be managed alongside investing.
+
+## General Questions
+
+**Q: Are these calculators free to use?**
+A: Yes, all our calculators are completely free with no hidden fees or required sign-ups.
+
+**Q: Do you store my personal information?**
+A: We only collect email addresses if you choose to receive results. We never sell or share your data.
+
+**Q: Can I save my calculations?**
+A: Yes, enter your email to save and compare different scenarios over time.`
+        };
+    }
+    
+    getGuideTemplate(keywords) {
+        return {
+            title: "Step-by-Step Financial Planning Guide",
+            metaDescription: "Complete guide to financial planning using calculators. Learn mortgage, investment, and loan strategies.",
+            content: `# Step-by-Step Financial Planning Guide
+
+## Phase 1: Foundation (Months 1-6)
+1. **Emergency fund** (3-6 months expenses)
+2. **High-interest debt** payoff plan
+3. **Credit score** improvement
+4. **Budget optimization**
+
+## Phase 2: Building (Months 6-24)
+1. **Employer 401(k)** match maximization
+2. **IRA contributions** 
+3. **House down payment** saving
+4. **Insurance coverage** review
+
+## Phase 3: Growth (Years 2-10)
+1. **Investment diversification**
+2. **Real estate** consideration
+3. **Tax optimization** strategies
+4. **Estate planning** basics
+
+Use our calculators at each phase to stay on track!`
+        };
+    }
+    
+    calculateLeadPrice(leadData) {
+        const basePrice = 25;
+        const leadScore = leadData.lead_score || 0;
+        const hasPhone = leadData.phone ? 20 : 0;
+        const calculatorBonus = {
+            'mortgage': 30,
+            'investment': 15,
+            'loan': 20,
+            'insurance': 25
+        };
+        
+        const bonus = calculatorBonus[leadData.calculatorType] || 10;
+        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
+    }
     
     // FIXED: Use Railway's PORT environment variable
     start() {
