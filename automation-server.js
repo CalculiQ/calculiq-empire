@@ -1614,8 +1614,8 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
                     </article>
                 `).join('') : `
                     <div style="text-align: center; padding: 40px; color: #666;">
-                        <h3>📝 Daily Blog Posts Coming Soon!</h3>
-                        <p>Our automated blog system will start publishing daily financial insights tomorrow.</p>
+                        <h3>📝 Fresh Content Coming Soon!</h3>
+                        <p>Check back tomorrow for expert financial insights and money-saving strategies.</p>
                     </div>
                 `}
             </div>
