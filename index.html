@@ -464,6 +464,32 @@
                 flex-direction: column;
             }
         }
+        
+        /* FIX FOR INPUT FIELDS */
+        input, select, textarea, button {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+        
+        .calculator-modal * {
+            pointer-events: auto !important;
+        }
+        
+        .calculiq-lead-capture *,
+        .profile-form *,
+        .email-form * {
+            pointer-events: auto !important;
+        }
+        
+        .calculiq-lead-capture::before,
+        .calculiq-lead-capture::after {
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body>
@@ -792,6 +818,11 @@
     </footer>
 
     <script>
+        // Helper function to format currency
+        function formatCurrency(amount) {
+            return '$' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
         // Calculator Functions
         function openCalculator(type) {
             document.getElementById(`${type}-modal`).classList.add('active');
@@ -834,16 +865,20 @@
             const totalPaid = monthlyPayment * numPayments;
             const totalInterest = totalPaid - loanAmount;
 
-            // Display results
-            document.getElementById('monthly-payment').textContent = '$' + monthlyPayment.toFixed(2).toLocaleString();
-            document.getElementById('total-interest').textContent = '$' + totalInterest.toFixed(2).toLocaleString();
-            document.getElementById('total-paid').textContent = '$' + totalPaid.toFixed(2).toLocaleString();
+            // Display results with proper formatting
+            document.getElementById('monthly-payment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('total-interest').textContent = formatCurrency(totalInterest);
+            document.getElementById('total-paid').textContent = formatCurrency(totalPaid);
             document.getElementById('mortgage-results').classList.add('show');
 
-            // Trigger lead capture
+            // Trigger lead capture with rounded values
             if (window.calculiqIntegration) {
                 window.calculiqIntegration.onCalculationComplete('mortgage', {
-                    monthlyPayment, totalInterest, totalPaid, homePrice, loanAmount
+                    monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+                    totalInterest: Math.round(totalInterest),
+                    totalPaid: Math.round(totalPaid),
+                    homePrice: Math.round(homePrice),
+                    loanAmount: Math.round(loanAmount)
                 });
             }
         }
@@ -864,16 +899,18 @@
             const totalContributions = initialInvestment + (monthlyContribution * numMonths);
             const totalEarnings = finalAmount - totalContributions;
 
-            // Display results
-            document.getElementById('final-amount').textContent = '$' + finalAmount.toFixed(2).toLocaleString();
-            document.getElementById('total-contributions').textContent = '$' + totalContributions.toFixed(2).toLocaleString();
-            document.getElementById('total-earnings').textContent = '$' + totalEarnings.toFixed(2).toLocaleString();
+            // Display results with proper formatting
+            document.getElementById('final-amount').textContent = formatCurrency(finalAmount);
+            document.getElementById('total-contributions').textContent = formatCurrency(totalContributions);
+            document.getElementById('total-earnings').textContent = formatCurrency(totalEarnings);
             document.getElementById('investment-results').classList.add('show');
 
-            // Trigger lead capture
+            // Trigger lead capture with rounded values
             if (window.calculiqIntegration) {
                 window.calculiqIntegration.onCalculationComplete('investment', {
-                    finalAmount, totalContributions, totalEarnings
+                    finalAmount: Math.round(finalAmount),
+                    totalContributions: Math.round(totalContributions),
+                    totalEarnings: Math.round(totalEarnings)
                 });
             }
         }
@@ -892,16 +929,19 @@
             const totalRepayment = monthlyPayment * numPayments;
             const totalInterest = totalRepayment - loanAmount;
 
-            // Display results
-            document.getElementById('loan-monthly-payment').textContent = '$' + monthlyPayment.toFixed(2).toLocaleString();
-            document.getElementById('loan-total-interest').textContent = '$' + totalInterest.toFixed(2).toLocaleString();
-            document.getElementById('loan-total-repayment').textContent = '$' + totalRepayment.toFixed(2).toLocaleString();
+            // Display results with proper formatting
+            document.getElementById('loan-monthly-payment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('loan-total-interest').textContent = formatCurrency(totalInterest);
+            document.getElementById('loan-total-repayment').textContent = formatCurrency(totalRepayment);
             document.getElementById('loan-results').classList.add('show');
 
-            // Trigger lead capture
+            // Trigger lead capture with rounded values
             if (window.calculiqIntegration) {
                 window.calculiqIntegration.onCalculationComplete('loan', {
-                    monthlyPayment, totalInterest, totalRepayment, loanAmount
+                    monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+                    totalInterest: Math.round(totalInterest),
+                    totalRepayment: Math.round(totalRepayment),
+                    loanAmount: Math.round(loanAmount)
                 });
             }
         }
@@ -922,16 +962,18 @@
             
             const coverageMultiple = insuranceCoverage / annualIncome;
 
-            // Display results
-            document.getElementById('insurance-coverage').textContent = '$' + insuranceCoverage.toFixed(0).toLocaleString();
-            document.getElementById('insurance-premium').textContent = '$' + monthlyPremium.toFixed(2).toLocaleString();
+            // Display results with proper formatting
+            document.getElementById('insurance-coverage').textContent = formatCurrency(insuranceCoverage);
+            document.getElementById('insurance-premium').textContent = formatCurrency(monthlyPremium);
             document.getElementById('coverage-multiple').textContent = coverageMultiple.toFixed(1) + 'x';
             document.getElementById('insurance-results').classList.add('show');
 
-            // Trigger lead capture
+            // Trigger lead capture with rounded values
             if (window.calculiqIntegration) {
                 window.calculiqIntegration.onCalculationComplete('insurance', {
-                    insuranceCoverage, monthlyPremium, coverageMultiple
+                    insuranceCoverage: Math.round(insuranceCoverage),
+                    monthlyPremium: Math.round(monthlyPremium * 100) / 100,
+                    coverageMultiple: Math.round(coverageMultiple * 10) / 10
                 });
             }
         }
@@ -957,6 +999,50 @@
                 alert('Thanks for signing up! We\'ll be in touch soon.');
             }
         }
+
+        // Fix for input fields not working
+        document.addEventListener('DOMContentLoaded', function() {
+            // Force fix for dynamically generated inputs
+            setInterval(() => {
+                // Find all inputs in the lead capture forms
+                const inputs = document.querySelectorAll(
+                    '#firstNameInput, #lastNameInput, #phoneInput, #creditScoreInput, ' +
+                    '#leadEmailInput, #exitIntentEmail, .input-field, input[type="text"], ' +
+                    'input[type="email"], input[type="tel"], select'
+                );
+                
+                inputs.forEach(input => {
+                    // Remove any blocking styles
+                    if (input) {
+                        input.style.position = 'relative';
+                        input.style.zIndex = '9999';
+                        input.style.pointerEvents = 'auto';
+                        
+                        // Force enable the input
+                        input.disabled = false;
+                        input.readOnly = false;
+                        
+                        // Add click handler if missing
+                        if (!input.hasAttribute('data-click-fixed')) {
+                            input.setAttribute('data-click-fixed', 'true');
+                            input.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                this.focus();
+                            });
+                        }
+                    }
+                });
+                
+                // Also fix any parent containers
+                const containers = document.querySelectorAll('.calculiq-lead-capture, .profile-form, .email-form');
+                containers.forEach(container => {
+                    if (container) {
+                        container.style.position = 'relative';
+                        container.style.zIndex = '1000';
+                    }
+                });
+            }, 500); // Check every 500ms
+        });
     </script>
 </body>
 </html>
