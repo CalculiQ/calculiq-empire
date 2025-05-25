@@ -1162,6 +1162,29 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             }
         });
 
+// Delete blog post endpoint
+this.app.delete('/api/blog/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        
+        if (!this.db) {
+            return res.status(500).json({ success: false, error: 'Database not available' });
+        }
+        
+        await new Promise((resolve, reject) => {
+            this.db.run(
+                'DELETE FROM blog_posts WHERE slug = ?',
+                [slug],
+                (err) => err ? reject(err) : resolve()
+            );
+        });
+        
+        res.json({ success: true, message: 'Blog post deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
         // Basic lead capture endpoint
         this.app.post('/api/capture-lead-email', async (req, res) => {
             try {
