@@ -617,7 +617,7 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
 
 async generateOpenAIBlog(calculatorType, marketData) {
         const prompts = {
-            mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
+            mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
 Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
 
 CRITICAL TITLE REQUIREMENTS:
@@ -630,7 +630,7 @@ CRITICAL TITLE REQUIREMENTS:
 Within the article, naturally mention and link to our mortgage calculator as a helpful tool.
 Topics: down payment strategies, rate shopping, first-time buyer tips, refinancing opportunities.`,
 
-            investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
+            investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
 Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
 
 CRITICAL TITLE REQUIREMENTS:
@@ -643,7 +643,7 @@ CRITICAL TITLE REQUIREMENTS:
 Within the article, naturally mention and link to our investment calculator as a planning tool.
 Topics: compound interest power, portfolio diversification, retirement strategies, market timing.`,
 
-            loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
+            loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
 Include: Current rate environment, consolidation opportunities, credit optimization.
 
 CRITICAL TITLE REQUIREMENTS:
@@ -656,7 +656,7 @@ CRITICAL TITLE REQUIREMENTS:
 Within the article, naturally mention and link to our loan calculator for comparing options.
 Topics: debt consolidation, personal loan uses, credit score improvement, refinancing strategies.`,
 
-            insurance: `Write a comprehensive 1,500+ word blog post about protecting your family and financial security for ${new Date().toLocaleDateString()}.
+            insurance: `Write a comprehensive 1,500+ word blog post about protecting your family and financial security for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
 Include: Life insurance trends, coverage needs analysis, premium factors.
 
 CRITICAL TITLE REQUIREMENTS:
