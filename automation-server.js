@@ -1,5 +1,5 @@
 // automation-server.js
-// Complete Server with Newsletter + Dynamic Blog System
+// Complete Server with Newsletter + Blog System
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
@@ -11,9 +11,6 @@ const path = require('path');
 const fs = require('fs').promises;
 
 require('dotenv').config();
-
-// Import the dynamic blog generator
-const DynamicBlogGenerator = require('./dynamic-blog-generator');
 
 class CalculiQAutomationServer {
     constructor() {
@@ -243,34 +240,22 @@ class CalculiQAutomationServer {
 
     async generateAndPublishDailyBlog() {
         try {
-            // Use the new dynamic generator
-            const generator = new DynamicBlogGenerator();
-            
-            // Rotate through calculator types based on day
-            const types = ['mortgage', 'investment', 'loan', 'insurance'];
             const today = new Date();
-            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
-            const calculatorType = types[dayOfYear % 4];
+            const dayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
             
-            // Generate completely unique article with full SEO content
-            const article = await generator.generateArticle(calculatorType);
+            // Get current market data for content
+            const marketData = await this.fetchCurrentMarketData();
             
-            // Save to database with proper formatting
-            await this.saveBlogPost({
-                slug: article.slug,
-                title: article.title,
-                content: article.content,
-                excerpt: article.excerpt,
-                category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-                tags: `${article.calculatorType},calculator,${today.getFullYear()},financial calculator`,
-                meta_description: article.metaDescription,
-                status: 'published'
-            });
+            // Generate blog content
+            const blogPost = await this.generateBlogContent(dayName, marketData);
             
-            console.log(`✅ Dynamic SEO blog published: "${article.title}"`);
+            // Save to database
+            await this.saveBlogPost(blogPost);
+            
+            console.log(`✅ Daily blog published: "${blogPost.title}"`);
             
         } catch (error) {
-            console.error('❌ Dynamic blog generation failed:', error);
+            console.error('❌ Daily blog generation failed:', error);
         }
     }
 
@@ -320,6 +305,189 @@ class CalculiQAutomationServer {
         return content;
     }
 
+    async generateBlogContent(dayName, marketData) {
+        const blogTopics = {
+            monday: [
+                "Market Monday: This Week's Financial Outlook",
+                "Mortgage Monday: Today's Rates and Trends",
+                "Money Monday: Weekly Financial Planning Tips"
+            ],
+            tuesday: [
+                "Tax Tuesday: Smart Strategies to Save Money",
+                "Investment Tuesday: Building Your Portfolio",
+                "Budgeting Tuesday: Track Your Spending"
+            ],
+            wednesday: [
+                "Wealth Wednesday: Long-term Financial Planning",
+                "Insurance Wednesday: Protecting Your Assets",
+                "Credit Wednesday: Improving Your Score"
+            ],
+            thursday: [
+                "Retirement Thursday: Planning Your Future",
+                "Real Estate Thursday: Home Buying Tips",
+                "Savings Thursday: Emergency Fund Strategies"
+            ],
+            friday: [
+                "Finance Friday: Week in Review",
+                "Calculator Friday: How to Use Our Tools",
+                "FAQ Friday: Your Questions Answered"
+            ],
+            saturday: [
+                "Weekend Reads: Financial Education",
+                "Success Saturday: Real Customer Stories",
+                "Planning Saturday: Weekend Money Tasks"
+            ],
+            sunday: [
+                "Sunday Prep: Week Ahead Financial Planning",
+                "Reflection Sunday: Monthly Money Review",
+                "Family Sunday: Teaching Kids About Money"
+            ]
+        };
+
+        const topics = blogTopics[dayName];
+        const selectedTopic = topics[Math.floor(Math.random() * topics.length)];
+        
+        // Generate content based on the day and topic
+        const content = this.createBlogContent(dayName, selectedTopic, marketData);
+        
+        return {
+            title: content.title,
+            slug: this.createSlug(content.title),
+            content: content.html,
+            excerpt: content.excerpt,
+            category: content.category,
+            tags: content.tags.join(','),
+            metaDescription: content.metaDescription
+        };
+    }
+
+    createBlogContent(dayName, topic, marketData) {
+        if (dayName === 'monday') {
+            return {
+                title: `Market Monday: This Week's Financial Outlook - ${new Date().toLocaleDateString()}`,
+                excerpt: `Start your week with the latest market trends and mortgage rates. Current 30-year rates at ${marketData.rates.mortgage.thirtyYear}%.`,
+                category: 'Market Analysis',
+                tags: ['markets', 'mortgage rates', 'weekly outlook'],
+                metaDescription: `Weekly financial market outlook with current mortgage rates and investment trends for ${new Date().toLocaleDateString()}.`,
+                html: `
+                <article class="blog-post">
+                    <header>
+                        <h1>Market Monday: This Week's Financial Outlook</h1>
+                        <p class="post-meta">Published ${new Date().toLocaleDateString()} | 3 min read</p>
+                    </header>
+                    
+                    <section>
+                        <h2>📈 Current Market Snapshot</h2>
+                        <p>As we start a new week, here's what's happening in the financial markets:</p>
+                        
+                        <div class="rate-box">
+                            <h3>🏠 Mortgage Rates Today</h3>
+                            <ul>
+                                <li>30-Year Fixed: <strong>${marketData.rates.mortgage.thirtyYear}%</strong></li>
+                                <li>15-Year Fixed: <strong>${marketData.rates.mortgage.fifteenYear}%</strong></li>
+                                <li>Trend: <strong>${marketData.rates.mortgage.trend}</strong></li>
+                            </ul>
+                        </div>
+                        
+                        <h2>💡 What This Means for You</h2>
+                        <p>With rates ${marketData.rates.mortgage.trend}, here's what homebuyers should know:</p>
+                        <ul>
+                            <li>Use our mortgage calculator to see how current rates affect your payment</li>
+                            <li>Consider rate locks if you're in the application process</li>
+                            <li>Explore different loan terms to find the best fit</li>
+                        </ul>
+                        
+                        <div class="cta-box">
+                            <h3>Ready to Explore Your Options?</h3>
+                            <p>Get personalized mortgage quotes based on today's rates.</p>
+                            <a href="/" class="cta-button">Calculate My Payment</a>
+                        </div>
+                    </section>
+                </article>
+                `
+            };
+        } else if (dayName === 'friday') {
+            return {
+                title: `Finance Friday: This Week's Money Recap - ${new Date().toLocaleDateString()}`,
+                excerpt: `Weekly wrap-up of financial markets, rate changes, and what it means for your money decisions.`,
+                category: 'Weekly Recap',
+                tags: ['weekly recap', 'finance news', 'market summary'],
+                metaDescription: `Weekly financial recap covering market performance, rate changes, and money management tips.`,
+                html: `
+                <article class="blog-post">
+                    <header>
+                        <h1>Finance Friday: This Week's Money Recap</h1>
+                        <p class="post-meta">Published ${new Date().toLocaleDateString()} | 3 min read</p>
+                    </header>
+                    
+                    <section>
+                        <h2>📊 Week in Numbers</h2>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <h3>Mortgage Rates</h3>
+                                <p>30-Year: <strong>${marketData.rates.mortgage.thirtyYear}%</strong></p>
+                            </div>
+                            <div class="stat-item">
+                                <h3>Market Performance</h3>
+                                <p>S&P 500: <strong>${marketData.markets.sp500 > 0 ? '+' : ''}${marketData.markets.sp500}%</strong></p>
+                            </div>
+                        </div>
+                        
+                        <h2>🎯 Action Items for Next Week</h2>
+                        <ol>
+                            <li>Review your budget and spending</li>
+                            <li>Check investment account performance</li>
+                            <li>Research rates for any major purchases</li>
+                            <li>Plan your weekend money tasks</li>
+                        </ol>
+                        
+                        <div class="cta-box">
+                            <h3>Take the Weekend Challenge</h3>
+                            <p>Spend 15 minutes exploring your financial scenarios.</p>
+                            <a href="/" class="cta-button">Start Calculating</a>
+                        </div>
+                    </section>
+                </article>
+                `
+            };
+        } else {
+            // Default content for other days
+            return {
+                title: `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} Financial Tips - ${new Date().toLocaleDateString()}`,
+                excerpt: `Daily financial insights and money management tips for ${dayName}.`,
+                category: 'Financial Tips',
+                tags: ['finance', 'money tips', 'financial planning'],
+                metaDescription: `Daily financial insights and practical money management advice for ${dayName}.`,
+                html: `
+                <article class="blog-post">
+                    <header>
+                        <h1>${dayName.charAt(0).toUpperCase() + dayName.slice(1)} Financial Insights</h1>
+                        <p class="post-meta">Published ${new Date().toLocaleDateString()} | 3 min read</p>
+                    </header>
+                    
+                    <section>
+                        <h2>💡 Today's Financial Focus</h2>
+                        <p>Smart money management starts with having the right information and tools to make informed decisions.</p>
+                        
+                        <h2>📊 Current Market Context</h2>
+                        <ul>
+                            <li>30-Year Mortgage Rates: ${marketData.rates.mortgage.thirtyYear}%</li>
+                            <li>Market Trend: ${marketData.markets.sp500 > 0 ? 'Positive' : 'Cautious'}</li>
+                            <li>Planning Opportunity: Great time to review your financial strategy</li>
+                        </ul>
+                        
+                        <div class="cta-box">
+                            <h3>Explore Your Financial Options</h3>
+                            <p>Use our free calculators to make informed decisions.</p>
+                            <a href="/" class="cta-button">Try Our Calculators</a>
+                        </div>
+                    </section>
+                </article>
+                `
+            };
+        }
+    }
+
     generateNewsletterHTML(marketData, tip) {
         const rates = marketData.rates.mortgage;
         
@@ -341,88 +509,6 @@ class CalculiQAutomationServer {
                 .cta-button { background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 10px 0; }
                 .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 0.9rem; color: #666; }
             </style>
-        </head>
-        <body>
-            <nav class="nav">
-                <a href="/" class="nav-link">🏠 Home</a>
-                <a href="/blog" class="nav-link">📝 Blog</a>
-                <a href="/#calculators" class="nav-link">🧮 Calculators</a>
-            </nav>
-            
-            ${post.content}
-            
-            <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
-                <p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()} • ${post.view_count || 0} views</p>
-                <a href="/blog" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">← Back to Blog</a>
-            </div>
-        </body>
-        </html>
-        `;
-    }
-
-    // Helper methods
-    generateUID() {
-        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
-    }
-    
-    calculateLeadPrice(leadData) {
-        const basePrice = 25;
-        const leadScore = leadData.lead_score || 0;
-        const hasPhone = leadData.phone ? 20 : 0;
-        const calculatorBonus = {
-            'mortgage': 30,
-            'investment': 15,
-            'loan': 20,
-            'insurance': 25
-        };
-        
-        const bonus = calculatorBonus[leadData.calculatorType] || 10;
-        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
-    }
-    
-    // FIXED: Use Railway's PORT environment variable
-    start() {
-        const port = process.env.PORT || 3001;
-        const host = process.env.HOST || '0.0.0.0';
-        
-        this.app.listen(port, host, () => {
-            console.log(`
-🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
-
-✅ Host: ${host}:${port}
-✅ Environment: ${process.env.NODE_ENV || 'development'}
-✅ Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}
-✅ Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}
-✅ Health Check: /api/automation-status
-✅ Alternative Health: /health
-
-📧 Newsletter System: Automated weekly emails every Monday at 9 AM
-📝 Blog System: Dynamic SEO-optimized posts every day at 8 AM
-
-🌐 Server is ready to accept connections
-📊 API endpoints are active
-🎯 Lead capture system is ready
-
-⚡ Your CalculiQ server is LIVE!
-            `);
-        });
-
-        // Graceful shutdown
-        process.on('SIGTERM', () => {
-            console.log('SIGTERM signal received: closing HTTP server');
-            if (this.db) {
-                this.db.close();
-            }
-            process.exit(0);
-        });
-    }
-}
-
-// Start the server
-const server = new CalculiQAutomationServer();
-server.start();
-
-module.exports = CalculiQAutomationServer;
         </head>
         <body>
             <div class="header">
@@ -615,7 +701,7 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
                         blogPost.excerpt,
                         blogPost.category,
                         blogPost.tags,
-                        blogPost.metaDescription || blogPost.meta_description,
+                        blogPost.metaDescription,
                         new Date().toISOString()
                     ],
                     (err) => err ? reject(err) : resolve()
@@ -928,50 +1014,11 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             }
         });
 
-        // Test blog endpoint with preview
+        // Test blog endpoint
         this.app.post('/api/publish-test-blog', async (req, res) => {
             try {
-                const generator = new DynamicBlogGenerator();
-                
-                // Allow specifying calculator type for testing
-                const { calculatorType = 'mortgage', preview = false } = req.body;
-                
-                // Generate article
-                const article = await generator.generateArticle(calculatorType);
-                
-                if (preview) {
-                    // Just return preview without saving
-                    res.json({ 
-                        success: true, 
-                        preview: true,
-                        article: {
-                            title: article.title,
-                            slug: article.slug,
-                            excerpt: article.excerpt,
-                            wordCount: article.content.split(' ').length,
-                            metaDescription: article.metaDescription
-                        }
-                    });
-                } else {
-                    // Save and publish
-                    await this.saveBlogPost({
-                        slug: article.slug,
-                        title: article.title,
-                        content: article.content,
-                        excerpt: article.excerpt,
-                        category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-                        tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
-                        meta_description: article.metaDescription,
-                        status: 'published'
-                    });
-                    
-                    res.json({ 
-                        success: true, 
-                        message: 'Test blog published successfully',
-                        title: article.title,
-                        slug: article.slug
-                    });
-                }
+                await this.generateAndPublishDailyBlog();
+                res.json({ success: true, message: 'Test blog published successfully' });
             } catch (error) {
                 console.error('Test blog error:', error);
                 res.status(500).json({ success: false, error: error.message });
@@ -1438,7 +1485,7 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             });
         });
         
-        console.log('✅ CalculiQ API routes configured with newsletter + dynamic blog systems');
+        console.log('✅ CalculiQ API routes configured with newsletter + blog systems');
     }
 
     generateBlogIndexPage(posts) {
@@ -1516,170 +1563,3 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
                     text-decoration: none;
                 }
                 .cta-section {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 40px;
-                    border-radius: 15px;
-                    text-align: center;
-                    margin-top: 40px;
-                }
-                .cta-button {
-                    background: white;
-                    color: #667eea;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    display: inline-block;
-                    margin-top: 15px;
-                }
-                .nav-link {
-                    color: #646cff;
-                    text-decoration: none;
-                    margin: 0 15px;
-                }
-                .nav-link:hover {
-                    text-decoration: underline;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>📊 CalculiQ Financial Blog</h1>
-                <p>Daily insights to make smarter money decisions</p>
-                <nav style="margin-top: 20px;">
-                    <a href="/" class="nav-link">🏠 Home</a>
-                    <a href="/blog" class="nav-link">📝 Blog</a>
-                    <a href="/#calculators" class="nav-link">🧮 Calculators</a>
-                </nav>
-            </div>
-            
-            <div class="post-grid">
-                ${posts.length > 0 ? posts.map(post => `
-                    <article class="post-card">
-                        <h2><a href="/blog/${post.slug}" class="post-title">${post.title}</a></h2>
-                        <div class="post-meta">
-                            ${new Date(post.published_at).toLocaleDateString()} • 
-                            <span class="post-category">${post.category}</span> • 
-                            ${post.view_count || 0} views
-                        </div>
-                        <p class="post-excerpt">${post.excerpt}</p>
-                    </article>
-                `).join('') : `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <h3>📝 Fresh Content Coming Soon!</h3>
-                        <p>Check back tomorrow for expert financial insights and money-saving strategies.</p>
-                    </div>
-                `}
-            </div>
-            
-            <div class="cta-section">
-                <h2>Ready to Calculate Your Financial Future?</h2>
-                <p>Use our free calculators to make informed financial decisions</p>
-                <a href="/" class="cta-button">Try Our Calculators</a>
-            </div>
-        </body>
-        </html>
-        `;
-    }
-
-    generateBlogPostPage(post) {
-        return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${post.title} - CalculiQ Blog</title>
-            <meta name="description" content="${post.meta_description}">
-            <style>
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                .nav {
-                    text-align: center;
-                    padding: 20px 0;
-                    border-bottom: 1px solid #eee;
-                    margin-bottom: 30px;
-                }
-                .nav-link {
-                    color: #646cff;
-                    text-decoration: none;
-                    margin: 0 15px;
-                }
-                .blog-post h1 {
-                    color: #1a1f3a;
-                    font-size: 2.2rem;
-                    margin-bottom: 15px;
-                }
-                .blog-post h2 {
-                    color: #1a1f3a;
-                    font-size: 1.5rem;
-                    margin: 30px 0 15px 0;
-                }
-                .blog-post h3 {
-                    color: #1a1f3a;
-                    font-size: 1.2rem;
-                    margin: 25px 0 10px 0;
-                }
-                .post-meta {
-                    color: #666;
-                    font-size: 0.9rem;
-                    padding-bottom: 20px;
-                    border-bottom: 1px solid #eee;
-                    margin-bottom: 30px;
-                }
-                .rate-box, .tip-box, .calculator-highlight, .cta-box {
-                    background: #f8f9fa;
-                    padding: 20px;
-                    border-radius: 8px;
-                    margin: 20px 0;
-                    border-left: 4px solid #646cff;
-                }
-                .cta-box {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    text-align: center;
-                }
-                .cta-button {
-                    background: white;
-                    color: #667eea;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    display: inline-block;
-                    margin-top: 10px;
-                }
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
-                    margin: 20px 0;
-                }
-                .stat-item {
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 8px;
-                    text-align: center;
-                }
-                a {
-                    color: #646cff;
-                    text-decoration: none;
-                }
-                a:hover {
-                    text-decoration: underline;
-                }
-                ul, ol {
-                    margin: 15px 0;
-                    padding-left: 20px;
-                }
-                li {
-                    margin: 8px 0;
-                }
-            </style>
