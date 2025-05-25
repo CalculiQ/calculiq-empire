@@ -1,5 +1,14 @@
 // automation-server.js
 // Complete Server with Newsletter + Blog System - PostgreSQL Compatible
+
+// Add this at the very top, before any other code
+console.log('🚀 Starting CalculiQ server...');
+console.log('📊 Environment check:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT);
+console.log('- DATABASE_URL exists:', !!process.env.DATABASE_URL);
+
+// Rest of your code...
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -11,6 +20,8 @@ const path = require('path');
 const fs = require('fs').promises;
 
 require('dotenv').config();
+
+console.log('✅ Dotenv loaded');
 
 class CalculiQAutomationServer {
     constructor() {
