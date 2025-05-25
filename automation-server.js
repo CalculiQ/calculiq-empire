@@ -1810,7 +1810,7 @@ module.exports = CalculiQAutomationServer;ators</a>
         `;
     }
 
-    generateBlogPostPage(post) {
+ generateBlogPostPage(post) {
         return `
         <!DOCTYPE html>
         <html lang="en">
@@ -1915,4 +1915,323 @@ module.exports = CalculiQAutomationServer;ators</a>
             <nav class="nav">
                 <a href="/" class="nav-link">🏠 Home</a>
                 <a href="/blog" class="nav-link">📝 Blog</a>
-                <a href="/#calculators" class="nav-link">🧮 Calcul
+                <a href="/#calculators" class="nav-link">🧮 Calculators</a>
+            </nav>
+            
+            <article class="blog-post">
+                <h1>${post.title}</h1>
+                <div class="post-meta">
+                    Published ${new Date(post.published_at).toLocaleDateString()} • 
+                    <span style="background: #646cff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${post.category}</span>
+                </div>
+                
+                ${post.content}
+                
+                <div class="cta-box" style="margin-top: 40px;">
+                    <h3>Ready to Calculate Your ${post.category} Strategy?</h3>
+                    <p>Use our free ${post.category.toLowerCase()} calculator to get personalized insights and connect with verified lenders.</p>
+                    <a href="/" class="cta-button">Try Our ${post.category} Calculator</a>
+                </div>
+            </article>
+            
+            <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
+                <p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()}</p>
+                <a href="/blog" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">← Back to Blog</a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generatePrivacyPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Privacy Policy - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; margin-bottom: 30px; }
+                h2 { color: #1a1f3a; margin-top: 30px; margin-bottom: 15px; }
+                p { margin-bottom: 15px; }
+                .last-updated { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 30px; }
+                .highlight { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }
+                a { color: #646cff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <h1>CalculiQ Privacy Policy</h1>
+            <div class="last-updated">
+                <strong>Last Updated:</strong> ${new Date().toLocaleDateString()}
+            </div>
+            
+            <h2>Information We Collect</h2>
+            <p>We collect information you provide when using our calculators, including:</p>
+            <ul>
+                <li>Email addresses when you request personalized reports</li>
+                <li>Contact information (name, phone) when you complete profile forms</li>
+                <li>Financial calculation data you input into our calculators</li>
+                <li>Usage analytics and website interaction data</li>
+            </ul>
+            
+            <h2>How We Use Your Information</h2>
+            <p>We use your information to:</p>
+            <ul>
+                <li>Provide personalized financial recommendations and reports</li>
+                <li>Connect you with relevant financial service providers and lenders</li>
+                <li>Improve our calculators and website functionality</li>
+                <li>Send you relevant financial tips and offers (with your consent)</li>
+            </ul>
+            
+            <h2>Information Sharing</h2>
+            <div class="highlight">
+                <p><strong>Important:</strong> We may share your information with trusted financial partners and lenders to provide you with relevant offers and services. This is how we're able to offer our calculators for free.</p>
+            </div>
+            <p>We may share your information with:</p>
+            <ul>
+                <li>Verified mortgage lenders, loan providers, and financial institutions</li>
+                <li>Insurance companies and brokers</li>
+                <li>Investment advisors and financial planners</li>
+                <li>Service providers who help us operate our website</li>
+            </ul>
+            
+            <h2>Your Rights and Controls</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Opt out of marketing communications by clicking unsubscribe links</li>
+                <li>Request access to your personal information</li>
+                <li>Request correction or deletion of your data</li>
+                <li>Limit how your information is shared</li>
+            </ul>
+            
+            <h2>Data Security</h2>
+            <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+            
+            <h2>Contact Us</h2>
+            <p>Questions about privacy? Contact us:</p>
+            <p><strong>Email:</strong> privacy@calculiq.com<br>
+            <strong>Response Time:</strong> Within 24-48 hours</p>
+            
+            <div style="margin-top: 50px; text-align: center;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateTermsPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Terms of Service - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; margin-bottom: 30px; }
+                h2 { color: #1a1f3a; margin-top: 30px; margin-bottom: 15px; }
+                p { margin-bottom: 15px; }
+                .last-updated { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 30px; }
+                .highlight { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }
+                a { color: #646cff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <h1>CalculiQ Terms of Service</h1>
+            <div class="last-updated">
+                <strong>Last Updated:</strong> ${new Date().toLocaleDateString()}
+            </div>
+            
+            <h2>Calculator Estimates</h2>
+            <p>Our calculators provide estimates only. Actual financial terms may differ from calculator results.</p>
+            
+            <h2>Third-Party Services</h2>
+            <p>We may recommend third-party financial services. We are not responsible for their services or terms.</p>
+            
+            <h2>No Financial Advice</h2>
+            <p>Our calculators and recommendations do not constitute professional financial advice.</p>
+            
+            <h2>Contact</h2>
+            <p>Questions? Contact: legal@calculiq.com</p>
+            
+            <div style="margin-top: 50px; text-align: center;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateContactPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Contact - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; text-align: center; }
+                .contact-card { background: #f8f9fa; padding: 30px; border-radius: 12px; margin: 20px 0; }
+                a { color: #646cff; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <h1>Contact CalculiQ</h1>
+            
+            <div class="contact-card">
+                <h3>📧 Email Support</h3>
+                <p><strong>General:</strong> support@calculiq.com</p>
+                <p><strong>Privacy:</strong> privacy@calculiq.com</p>
+                <p><strong>Response Time:</strong> 24-48 hours</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateDoNotSellPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Do Not Sell My Info - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; }
+                .highlight { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                a { color: #646cff; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <h1>Do Not Sell My Info</h1>
+            
+            <div class="highlight">
+                <p><strong>California Privacy Rights (CCPA)</strong></p>
+                <p>California residents can opt out of information sharing for marketing purposes.</p>
+            </div>
+            
+            <h2>To Opt Out:</h2>
+            <p>Email us at: <strong>privacy@calculiq.com</strong></p>
+            <p>Include: Your name, email, and "Do Not Sell Request"</p>
+            <p>We'll process your request within 15 business days.</p>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    // Helper methods
+    generateUID() {
+        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
+    }
+    
+    calculateLeadPrice(leadData) {
+        const basePrice = 25;
+        const leadScore = leadData.lead_score || 0;
+        const hasPhone = leadData.phone ? 20 : 0;
+        const calculatorBonus = {
+            'mortgage': 30,
+            'investment': 15,
+            'loan': 20,
+            'insurance': 25
+        };
+        
+        const bonus = calculatorBonus[leadData.calculatorType] || 10;
+        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
+    }
+    
+    start() {
+        const port = process.env.PORT || 3001;
+        const host = '0.0.0.0';
+        
+        this.app.listen(port, host, () => {
+            console.log(`
+🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
+
+✅ Host: ${host}:${port}
+✅ Environment: ${process.env.NODE_ENV || 'development'}
+✅ Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}
+✅ Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}
+✅ Health Check: /api/automation-status
+✅ Alternative Health: /health
+
+📧 Newsletter System: Automated weekly emails every Monday at 9 AM
+📝 Blog System: Automated daily posts every day at 8 AM
+
+🌐 Server is ready to accept connections
+📊 API endpoints are active
+🎯 Lead capture system is ready
+
+⚡ Your CalculiQ server is LIVE!
+            `);
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('SIGTERM signal received: closing HTTP server');
+            if (this.db) {
+                this.db.end();
+            }
+            process.exit(0);
+        });
+    }
+}
+
+// Start the server
+const server = new CalculiQAutomationServer();
+server.start();
+
+module.exports = CalculiQAutomationServer;
