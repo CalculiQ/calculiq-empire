@@ -9,7 +9,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
-const OpenAI = require('openai');
+// const OpenAI = require('openai'); // Comment out for now
 
 require('dotenv').config();
 
@@ -208,28 +208,28 @@ class CalculiQAutomationServer {
 
 async initializeBlogSystem() {
     try {
-        // 4 blogs per day, each for a different calculator
-        cron.schedule('0 8 * * *', async () => {
-            console.log('📝 Morning blog: Mortgage focus (8 AM)...');
+        // PST Schedule (UTC - 8 hours, or UTC - 7 during daylight saving)
+        cron.schedule('0 16 * * *', async () => {  // 4 PM UTC = 8 AM PST
+            console.log('📝 Morning blog: Mortgage focus (8 AM PST)...');
             await this.generateAndPublishTopicalBlog('mortgage');
         });
         
-        cron.schedule('0 12 * * *', async () => {
-            console.log('📝 Noon blog: Investment focus (12 PM)...');
+        cron.schedule('0 20 * * *', async () => {  // 8 PM UTC = 12 PM PST
+            console.log('📝 Noon blog: Investment focus (12 PM PST)...');
             await this.generateAndPublishTopicalBlog('investment');
         });
         
-        cron.schedule('0 16 * * *', async () => {
-            console.log('📝 Afternoon blog: Loan focus (4 PM)...');
+        cron.schedule('0 0 * * *', async () => {   // Midnight UTC = 4 PM PST
+            console.log('📝 Afternoon blog: Loan focus (4 PM PST)...');
             await this.generateAndPublishTopicalBlog('loan');
         });
         
-        cron.schedule('0 20 * * *', async () => {
-            console.log('📝 Evening blog: Insurance focus (8 PM)...');
+        cron.schedule('0 4 * * *', async () => {   // 4 AM UTC = 8 PM PST
+            console.log('📝 Evening blog: Insurance focus (8 PM PST)...');
             await this.generateAndPublishTopicalBlog('insurance');
         });
         
-        console.log('✅ Blog automation: 4 calculator-focused posts daily');
+        console.log('✅ Blog automation: 4 calculator-focused posts daily (PST times)');
     } catch (error) {
         console.log('📝 Blog system initialization skipped:', error.message);
     }
