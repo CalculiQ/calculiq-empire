@@ -448,27 +448,30 @@ class CalculiQAutomationServer {
                 MUST include coverage examples and link to our insurance calculator.`
         };
 
-        const completion = await this.openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+const completion = await this.openai.chat.completions.create({
+            model: "gpt-4-turbo-preview", // Use GPT-4 for better instruction following
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert financial writer creating SEO-optimized, helpful content about financial calculators. Always include specific numbers, calculations, and examples."
+                    content: "You are an expert financial writer creating comprehensive, SEO-optimized content. You MUST write detailed, thorough articles with specific examples, calculations, and actionable advice. Each article MUST be 1,500-2,000 words minimum."
                 },
                 {
                     role: "user",
-                    content: prompts[calculatorType] + `\n\nIMPORTANT REQUIREMENTS:
-                    - MUST be at least 1,500 words (this is critical for SEO)
-                    - Include multiple detailed sections with examples
-                    - Add comprehensive explanations and scenarios  
-                    - Include step-by-step guides where relevant
-                    - Expand on each topic with real-world applications
-                    - End with a strong CTA to use our ${calculatorType} calculator
-                    - Format with HTML tags (h2, h3, p, ul, li, strong)
-                    - First line is ONLY the title, no HTML tags`
+                    content: prompts[calculatorType] + `\n\nCRITICAL REQUIREMENTS:
+                    - MINIMUM 1,500 words - this is NON-NEGOTIABLE for SEO
+                    - Include at least 5 main sections with 300+ words each
+                    - Add detailed examples with real numbers
+                    - Include comparison tables or data where relevant
+                    - Provide step-by-step calculations
+                    - Add tips, warnings, and best practices
+                    - Include FAQs section with 5+ questions
+                    - End with a compelling CTA to use our ${calculatorType} calculator
+                    - Format with HTML tags (h2, h3, p, ul, li, strong, table)
+                    - First line is title text only (no HTML tags)
+                    - Write naturally but comprehensively - don't pad, but explore the topic fully`
                 }
             ],
-            temperature: 0.8,
+            temperature: 0.7,
             max_tokens: 4000
         });
 
