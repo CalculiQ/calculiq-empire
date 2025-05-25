@@ -1268,10 +1268,13 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         });
 
         // Test blog endpoint
-        this.app.post('/api/publish-test-blog', async (req, res) => {
-            try {
-                await this.generateAndPublishDailyBlog();
-                res.json({ success: true, message: 'Test blog published successfully' });
+       this.app.post('/api/publish-test-blog', async (req, res) => {
+    try {
+        // Test with a random calculator type
+        const types = ['mortgage', 'investment', 'loan', 'insurance'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        await this.generateAndPublishTopicalBlog(randomType);
+        res.json({ success: true, message: `Test ${randomType} blog published successfully` });
             } catch (error) {
                 console.error('Test blog error:', error);
                 res.status(500).json({ success: false, error: error.message });
