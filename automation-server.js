@@ -336,7 +336,7 @@ async generateOpenAIBlog(calculatorType, marketData) {
             },
             {
                 role: "user",
-                content: prompts[calculatorType] + `\n\nEnd with a strong CTA to use our ${calculatorType} calculator. Format the response with a clear title on the first line.`
+content: prompts[calculatorType] + `\n\nEnd with a strong CTA to use our ${calculatorType} calculator. Format the response with a clear title on the first line. Use HTML formatting (h2, h3, p, ul, li, strong tags) instead of markdown.`
             }
         ],
         temperature: 0.8,
@@ -353,11 +353,32 @@ async generateOpenAIBlog(calculatorType, marketData) {
     return {
         title: title,
         slug: slug,
-        content: `<article class="blog-post">${content}</article>`,
+        content: `<article class="blog-post">${this.convertMarkdownToHTML(content)}</article>`,
         excerpt: title.substring(0, 160) + '...',
         calculatorType: calculatorType,
         metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
     };
+}
+
+convertMarkdownToHTML(markdown) {
+    return markdown
+        // Headers
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        // Bold
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        // Lists
+        .replace(/^\* (.+)$/gim, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        // Paragraphs
+        .split('\n\n')
+        .map(para => para.trim() ? `<p>${para}</p>` : '')
+        .join('\n')
+        // Fix nested list tags
+        .replace(/<\/li>\n<li>/g, '</li><li>')
+        .replace(/<p><ul>/g, '<ul>')
+        .replace(/<\/ul><\/p>/g, '</ul>');
 }
 
 async generateAndPublishTopicalBlog(calculatorType) {
