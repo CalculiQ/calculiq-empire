@@ -61,7 +61,7 @@
         }
         
 .hero h1 {
-    font-size: 3.5rem;  /* or even 4rem */
+    font-size: 4rem;
     font-weight: 800;
     color: var(--primary);
     margin-bottom: 15px;
@@ -139,10 +139,14 @@
             z-index: -1;
         }
         
-        .calc-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
+.calc-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.calc-card {
+    transition: all 0.3s ease;
+}
         
         .calc-card:hover::before {
             opacity: 0.1;
@@ -517,44 +521,44 @@
     </div>
 </section>
 
-    <!-- Calculator Cards -->
-    <section class="calculators">
-        <div class="calc-card" onclick="openCalculator('mortgage')">
-            <div class="calc-icon">🏠</div>
-            <h3>Mortgage Calculator</h3>
-            <p>Calculate payments & get pre-approved rates from top lenders</p>
-            <div class="calc-cta">
-                Calculate Now →
-            </div>
+<!-- Calculator Cards -->
+<section class="calculators">
+    <div class="calc-card" onclick="openCalculator('mortgage')">
+        <div class="calc-icon">🏠</div>
+        <h3>Mortgage Calculator</h3>
+        <p>Calculate payments & get pre-approved rates from top lenders</p>
+        <div class="calc-cta">
+            Calculate Now →
         </div>
+    </div>
 
-        <div class="calc-card" onclick="openCalculator('investment')">
-            <div class="calc-icon">📈</div>
-            <h3>Investment Calculator</h3>
-            <p>Plan your wealth & connect with certified advisors</p>
-            <div class="calc-cta">
-                Start Planning →
-            </div>
+    <div class="calc-card" onclick="openCalculator('investment')">
+        <div class="calc-icon">📈</div>
+        <h3>Investment Calculator</h3>
+        <p>Plan your wealth & connect with certified advisors</p>
+        <div class="calc-cta">
+            Start Planning →
         </div>
+    </div>
 
-        <div class="calc-card" onclick="openCalculator('loan')">
-            <div class="calc-icon">💰</div>
-            <h3>Loan Calculator</h3>
-            <p>Compare rates & get instant loan offers</p>
-            <div class="calc-cta">
-                Check Rates →
-            </div>
+    <div class="calc-card" onclick="openCalculator('loan')">
+        <div class="calc-icon">💰</div>
+        <h3>Loan Calculator</h3>
+        <p>Compare rates & get instant loan offers</p>
+        <div class="calc-cta">
+            Check Rates →
         </div>
+    </div>
 
-        <div class="calc-card" onclick="openCalculator('insurance')">
-            <div class="calc-icon">🛡️</div>
-            <h3>Insurance Calculator</h3>
-            <p>Find coverage & compare quotes instantly</p>
-            <div class="calc-cta">
-                Get Quotes →
-            </div>
+    <div class="calc-card" onclick="openCalculator('insurance')">
+        <div class="calc-icon">🛡️</div>
+        <h3>Insurance Calculator</h3>
+        <p>Find coverage & compare quotes instantly</p>
+        <div class="calc-cta">
+            Get Quotes →
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- Calculator Modals -->
     <div class="calculator-modal" id="mortgage-modal">
