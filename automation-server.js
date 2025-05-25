@@ -238,57 +238,104 @@ class CalculiQAutomationServer {
         }
     }
 
-    async generateAndPublishDailyBlog() {
-        try {
-            const today = new Date();
-            const dayName = today.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-            
-            // Get current market data for content
-            const marketData = await this.fetchCurrentMarketData();
-            
-            // Generate blog content
-            const blogPost = await this.generateBlogContent(dayName, marketData);
-            
-            // Save to database
-            await this.saveBlogPost(blogPost);
-            
-            console.log(`✅ Daily blog published: "${blogPost.title}"`);
-            
-        } catch (error) {
-            console.error('❌ Daily blog generation failed:', error);
-        }
+async generateAndPublishDailyBlog() {
+    try {
+        // Use the new dynamic generator
+        const DynamicBlogGenerator = require('./dynamic-blog-generator');
+        const generator = new DynamicBlogGenerator();
+        
+        // Rotate through calculator types based on day
+        const types = ['mortgage', 'investment', 'loan', 'insurance'];
+        const today = new Date();
+        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+        const calculatorType = types[dayOfYear % 4];
+        
+        // Generate completely unique article with full SEO content
+        const article = await generator.generateArticle(calculatorType);
+        
+        // Save to database with proper formatting
+        await this.saveBlogPost({
+            slug: article.slug,
+            title: article.title,
+            content: article.content,
+            excerpt: article.excerpt,
+            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+            tags: `${article.calculatorType},calculator,${today.getFullYear()},financial calculator`,
+            meta_description: article.metaDescription,
+            status: 'published'
+        });
+        
+        console.log(`✅ Dynamic SEO blog published: "${article.title}"`);
+        
+    } catch (error) {
+        console.error('❌ Dynamic blog generation failed:', error);
     }
-
+}
     async fetchCurrentMarketData() {
-        try {
-            // Simulate realistic financial data
-            const baseRate = 6.5 + (Math.random() * 1.5); // 6.5-8.0% range
-            
-            return {
-                timestamp: new Date().toISOString(),
-                rates: {
-                    mortgage: {
-                        thirtyYear: (baseRate + 0.2).toFixed(2),
-                        fifteenYear: (baseRate - 0.5).toFixed(2),
-                        jumbo: (baseRate + 0.3).toFixed(2),
-                        trend: Math.random() > 0.5 ? 'up' : 'down',
-                        weeklyChange: ((Math.random() - 0.5) * 0.4).toFixed(2)
-                    }
-                },
-                markets: {
-                    sp500: ((Math.random() - 0.5) * 2).toFixed(2),
-                    nasdaq: ((Math.random() - 0.5) * 2.5).toFixed(2),
-                    dow: ((Math.random() - 0.5) * 1.8).toFixed(2)
-                },
-                news: [
-                    "Federal Reserve Signals Potential Rate Changes",
-                    "Housing Market Shows Mixed Signals Nationwide"
-                ].slice(0, 1)
-            };
-        } catch (error) {
-            return this.getFallbackMarketData();
-        }
+    try {
+        // API Keys
+        const alphaVantageKey = process.env.ALPHA_VANTAGE_API_KEY || '94O8DW3I8VIRGM9B';
+        const fredKey = process.env.FRED_API_KEY || 'a0e7018e6c8ef001490b9dcb2196ff3c';
+        
+        // Get REAL mortgage rates from FRED
+        const mortgage30Response = await axios.get(
+            `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+        );
+        
+        const mortgage15Response = await axios.get(
+            `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE15US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+        );
+        
+        // Get S&P 500 data from Alpha Vantage
+        const sp500Response = await axios.get(
+            `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${alphaVantageKey}`
+        );
+        
+        // Get market news from Alpha Vantage
+        const newsResponse = await axios.get(
+            `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=COIN,AAPL,MSFT&apikey=${alphaVantageKey}`
+        );
+        
+        // Parse the data
+        const mortgage30Rate = parseFloat(mortgage30Response.data.observations[0].value);
+        const mortgage15Rate = parseFloat(mortgage15Response.data.observations[0].value);
+        
+        const sp500Data = sp500Response.data['Global Quote'] || {};
+        const sp500Change = parseFloat(sp500Data['10. change percent']?.replace('%', '') || 0);
+        
+        const topNews = newsResponse.data.feed?.[0]?.title || "Markets show steady activity";
+        
+        // Calculate week-over-week change (simplified)
+        const weeklyChange = (Math.random() - 0.5) * 0.2; // Small random change
+        
+        return {
+            timestamp: new Date().toISOString(),
+            rates: {
+                mortgage: {
+                    thirtyYear: mortgage30Rate.toFixed(2),
+                    fifteenYear: mortgage15Rate.toFixed(2),
+                    jumbo: (mortgage30Rate + 0.5).toFixed(2), // Jumbo typically 0.5% higher
+                    trend: weeklyChange > 0 ? 'up' : 'down',
+                    weeklyChange: weeklyChange.toFixed(2),
+                    lastUpdated: mortgage30Response.data.observations[0].date
+                }
+            },
+            markets: {
+                sp500: sp500Change.toFixed(2),
+                nasdaq: (sp500Change * 1.2).toFixed(2), // Approximation
+                dow: (sp500Change * 0.8).toFixed(2)     // Approximation
+            },
+            news: [topNews],
+            realDataUsed: true,
+            dataSources: 'FRED & Alpha Vantage'
+        };
+        
+    } catch (error) {
+        console.error('API error:', error.message);
+        // Fall back to simulated data if APIs fail
+        return this.getFallbackMarketData();
     }
+}
 
     async generateNewsletterContent(marketData) {
         const currentDate = new Date();
@@ -344,7 +391,7 @@ class CalculiQAutomationServer {
             ]
         };
 
-        const topics = blogTopics[dayName] || blogTopics.monday;
+        const topics = blogTopics[dayName];
         const selectedTopic = topics[Math.floor(Math.random() * topics.length)];
         
         // Generate content based on the day and topic
@@ -817,26 +864,6 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         const day = d.getDay();
         const diff = d.getDate() - day;
         return new Date(d.setDate(diff)).toISOString().split('T')[0];
-    }
-
-    // Helper methods
-    generateUID() {
-        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
-    }
-    
-    calculateLeadPrice(leadData) {
-        const basePrice = 25;
-        const leadScore = leadData.lead_score || 0;
-        const hasPhone = leadData.phone ? 20 : 0;
-        const calculatorBonus = {
-            'mortgage': 30,
-            'investment': 15,
-            'loan': 20,
-            'insurance': 25
-        };
-        
-        const bonus = calculatorBonus[leadData.calculatorType] || 10;
-        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
     }
 
     setupRoutes() {
@@ -1769,31 +1796,51 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         `;
     }
 
+    // Helper methods
+    generateUID() {
+        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
+    }
+    
+    calculateLeadPrice(leadData) {
+        const basePrice = 25;
+        const leadScore = leadData.lead_score || 0;
+        const hasPhone = leadData.phone ? 20 : 0;
+        const calculatorBonus = {
+            'mortgage': 30,
+            'investment': 15,
+            'loan': 20,
+            'insurance': 25
+        };
+        
+        const bonus = calculatorBonus[leadData.calculatorType] || 10;
+        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
+    }
+    
     // FIXED: Use Railway's PORT environment variable
     start() {
         const port = process.env.PORT || 3001;
         const host = process.env.HOST || '0.0.0.0';
         
         this.app.listen(port, host, () => {
-            console.log('\n========================================');
-            console.log('CALCULIQ AUTOMATION SERVER RUNNING');
-            console.log('========================================');
-            console.log(`Port: ${port}`);
-            console.log(`Host: ${host}:${port}`);
-            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}`);
-            console.log(`Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}`);
-            console.log(`Health Check: /api/automation-status`);
-            console.log(`Alternative Health: /health`);
-            console.log('\nAutomated Systems:');
-            console.log('- Newsletter: Weekly emails every Monday at 9 AM');
-            console.log('- Blog: Daily posts every day at 8 AM');
-            console.log('\nServer Status:');
-            console.log('- Server is ready to accept connections');
-            console.log('- API endpoints are active');
-            console.log('- Lead capture system is ready');
-            console.log('\nYour CalculiQ server is LIVE!');
-            console.log('========================================\n');
+            console.log(`
+🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
+
+✅ Host: ${host}:${port}
+✅ Environment: ${process.env.NODE_ENV || 'development'}
+✅ Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}
+✅ Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}
+✅ Health Check: /api/automation-status
+✅ Alternative Health: /health
+
+📧 Newsletter System: Automated weekly emails every Monday at 9 AM
+📝 Blog System: Automated daily posts every day at 8 AM
+
+🌐 Server is ready to accept connections
+📊 API endpoints are active
+🎯 Lead capture system is ready
+
+⚡ Your CalculiQ server is LIVE!
+            `);
         });
 
         // Graceful shutdown
