@@ -455,7 +455,7 @@ insurance: `Write a comprehensive 1,500+ word blog post about protecting your fa
     Within the article, naturally mention and link to our insurance calculator for coverage estimates.
     Topics: term vs whole life, coverage amount strategies, beneficiary planning, cost-saving tips.`
 }; 
-const completion = await this.openai.chat.completions.create({
+        const completion = await this.openai.chat.completions.create({
             model: "gpt-4-turbo-preview", // Use GPT-4 for better instruction following
             messages: [
                 {
@@ -484,42 +484,54 @@ const completion = await this.openai.chat.completions.create({
 
         const responseText = completion.choices[0].message.content;
 
-// Remove any DOCTYPE or html wrapper if OpenAI included it
-const cleanedResponse = responseText
-    .replace(/<!DOCTYPE.*?>/i, '')
-    .replace(/<\/?html.*?>/gi, '')
-    .replace(/<\/?head.*?>/gi, '')
-    .replace(/<\/?body.*?>/gi, '')
-    .replace(/<title.*?<\/title>/gi, '')
-    .trim();
+        // Remove any DOCTYPE or html wrapper if OpenAI included it
+        const cleanedResponse = responseText
+            .replace(/<!DOCTYPE.*?>/i, '')
+            .replace(/<\/?html.*?>/gi, '')
+            .replace(/<\/?head.*?>/gi, '')
+            .replace(/<\/?body.*?>/gi, '')
+            .replace(/<title.*?<\/title>/gi, '')
+            .trim();
 
-const lines = cleanedResponse.split('\n');
-const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
-const content = lines.slice(1).join('\n');
+        const lines = cleanedResponse.split('\n');
+        const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
+        const content = lines.slice(1).join('\n');
 
-const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
+        const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
 
-// Convert to HTML first so we can extract from it
-const htmlContent = this.convertMarkdownToHTML(content);
+        // Convert to HTML first so we can extract from it
+        const htmlContent = this.convertMarkdownToHTML(content);
 
-// Extract all paragraphs and find the first meaningful one
-const allParagraphs = htmlContent.match(/<p>(.*?)<\/p>/g) || [];
-let excerpt = '';
+        // Extract all paragraphs and find the first meaningful one
+        const allParagraphs = htmlContent.match(/<p>(.*?)<\/p>/g) || [];
+        let excerpt = '';
 
-for (const para of allParagraphs) {
-    const cleanPara = para.replace(/<\/?p>/g, '').trim();
-    // Skip if it's too short or looks like a subheading
-    if (cleanPara.length > 50 && !cleanPara.endsWith(':')) {
-        excerpt = cleanPara.substring(0, 160) + '...';
-        break;
+        for (const para of allParagraphs) {
+            const cleanPara = para.replace(/<\/?p>/g, '').trim();
+            // Skip if it's too short or looks like a subheading
+            if (cleanPara.length > 50 && !cleanPara.endsWith(':')) {
+                excerpt = cleanPara.substring(0, 160) + '...';
+                break;
+            }
+        }
+
+        // Fallback if no good paragraph found
+        if (!excerpt) {
+            excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
+        }
+
+        return {
+            title,
+            content: htmlContent,
+            excerpt,
+            slug,
+            calculatorType,
+            metaDescription: excerpt
+        };
     }
-}
 
-// Fallback if no good paragraph found
-if (!excerpt) {
-    excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
-}
-
+    // FIXED: Proper method declaration for convertMarkdownToHTML
+    convertMarkdownToHTML(markdown) {
         return markdown
             // Headers
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
@@ -731,38 +743,39 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         }
     }
 
-async saveBlogPost(blogPost) {
-    if (!this.db) return;
-    
-    try {
-        console.log('📝 Attempting to save blog post:', {
-            slug: blogPost.slug,
-            title: blogPost.title,
-            hasContent: !!blogPost.content,
-            contentLength: blogPost.content?.length,
-            allFields: Object.keys(blogPost)
-        });
+    async saveBlogPost(blogPost) {
+        if (!this.db) return;
         
-        await this.dbRun(
-            `INSERT INTO blog_posts (slug, title, content, excerpt, category, tags, meta_description, published_at) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [
-                blogPost.slug,
-                blogPost.title,
-                blogPost.content,
-                blogPost.excerpt,
-                blogPost.category,
-                blogPost.tags,
-                blogPost.meta_description,
-                new Date().toISOString()
-            ]
-        );
-        console.log('✅ Blog post saved to database successfully');
-    } catch (error) {
-        console.error('❌ Error saving blog post:', error);
-        console.error('Full error details:', error.message, error.code);
+        try {
+            console.log('📝 Attempting to save blog post:', {
+                slug: blogPost.slug,
+                title: blogPost.title,
+                hasContent: !!blogPost.content,
+                contentLength: blogPost.content?.length,
+                allFields: Object.keys(blogPost)
+            });
+            
+            await this.dbRun(
+                `INSERT INTO blog_posts (slug, title, content, excerpt, category, tags, meta_description, published_at) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                    blogPost.slug,
+                    blogPost.title,
+                    blogPost.content,
+                    blogPost.excerpt,
+                    blogPost.category,
+                    blogPost.tags,
+                    blogPost.meta_description,
+                    new Date().toISOString()
+                ]
+            );
+            console.log('✅ Blog post saved to database successfully');
+        } catch (error) {
+            console.error('❌ Error saving blog post:', error);
+            console.error('Full error details:', error.message, error.code);
+        }
     }
-}
+
     async getRecentPosts(limit = 10) {
         if (!this.db) return [];
         
@@ -892,17 +905,19 @@ async saveBlogPost(blogPost) {
                 res.status(500).json({ status: 'ERROR', message: error.message });
             }
         });
-// Manual database initialization endpoint
-this.app.get('/api/init-tables', async (req, res) => {
-    try {
-        console.log('🔧 Manually initializing database tables...');
-        await this.initializeDatabase();
-        res.json({ success: true, message: 'Tables initialized successfully!' });
-    } catch (error) {
-        console.error('❌ Manual table init failed:', error);
-        res.json({ success: false, error: error.message });
-    }
-});
+
+        // Manual database initialization endpoint
+        this.app.get('/api/init-tables', async (req, res) => {
+            try {
+                console.log('🔧 Manually initializing database tables...');
+                await this.initializeDatabase();
+                res.json({ success: true, message: 'Tables initialized successfully!' });
+            } catch (error) {
+                console.error('❌ Manual table init failed:', error);
+                res.json({ success: false, error: error.message });
+            }
+        });
+
         // Serve main calculator website
         this.app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, 'index.html'));
@@ -1433,146 +1448,23 @@ this.app.get('/api/init-tables', async (req, res) => {
                     <a href="/" class="nav-link">🏠 Home</a>
                     <a href="/blog" class="nav-link">📝 Blog</a>
                     <a href="/#calculators" class="nav-link">🧮 Calculators</a>
-                </nav>
-            </div>
-            
-            <div class="post-grid">
-                ${posts.length > 0 ? posts.map(post => `
-                    <article class="post-card">
-                        <h2><a href="/blog/${post.slug}" class="post-title">${post.title}</a></h2>
-                        <div class="post-meta">
-                            ${new Date(post.published_at).toLocaleDateString()} • 
-                            <span class="post-category">${post.category}</span>
-                        </div>
-                        <p class="post-excerpt">${post.excerpt}</p>
-                    </article>
-                `).join('') : `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <h3>📝 Fresh Content Coming Soon!</h3>
-                        <p>Check back tomorrow for expert financial insights and money-saving strategies.</p>
-                    </div>
-                `}
-            </div>
-            
-            <div class="cta-section">
-                <h2>Ready to Calculate Your Financial Future?</h2>
-                <p>Use our free calculators to make informed financial decisions</p>
-                <a href="/" class="cta-button">Try Our Calculators</a>
-            </div>
-        </body>
-        </html>
-        `;
-    }
-
-    generateBlogPostPage(post) {
-        return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${post.title} - CalculiQ Blog</title>
-            <meta name="description" content="${post.meta_description}">
-            <style>
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                .nav {
-                    text-align: center;
-                    padding: 20px 0;
-                    border-bottom: 1px solid #eee;
-                    margin-bottom: 30px;
-                }
-                .nav-link {
-                    color: #646cff;
-                    text-decoration: none;
-                    margin: 0 15px;
-                }
-                .blog-post h1 {
-                    color: #1a1f3a;
-                    font-size: 2.2rem;
-                    margin-bottom: 15px;
-                }
-                .blog-post h2 {
-                    color: #1a1f3a;
-                    font-size: 1.5rem;
-                    margin: 30px 0 15px 0;
-                }
-                .blog-post h3 {
-                    color: #1a1f3a;
-                    font-size: 1.2rem;
-                    margin: 25px 0 10px 0;
-                }
-                .post-meta {
-                    color: #666;
-                    font-size: 0.9rem;
-                    padding-bottom: 20px;
-                    border-bottom: 1px solid #eee;
-                    margin-bottom: 30px;
-                }
-                .rate-box, .tip-box, .calculator-highlight, .cta-box {
-                    background: #f8f9fa;
-                    padding: 20px;
-                    border-radius: 8px;
-                    margin: 20px 0;
-                    border-left: 4px solid #646cff;
-                }
-                .cta-box {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    text-align: center;
-                }
-                .cta-button {
-                    background: white;
-                    color: #667eea;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    text-decoration: none;
-                    font-weight: 600;
-                    display: inline-block;
-                    margin-top: 10px;
-                }
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 20px;
-                    margin: 20px 0;
-                }
-                .stat-item {
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-radius: 8px;
-                    text-align: center;
-                }
-                a {
-                    color: #646cff;
-                    text-decoration: none;
-                }
-                a:hover {
-                    text-decoration: underline;
-                }
-                ul, ol {
-                    margin: 15px 0;
-                    padding-left: 20px;
-                }
-                li {
-                    margin: 8px 0;
-                }
-            </style>
-        </head>
-        <body>
-            <nav class="nav">
-                <a href="/" class="nav-link">🏠 Home</a>
-                <a href="/blog" class="nav-link">📝 Blog</a>
-                <a href="/#calculators" class="nav-link">🧮 Calculators</a>
             </nav>
             
-            ${post.content}
+            <article class="blog-post">
+                <h1>${post.title}</h1>
+                <div class="post-meta">
+                    Published ${new Date(post.published_at).toLocaleDateString()} • 
+                    <span style="background: #646cff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${post.category}</span>
+                </div>
+                
+                ${post.content}
+                
+                <div class="cta-box" style="margin-top: 40px;">
+                    <h3>Ready to Calculate Your ${post.category} Strategy?</h3>
+                    <p>Use our free ${post.category.toLowerCase()} calculator to get personalized insights and connect with verified lenders.</p>
+                    <a href="/" class="cta-button">Try Our ${post.category} Calculator</a>
+                </div>
+            </article>
             
             <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
                 <p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()}</p>
@@ -1875,4 +1767,141 @@ this.app.get('/api/init-tables', async (req, res) => {
 const server = new CalculiQAutomationServer();
 server.start();
 
-module.exports = CalculiQAutomationServer;
+module.exports = CalculiQAutomationServer;ators</a>
+                </nav>
+            </div>
+            
+            <div class="post-grid">
+                ${posts.length > 0 ? posts.map(post => `
+                    <article class="post-card">
+                        <h2><a href="/blog/${post.slug}" class="post-title">${post.title}</a></h2>
+                        <div class="post-meta">
+                            ${new Date(post.published_at).toLocaleDateString()} • 
+                            <span class="post-category">${post.category}</span>
+                        </div>
+                        <p class="post-excerpt">${post.excerpt}</p>
+                    </article>
+                `).join('') : `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>📝 Fresh Content Coming Soon!</h3>
+                        <p>Check back tomorrow for expert financial insights and money-saving strategies.</p>
+                    </div>
+                `}
+            </div>
+            
+            <div class="cta-section">
+                <h2>Ready to Calculate Your Financial Future?</h2>
+                <p>Use our free calculators to make informed financial decisions</p>
+                <a href="/" class="cta-button">Try Our Calculators</a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateBlogPostPage(post) {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${post.title} - CalculiQ Blog</title>
+            <meta name="description" content="${post.meta_description}">
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .nav {
+                    text-align: center;
+                    padding: 20px 0;
+                    border-bottom: 1px solid #eee;
+                    margin-bottom: 30px;
+                }
+                .nav-link {
+                    color: #646cff;
+                    text-decoration: none;
+                    margin: 0 15px;
+                }
+                .blog-post h1 {
+                    color: #1a1f3a;
+                    font-size: 2.2rem;
+                    margin-bottom: 15px;
+                }
+                .blog-post h2 {
+                    color: #1a1f3a;
+                    font-size: 1.5rem;
+                    margin: 30px 0 15px 0;
+                }
+                .blog-post h3 {
+                    color: #1a1f3a;
+                    font-size: 1.2rem;
+                    margin: 25px 0 10px 0;
+                }
+                .post-meta {
+                    color: #666;
+                    font-size: 0.9rem;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid #eee;
+                    margin-bottom: 30px;
+                }
+                .rate-box, .tip-box, .calculator-highlight, .cta-box {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                    border-left: 4px solid #646cff;
+                }
+                .cta-box {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    text-align: center;
+                }
+                .cta-button {
+                    background: white;
+                    color: #667eea;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    display: inline-block;
+                    margin-top: 10px;
+                }
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                    margin: 20px 0;
+                }
+                .stat-item {
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 8px;
+                    text-align: center;
+                }
+                a {
+                    color: #646cff;
+                    text-decoration: none;
+                }
+                a:hover {
+                    text-decoration: underline;
+                }
+                ul, ol {
+                    margin: 15px 0;
+                    padding-left: 20px;
+                }
+                li {
+                    margin: 8px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <nav class="nav">
+                <a href="/" class="nav-link">🏠 Home</a>
+                <a href="/blog" class="nav-link">📝 Blog</a>
+                <a href="/#calculators" class="nav-link">🧮 Calcul
