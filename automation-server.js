@@ -1,15 +1,14 @@
 // automation-server.js
-// Complete Server with Newsletter + Blog System
+// Complete Server with Newsletter + Blog System - PostgreSQL Compatible
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const axios = require('axios');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
-// const OpenAI = require('openai'); // Comment out for now
 
 require('dotenv').config();
 
@@ -25,22 +24,22 @@ class CalculiQAutomationServer {
             monthlyRevenue: 0
         };
         
-// Initialize OpenAI
-if (process.env.OPENAI_API_KEY) {
-    try {
-        const { OpenAI } = require('openai');  // Add this line
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
-        console.log('✅ OpenAI initialized for unique content generation');
-    } catch (error) {
-        console.log('📝 OpenAI initialization failed:', error.message);
-        this.openai = null;
-    }
-} else {
-    console.log('📝 OpenAI not configured - using template system');
-    this.openai = null;
-}
+        // Initialize OpenAI if available
+        if (process.env.OPENAI_API_KEY) {
+            try {
+                const { OpenAI } = require('openai');
+                this.openai = new OpenAI({
+                    apiKey: process.env.OPENAI_API_KEY
+                });
+                console.log('✅ OpenAI initialized for unique content generation');
+            } catch (error) {
+                console.log('📝 OpenAI initialization failed:', error.message);
+                this.openai = null;
+            }
+        } else {
+            console.log('📝 OpenAI not configured - using template system');
+            this.openai = null;
+        }
         
         this.setupMiddleware();
         this.initializeDatabase();
@@ -73,24 +72,33 @@ if (process.env.OPENAI_API_KEY) {
 
     async initializeDatabase() {
         try {
-            this.db = new sqlite3.Database('./calculiq_empire.db');
+            // Use DATABASE_URL from Railway
+            this.db = new Pool({
+                connectionString: process.env.DATABASE_URL,
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            });
+            
+            // Test connection
+            await this.db.query('SELECT NOW()');
             
             // Create all tables
             const tables = [
                 `CREATE TABLE IF NOT EXISTS visitors (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     uid TEXT UNIQUE NOT NULL,
                     email TEXT,
                     profile TEXT,
-                    first_visit DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    first_visit TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     engagement_score INTEGER DEFAULT 0,
                     revenue_generated DECIMAL(10,2) DEFAULT 0,
                     conversion_stage TEXT DEFAULT 'visitor'
                 )`,
                 
                 `CREATE TABLE IF NOT EXISTS leads_enhanced (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     uid TEXT UNIQUE NOT NULL,
                     email TEXT,
                     first_name TEXT,
@@ -106,34 +114,34 @@ if (process.env.OPENAI_API_KEY) {
                     conversion_triggers TEXT,
                     revenue_attributed DECIMAL(10,2) DEFAULT 0,
                     status TEXT DEFAULT 'new',
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    last_contact DATETIME,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_contact TIMESTAMP,
                     notes TEXT
                 )`,
                 
                 `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     uid TEXT UNIQUE NOT NULL,
                     email TEXT UNIQUE NOT NULL,
                     source TEXT,
-                    subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     status TEXT DEFAULT 'active',
-                    last_email_sent DATETIME
+                    last_email_sent TIMESTAMP
                 )`,
                 
                 `CREATE TABLE IF NOT EXISTS newsletter_content (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     week_of DATE,
                     subject TEXT,
                     content TEXT,
                     data_sources TEXT,
-                    sent_at DATETIME,
+                    sent_at TIMESTAMP,
                     subscriber_count INTEGER DEFAULT 0
                 )`,
                 
                 `CREATE TABLE IF NOT EXISTS blog_posts (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     slug TEXT UNIQUE NOT NULL,
                     title TEXT NOT NULL,
                     content TEXT NOT NULL,
@@ -141,36 +149,57 @@ if (process.env.OPENAI_API_KEY) {
                     category TEXT,
                     tags TEXT,
                     meta_description TEXT,
-                    published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     status TEXT DEFAULT 'published',
                     view_count INTEGER DEFAULT 0
                 )`,
                 
                 `CREATE TABLE IF NOT EXISTS blog_analytics (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     post_slug TEXT,
                     visitor_ip TEXT,
                     user_agent TEXT,
                     referrer TEXT,
-                    viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )`
             ];
 
             for (const tableSQL of tables) {
-                await new Promise((resolve, reject) => {
-                    this.db.run(tableSQL, (err) => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                });
+                await this.db.query(tableSQL);
             }
             
-            console.log('✅ CalculiQ database initialized successfully');
+            console.log('✅ PostgreSQL database initialized successfully');
             
         } catch (error) {
             console.error('❌ Database initialization failed:', error);
-            // Don't crash the server, continue without DB
+            this.db = null;
         }
+    }
+
+    // Helper methods for database queries
+    async dbQuery(query, params = []) {
+        if (!this.db) return null;
+        try {
+            const result = await this.db.query(query, params);
+            return result;
+        } catch (error) {
+            console.error('Database query error:', error);
+            throw error;
+        }
+    }
+
+    async dbGet(query, params = []) {
+        const result = await this.dbQuery(query, params);
+        return result?.rows?.[0] || null;
+    }
+
+    async dbAll(query, params = []) {
+        const result = await this.dbQuery(query, params);
+        return result?.rows || [];
+    }
+
+    async dbRun(query, params = []) {
+        return await this.dbQuery(query, params);
     }
 
     async initializeEmailSystem() {
@@ -213,34 +242,35 @@ if (process.env.OPENAI_API_KEY) {
         }
     }
 
-async initializeBlogSystem() {
-    try {
-        // PST Schedule (UTC - 8 hours, or UTC - 7 during daylight saving)
-        cron.schedule('0 16 * * *', async () => {  // 4 PM UTC = 8 AM PST
-            console.log('📝 Morning blog: Mortgage focus (8 AM PST)...');
-            await this.generateAndPublishTopicalBlog('mortgage');
-        });
-        
-        cron.schedule('0 20 * * *', async () => {  // 8 PM UTC = 12 PM PST
-            console.log('📝 Noon blog: Investment focus (12 PM PST)...');
-            await this.generateAndPublishTopicalBlog('investment');
-        });
-        
-        cron.schedule('0 0 * * *', async () => {   // Midnight UTC = 4 PM PST
-            console.log('📝 Afternoon blog: Loan focus (4 PM PST)...');
-            await this.generateAndPublishTopicalBlog('loan');
-        });
-        
-        cron.schedule('0 4 * * *', async () => {   // 4 AM UTC = 8 PM PST
-            console.log('📝 Evening blog: Insurance focus (8 PM PST)...');
-            await this.generateAndPublishTopicalBlog('insurance');
-        });
-        
-        console.log('✅ Blog automation: 4 calculator-focused posts daily (PST times)');
-    } catch (error) {
-        console.log('📝 Blog system initialization skipped:', error.message);
+    async initializeBlogSystem() {
+        try {
+            // PST Schedule (UTC - 8 hours, or UTC - 7 during daylight saving)
+            cron.schedule('0 16 * * *', async () => {  // 4 PM UTC = 8 AM PST
+                console.log('📝 Morning blog: Mortgage focus (8 AM PST)...');
+                await this.generateAndPublishTopicalBlog('mortgage');
+            });
+            
+            cron.schedule('0 20 * * *', async () => {  // 8 PM UTC = 12 PM PST
+                console.log('📝 Noon blog: Investment focus (12 PM PST)...');
+                await this.generateAndPublishTopicalBlog('investment');
+            });
+            
+            cron.schedule('0 0 * * *', async () => {   // Midnight UTC = 4 PM PST
+                console.log('📝 Afternoon blog: Loan focus (4 PM PST)...');
+                await this.generateAndPublishTopicalBlog('loan');
+            });
+            
+            cron.schedule('0 4 * * *', async () => {   // 4 AM UTC = 8 PM PST
+                console.log('📝 Evening blog: Insurance focus (8 PM PST)...');
+                await this.generateAndPublishTopicalBlog('insurance');
+            });
+            
+            console.log('✅ Blog automation: 4 calculator-focused posts daily (PST times)');
+        } catch (error) {
+            console.log('📝 Blog system initialization skipped:', error.message);
+        }
     }
-}
+
     async generateAndSendWeeklyNewsletter() {
         try {
             console.log('🤖 Generating automated newsletter content...');
@@ -270,244 +300,115 @@ async initializeBlogSystem() {
         }
     }
 
-async generateAndPublishDailyBlog() {
-    try {
-        // Use the new dynamic generator
-        const DynamicBlogGenerator = require('./dynamic-blog-generator');
-        const generator = new DynamicBlogGenerator();
-        
-        // Rotate through calculator types based on day
-        const types = ['mortgage', 'investment', 'loan', 'insurance'];
-        const today = new Date();
-        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
-        const calculatorType = types[dayOfYear % 4];
-        
-        // Generate completely unique article with full SEO content
-        const article = await generator.generateArticle(calculatorType);
-        
-        // Save to database with proper formatting
-        await this.saveBlogPost({
-            slug: article.slug,
-            title: article.title,
-            content: article.content,
-            excerpt: article.excerpt,
-            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-            tags: `${article.calculatorType},calculator,${today.getFullYear()},financial calculator`,
-            meta_description: article.metaDescription,
-            status: 'published'
-           });
-        
-        console.log(`✅ Dynamic SEO blog published: "${article.title}"`);
-        
-    } catch (error) {
-        console.error('❌ Dynamic blog generation failed:', error);
-    }
-}
-
-async generateOpenAIBlog(calculatorType, marketData) {
-    const prompts = {
-    mortgage: `Write a comprehensive 1,500+ word blog post about mortgage calculators and home buying for ${new Date().toLocaleDateString()}.
-        Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
-        Focus on: How to use mortgage calculators, payment calculations, down payment strategies.
-        MUST include real examples with actual numbers and link to our mortgage calculator.`,
-    
-    investment: `Write a comprehensive 1,500+ word blog post about investment calculators and wealth building for ${new Date().toLocaleDateString()}.
-        Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
-        Focus on: Compound interest calculations, retirement planning, portfolio strategies.
-        MUST include specific calculations and link to our investment calculator.`,
-    
-    loan: `Write a comprehensive 1,500+ word blog post about personal loan calculators for ${new Date().toLocaleDateString()}.
-        Include: Current rates, debt consolidation benefits, payment calculations.
-        Focus on: How loan calculators help compare options, save money on interest.
-        MUST include real loan scenarios and link to our loan calculator.`,
-    
-    insurance: `Write a comprehensive 1,500+ word blog post about life insurance calculators for ${new Date().toLocaleDateString()}.
-        Include: Coverage calculations, premium factors, term vs whole life math.
-        Focus on: How to calculate proper coverage, age-based pricing, family protection.
-        MUST include coverage examples and link to our insurance calculator.`
-};
-
-    const completion = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-            {
-                role: "system",
-                content: "You are an expert financial writer creating SEO-optimized, helpful content about financial calculators. Always include specific numbers, calculations, and examples."
-            },
-            {
-                role: "user",
-content: prompts[calculatorType] + `\n\nIMPORTANT REQUIREMENTS:
-- MUST be at least 1,500 words (this is critical for SEO)
-- Include multiple detailed sections with examples
-- Add comprehensive explanations and scenarios  
-- Include step-by-step guides where relevant
-- Expand on each topic with real-world applications
-- End with a strong CTA to use our ${calculatorType} calculator
-- Format with HTML tags (h2, h3, p, ul, li, strong)
-- First line is ONLY the title, no HTML tags`
-            }
-        ],
-temperature: 0.8,
-max_tokens: 4000
-    });
-
-const responseText = completion.choices[0].message.content;
-
-// Remove any DOCTYPE or html wrapper if OpenAI included it
-const cleanedResponse = responseText
-    .replace(/<!DOCTYPE.*?>/i, '')
-    .replace(/<\/?html.*?>/gi, '')
-    .replace(/<\/?head.*?>/gi, '')
-    .replace(/<\/?body.*?>/gi, '')
-    .replace(/<title.*?<\/title>/gi, '')
-    .trim();
-
-const lines = cleanedResponse.split('\n');
-const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
-const content = lines.slice(1).join('\n');
-    
-    const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
-    
-    return {
-        title: title,
-        slug: slug,
-        content: `<article class="blog-post">${this.convertMarkdownToHTML(content)}</article>`,
-        excerpt: title.substring(0, 160) + '...',
-        calculatorType: calculatorType,
-        metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
-    };
-}
-
-convertMarkdownToHTML(markdown) {
-    return markdown
-        // Headers
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        // Bold
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        // Lists
-        .replace(/^\* (.+)$/gim, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-        // Paragraphs
-        .split('\n\n')
-        .map(para => para.trim() ? `<p>${para}</p>` : '')
-        .join('\n')
-        // Fix nested list tags
-        .replace(/<\/li>\n<li>/g, '</li><li>')
-        .replace(/<p><ul>/g, '<ul>')
-        .replace(/<\/ul><\/p>/g, '</ul>');
-}
-
-async generateAndPublishTopicalBlog(calculatorType) {
-    try {
-        // Get market data
-        const marketData = await this.fetchCurrentMarketData();
-        
-        let article;
-        
-        // Try OpenAI first
-        if (this.openai) {
-            try {
-                console.log(`🤖 Generating ${calculatorType} blog with OpenAI...`);
-                article = await this.generateOpenAIBlog(calculatorType, marketData);
-            } catch (error) {
-                console.error('❌ OpenAI failed, using dynamic generator:', error.message);
+    async generateAndPublishTopicalBlog(calculatorType) {
+        try {
+            // Get market data
+            const marketData = await this.fetchCurrentMarketData();
+            
+            let article;
+            
+            // Try OpenAI first
+            if (this.openai) {
+                try {
+                    console.log(`🤖 Generating ${calculatorType} blog with OpenAI...`);
+                    article = await this.generateOpenAIBlog(calculatorType, marketData);
+                } catch (error) {
+                    console.error('❌ OpenAI failed, using dynamic generator:', error.message);
+                    const DynamicBlogGenerator = require('./dynamic-blog-generator');
+                    const generator = new DynamicBlogGenerator();
+                    article = await generator.generateArticle(calculatorType);
+                }
+            } else {
+                console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
                 const DynamicBlogGenerator = require('./dynamic-blog-generator');
                 const generator = new DynamicBlogGenerator();
                 article = await generator.generateArticle(calculatorType);
             }
-        } else {
-            console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
-            const DynamicBlogGenerator = require('./dynamic-blog-generator');
-            const generator = new DynamicBlogGenerator();
-            article = await generator.generateArticle(calculatorType);
+            
+            // Save to database
+            await this.saveBlogPost({
+                slug: article.slug,
+                title: article.title,
+                content: article.content,
+                excerpt: article.excerpt,
+                category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+                tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
+                meta_description: article.metaDescription || article.excerpt,
+                status: 'published'
+            });
+            
+            console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
+            
+        } catch (error) {
+            console.error(`❌ ${calculatorType} blog generation failed:`, error);
         }
-        
-        // Save to database
-        await this.saveBlogPost({
-            slug: article.slug,
-            title: article.title,
-            content: article.content,
-            excerpt: article.excerpt,
-            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-            tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
-            meta_description: article.metaDescription || article.excerpt,
-            status: 'published'
-        });
-        
-        console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
-        
-    } catch (error) {
-        console.error(`❌ ${calculatorType} blog generation failed:`, error);
     }
-}
-        
+
     async fetchCurrentMarketData() {
-    try {
-        // API Keys
-        const alphaVantageKey = process.env.ALPHA_VANTAGE_API_KEY || '94O8DW3I8VIRGM9B';
-        const fredKey = process.env.FRED_API_KEY || 'a0e7018e6c8ef001490b9dcb2196ff3c';
-        
-        // Get REAL mortgage rates from FRED
-        const mortgage30Response = await axios.get(
-            `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
-        );
-        
-        const mortgage15Response = await axios.get(
-            `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE15US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
-        );
-        
-        // Get S&P 500 data from Alpha Vantage
-        const sp500Response = await axios.get(
-            `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${alphaVantageKey}`
-        );
-        
-        // Get market news from Alpha Vantage
-        const newsResponse = await axios.get(
-            `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=COIN,AAPL,MSFT&apikey=${alphaVantageKey}`
-        );
-        
-        // Parse the data
-        const mortgage30Rate = parseFloat(mortgage30Response.data.observations[0].value);
-        const mortgage15Rate = parseFloat(mortgage15Response.data.observations[0].value);
-        
-        const sp500Data = sp500Response.data['Global Quote'] || {};
-        const sp500Change = parseFloat(sp500Data['10. change percent']?.replace('%', '') || 0);
-        
-        const topNews = newsResponse.data.feed?.[0]?.title || "Markets show steady activity";
-        
-        // Calculate week-over-week change (simplified)
-        const weeklyChange = (Math.random() - 0.5) * 0.2; // Small random change
-        
-        return {
-            timestamp: new Date().toISOString(),
-            rates: {
-                mortgage: {
-                    thirtyYear: mortgage30Rate.toFixed(2),
-                    fifteenYear: mortgage15Rate.toFixed(2),
-                    jumbo: (mortgage30Rate + 0.5).toFixed(2), // Jumbo typically 0.5% higher
-                    trend: weeklyChange > 0 ? 'up' : 'down',
-                    weeklyChange: weeklyChange.toFixed(2),
-                    lastUpdated: mortgage30Response.data.observations[0].date
-                }
-            },
-            markets: {
-                sp500: sp500Change.toFixed(2),
-                nasdaq: (sp500Change * 1.2).toFixed(2), // Approximation
-                dow: (sp500Change * 0.8).toFixed(2)     // Approximation
-            },
-            news: [topNews],
-            realDataUsed: true,
-            dataSources: 'FRED & Alpha Vantage'
-        };
-        
-    } catch (error) {
-        console.error('API error:', error.message);
-        // Fall back to simulated data if APIs fail
-        return this.getFallbackMarketData();
+        try {
+            // API Keys
+            const alphaVantageKey = process.env.ALPHA_VANTAGE_API_KEY || '94O8DW3I8VIRGM9B';
+            const fredKey = process.env.FRED_API_KEY || 'a0e7018e6c8ef001490b9dcb2196ff3c';
+            
+            // Get REAL mortgage rates from FRED
+            const mortgage30Response = await axios.get(
+                `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+            );
+            
+            const mortgage15Response = await axios.get(
+                `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE15US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+            );
+            
+            // Get S&P 500 data from Alpha Vantage
+            const sp500Response = await axios.get(
+                `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${alphaVantageKey}`
+            );
+            
+            // Get market news from Alpha Vantage
+            const newsResponse = await axios.get(
+                `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=COIN,AAPL,MSFT&apikey=${alphaVantageKey}`
+            );
+            
+            // Parse the data
+            const mortgage30Rate = parseFloat(mortgage30Response.data.observations[0].value);
+            const mortgage15Rate = parseFloat(mortgage15Response.data.observations[0].value);
+            
+            const sp500Data = sp500Response.data['Global Quote'] || {};
+            const sp500Change = parseFloat(sp500Data['10. change percent']?.replace('%', '') || 0);
+            
+            const topNews = newsResponse.data.feed?.[0]?.title || "Markets show steady activity";
+            
+            // Calculate week-over-week change (simplified)
+            const weeklyChange = (Math.random() - 0.5) * 0.2; // Small random change
+            
+            return {
+                timestamp: new Date().toISOString(),
+                rates: {
+                    mortgage: {
+                        thirtyYear: mortgage30Rate.toFixed(2),
+                        fifteenYear: mortgage15Rate.toFixed(2),
+                        jumbo: (mortgage30Rate + 0.5).toFixed(2), // Jumbo typically 0.5% higher
+                        trend: weeklyChange > 0 ? 'up' : 'down',
+                        weeklyChange: weeklyChange.toFixed(2),
+                        lastUpdated: mortgage30Response.data.observations[0].date
+                    }
+                },
+                markets: {
+                    sp500: sp500Change.toFixed(2),
+                    nasdaq: (sp500Change * 1.2).toFixed(2), // Approximation
+                    dow: (sp500Change * 0.8).toFixed(2)     // Approximation
+                },
+                news: [topNews],
+                realDataUsed: true,
+                dataSources: 'FRED & Alpha Vantage'
+            };
+            
+        } catch (error) {
+            console.error('API error:', error.message);
+            // Fall back to simulated data if APIs fail
+            return this.getFallbackMarketData();
+        }
     }
-}
 
     async generateNewsletterContent(marketData) {
         const currentDate = new Date();
@@ -524,267 +425,99 @@ async generateAndPublishTopicalBlog(calculatorType) {
         return content;
     }
 
-async generateBlogContent(dayName, marketData) {
-    // If OpenAI is available, use it for unique content
-    if (this.openai) {
-        try {
-            const topicRotation = {
-                monday: 'mortgage market analysis and weekly outlook',
-                tuesday: 'investment strategies and market opportunities',
-                wednesday: 'personal loans and debt management',
-                thursday: 'insurance planning and coverage optimization',
-                friday: 'weekly financial wrap-up and money tips',
-                saturday: 'real estate trends and homebuying guides',
-                sunday: 'financial planning and budgeting strategies'
-            };
+    async generateOpenAIBlog(calculatorType, marketData) {
+        const prompts = {
+            mortgage: `Write a comprehensive 1,500+ word blog post about mortgage calculators and home buying for ${new Date().toLocaleDateString()}.
+                Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
+                Focus on: How to use mortgage calculators, payment calculations, down payment strategies.
+                MUST include real examples with actual numbers and link to our mortgage calculator.`,
+            
+            investment: `Write a comprehensive 1,500+ word blog post about investment calculators and wealth building for ${new Date().toLocaleDateString()}.
+                Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
+                Focus on: Compound interest calculations, retirement planning, portfolio strategies.
+                MUST include specific calculations and link to our investment calculator.`,
+            
+            loan: `Write a comprehensive 1,500+ word blog post about personal loan calculators for ${new Date().toLocaleDateString()}.
+                Include: Current rates, debt consolidation benefits, payment calculations.
+                Focus on: How loan calculators help compare options, save money on interest.
+                MUST include real loan scenarios and link to our loan calculator.`,
+            
+            insurance: `Write a comprehensive 1,500+ word blog post about life insurance calculators for ${new Date().toLocaleDateString()}.
+                Include: Coverage calculations, premium factors, term vs whole life math.
+                Focus on: How to calculate proper coverage, age-based pricing, family protection.
+                MUST include coverage examples and link to our insurance calculator.`
+        };
 
-            const topic = topicRotation[dayName] || 'financial insights';
+        const completion = await this.openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are an expert financial writer creating SEO-optimized, helpful content about financial calculators. Always include specific numbers, calculations, and examples."
+                },
+                {
+                    role: "user",
+                    content: prompts[calculatorType] + `\n\nIMPORTANT REQUIREMENTS:
+                    - MUST be at least 1,500 words (this is critical for SEO)
+                    - Include multiple detailed sections with examples
+                    - Add comprehensive explanations and scenarios  
+                    - Include step-by-step guides where relevant
+                    - Expand on each topic with real-world applications
+                    - End with a strong CTA to use our ${calculatorType} calculator
+                    - Format with HTML tags (h2, h3, p, ul, li, strong)
+                    - First line is ONLY the title, no HTML tags`
+                }
+            ],
+            temperature: 0.8,
+            max_tokens: 4000
+        });
 
-            const prompt = `Write a comprehensive 1,200-word blog post about ${topic} for ${new Date().toLocaleDateString()}.
+        const responseText = completion.choices[0].message.content;
 
-MUST include this exact real market data:
-- 30-Year Mortgage Rate: ${marketData.rates.mortgage.thirtyYear}% (${marketData.rates.mortgage.trend} from last week)
-- 15-Year Mortgage Rate: ${marketData.rates.mortgage.fifteenYear}%
-- Stock Market: S&P 500 ${marketData.markets.sp500 > 0 ? '+' : ''}${marketData.markets.sp500}%
-- Latest News: "${marketData.news[0] || 'Markets showing mixed signals'}"
+        // Remove any DOCTYPE or html wrapper if OpenAI included it
+        const cleanedResponse = responseText
+            .replace(/<!DOCTYPE.*?>/i, '')
+            .replace(/<\/?html.*?>/gi, '')
+            .replace(/<\/?head.*?>/gi, '')
+            .replace(/<\/?body.*?>/gi, '')
+            .replace(/<title.*?<\/title>/gi, '')
+            .trim();
 
-Requirements:
-1. Create a unique, catchy title that includes the current date
-2. Use the EXACT rates provided above in your calculations
-3. Include specific, actionable advice based on current market conditions
-4. Add a section analyzing what these rates mean for consumers
-5. Include 3-4 practical tips readers can implement today
-6. Write in an engaging, conversational tone
-7. Format with proper HTML tags (h2, h3, p, ul, li, strong)
-8. End with a call-to-action to use our calculators
-9. Make it genuinely helpful and specific to TODAY's market
-10. Include at least one calculation example using the rates provided
-
-Start with the title on the first line, then the article content.`;
-
-            const completion = await this.openai.chat.completions.create({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are an expert financial writer who creates unique, timely, data-driven content. Never use generic filler. Always incorporate exact market data provided."
-                    },
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ],
-                temperature: 0.9, // High creativity for uniqueness
-                max_tokens: 2000
-            });
-
-            const aiResponse = completion.choices[0].message.content;
-            const lines = aiResponse.split('\n');
-            const title = lines[0].replace(/^[#\s]+/, '').trim();
-            const content = lines.slice(1).join('\n');
-
-            console.log(`🤖 AI generated unique blog: "${title}"`);
-
-            return {
-                title: title,
-                slug: this.createSlug(title + '-' + new Date().toISOString().split('T')[0]),
-                content: `
-                    <article class="blog-post">
-                        <header>
-                            <h1>${title}</h1>
-                            <p class="post-meta">Published ${new Date().toLocaleDateString()} | ${Math.floor(content.split(' ').length / 200)} min read</p>
-                            <p><em>*Analysis based on real-time data from Federal Reserve (FRED) and market APIs</em></p>
-                        </header>
-                        <section>
-                            ${content}
-                            
-                            <div class="cta-box">
-                                <h3>📊 Calculate Your Personal Scenario</h3>
-                                <p>Use our free calculators with today's real rates to see your options.</p>
-                                <a href="/" class="cta-button">Start Calculating</a>
-                            </div>
-                        </section>
-                    </article>
-                `,
-                excerpt: title.substring(0, 150) + '...',
-                category: this.getCategoryForDay(dayName),
-                tags: this.getTagsForDay(dayName).join(','),
-                metaDescription: `${title}. Real-time rates and analysis for ${new Date().toLocaleDateString()}.`
-            };
-
-        } catch (error) {
-            console.error('❌ OpenAI generation failed:', error.message);
-            // Fall back to template system
-            return this.generateTemplateBlogContent(dayName, marketData);
-        }
-    } else {
-        // No OpenAI key, use template system
-        return this.generateTemplateBlogContent(dayName, marketData);
+        const lines = cleanedResponse.split('\n');
+        const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
+        const content = lines.slice(1).join('\n');
+        
+        const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
+        
+        return {
+            title: title,
+            slug: slug,
+            content: `<article class="blog-post">${this.convertMarkdownToHTML(content)}</article>`,
+            excerpt: title.substring(0, 160) + '...',
+            calculatorType: calculatorType,
+            metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
+        };
     }
-}
 
-// Add these helper methods
-getCategoryForDay(dayName) {
-    const categories = {
-        monday: 'Market Analysis',
-        tuesday: 'Investment Guide',
-        wednesday: 'Loan Insights',
-        thursday: 'Insurance Tips',
-        friday: 'Weekly Recap',
-        saturday: 'Real Estate',
-        sunday: 'Financial Planning'
-    };
-    return categories[dayName] || 'Financial News';
-}
-
-getTagsForDay(dayName) {
-    const tags = {
-        monday: ['mortgage rates', 'market analysis', 'weekly outlook', 'real estate'],
-        tuesday: ['investing', 'stock market', 'portfolio', 'wealth building'],
-        wednesday: ['personal loans', 'debt', 'credit', 'financing'],
-        thursday: ['insurance', 'coverage', 'protection', 'risk management'],
-        friday: ['weekly recap', 'financial news', 'market summary', 'tips'],
-        saturday: ['home buying', 'real estate', 'property', 'housing market'],
-        sunday: ['budgeting', 'financial planning', 'money management', 'savings']
-    };
-    return tags[dayName] || ['finance', 'money', 'tips'];
-}
-
-// Rename your old method to this
-generateTemplateBlogContent(dayName, marketData) {
-    // Your existing template-based code here
-    const blogTopics = {
-        monday: ["Market Monday: This Week's Financial Outlook"],
-        // ... rest of your existing template code
-    };
-    // ... etc
-}
-
-    createBlogContent(dayName, topic, marketData) {
-        if (dayName === 'monday') {
-            return {
-                title: `Market Monday: This Week's Financial Outlook - ${new Date().toLocaleDateString()}`,
-                excerpt: `Start your week with the latest market trends and mortgage rates. Current 30-year rates at ${marketData.rates.mortgage.thirtyYear}%.`,
-                category: 'Market Analysis',
-                tags: ['markets', 'mortgage rates', 'weekly outlook'],
-                metaDescription: `Weekly financial market outlook with current mortgage rates and investment trends for ${new Date().toLocaleDateString()}.`,
-                html: `
-                <article class="blog-post">
-                    <header>
-                        <h1>Market Monday: This Week's Financial Outlook</h1>
-                        <p class="post-meta">Published ${new Date().toLocaleDateString()} | 3 min read</p>
-                    </header>
-                    
-                    <section>
-                        <h2>📈 Current Market Snapshot</h2>
-                        <p>As we start a new week, here's what's happening in the financial markets:</p>
-                        
-                        <div class="rate-box">
-                            <h3>🏠 Mortgage Rates Today</h3>
-                            <ul>
-                                <li>30-Year Fixed: <strong>${marketData.rates.mortgage.thirtyYear}%</strong></li>
-                                <li>15-Year Fixed: <strong>${marketData.rates.mortgage.fifteenYear}%</strong></li>
-                                <li>Trend: <strong>${marketData.rates.mortgage.trend}</strong></li>
-                            </ul>
-                        </div>
-                        
-                        <h2>💡 What This Means for You</h2>
-                        <p>With rates ${marketData.rates.mortgage.trend}, here's what homebuyers should know:</p>
-                        <ul>
-                            <li>Use our mortgage calculator to see how current rates affect your payment</li>
-                            <li>Consider rate locks if you're in the application process</li>
-                            <li>Explore different loan terms to find the best fit</li>
-                        </ul>
-                        
-                        <div class="cta-box">
-                            <h3>Ready to Explore Your Options?</h3>
-                            <p>Get personalized mortgage quotes based on today's rates.</p>
-                            <a href="/" class="cta-button">Calculate My Payment</a>
-                        </div>
-                    </section>
-                </article>
-                `
-            };
-        } else if (dayName === 'friday') {
-            return {
-                title: `Finance Friday: This Week's Money Recap - ${new Date().toLocaleDateString()}`,
-                excerpt: `Weekly wrap-up of financial markets, rate changes, and what it means for your money decisions.`,
-                category: 'Weekly Recap',
-                tags: ['weekly recap', 'finance news', 'market summary'],
-                metaDescription: `Weekly financial recap covering market performance, rate changes, and money management tips.`,
-                html: `
-                <article class="blog-post">
-                    <header>
-                        <h1>Finance Friday: This Week's Money Recap</h1>
-                        <p class="post-meta">Published ${new Date().toLocaleDateString()} | 3 min read</p>
-                    </header>
-                    
-                    <section>
-                        <h2>📊 Week in Numbers</h2>
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <h3>Mortgage Rates</h3>
-                                <p>30-Year: <strong>${marketData.rates.mortgage.thirtyYear}%</strong></p>
-                            </div>
-                            <div class="stat-item">
-                                <h3>Market Performance</h3>
-                                <p>S&P 500: <strong>${marketData.markets.sp500 > 0 ? '+' : ''}${marketData.markets.sp500}%</strong></p>
-                            </div>
-                        </div>
-                        
-                        <h2>🎯 Action Items for Next Week</h2>
-                        <ol>
-                            <li>Review your budget and spending</li>
-                            <li>Check investment account performance</li>
-                            <li>Research rates for any major purchases</li>
-                            <li>Plan your weekend money tasks</li>
-                        </ol>
-                        
-                        <div class="cta-box">
-                            <h3>Take the Weekend Challenge</h3>
-                            <p>Spend 15 minutes exploring your financial scenarios.</p>
-                            <a href="/" class="cta-button">Start Calculating</a>
-                        </div>
-                    </section>
-                </article>
-                `
-            };
-        } else {
-            // Default content for other days
-            return {
-                title: `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} Financial Tips - ${new Date().toLocaleDateString()}`,
-                excerpt: `Daily financial insights and money management tips for ${dayName}.`,
-                category: 'Financial Tips',
-                tags: ['finance', 'money tips', 'financial planning'],
-                metaDescription: `Daily financial insights and practical money management advice for ${dayName}.`,
-                html: `
-                <article class="blog-post">
-                    <header>
-                        <h1>${dayName.charAt(0).toUpperCase() + dayName.slice(1)} Financial Insights</h1>
-                        <p class="post-meta">Published ${new Date().toLocaleDateString()} | 3 min read</p>
-                    </header>
-                    
-                    <section>
-                        <h2>💡 Today's Financial Focus</h2>
-                        <p>Smart money management starts with having the right information and tools to make informed decisions.</p>
-                        
-                        <h2>📊 Current Market Context</h2>
-                        <ul>
-                            <li>30-Year Mortgage Rates: ${marketData.rates.mortgage.thirtyYear}%</li>
-                            <li>Market Trend: ${marketData.markets.sp500 > 0 ? 'Positive' : 'Cautious'}</li>
-                            <li>Planning Opportunity: Great time to review your financial strategy</li>
-                        </ul>
-                        
-                        <div class="cta-box">
-                            <h3>Explore Your Financial Options</h3>
-                            <p>Use our free calculators to make informed decisions.</p>
-                            <a href="/" class="cta-button">Try Our Calculators</a>
-                        </div>
-                    </section>
-                </article>
-                `
-            };
-        }
+    convertMarkdownToHTML(markdown) {
+        return markdown
+            // Headers
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            // Bold
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            // Lists
+            .replace(/^\* (.+)$/gim, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            // Paragraphs
+            .split('\n\n')
+            .map(para => para.trim() ? `<p>${para}</p>` : '')
+            .join('\n')
+            // Fix nested list tags
+            .replace(/<\/li>\n<li>/g, '</li><li>')
+            .replace(/<p><ul>/g, '<ul>')
+            .replace(/<\/ul><\/p>/g, '</ul>');
     }
 
     generateNewsletterHTML(marketData, tip) {
@@ -912,12 +645,8 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return [];
         
         try {
-            return await new Promise((resolve, reject) => {
-                this.db.all(
-                    'SELECT email FROM newsletter_subscribers WHERE status = "active"',
-                    (err, rows) => err ? reject(err) : resolve(rows || [])
-                );
-            });
+            const rows = await this.dbAll('SELECT email FROM newsletter_subscribers WHERE status = $1', ['active']);
+            return rows;
         } catch (error) {
             console.error('Error fetching subscribers:', error);
             return [];
@@ -966,20 +695,17 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return;
         
         try {
-            await new Promise((resolve, reject) => {
-                this.db.run(
-                    `INSERT INTO newsletter_content (week_of, subject, content, sent_at, subscriber_count) 
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [
-                        content.weekOf,
-                        content.subject,
-                        JSON.stringify({ html: content.html.substring(0, 1000) + '...' }),
-                        new Date().toISOString(),
-                        results.successful
-                    ],
-                    (err) => err ? reject(err) : resolve()
-                );
-            });
+            await this.dbRun(
+                `INSERT INTO newsletter_content (week_of, subject, content, sent_at, subscriber_count) 
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [
+                    content.weekOf,
+                    content.subject,
+                    JSON.stringify({ html: content.html.substring(0, 1000) + '...' }),
+                    new Date().toISOString(),
+                    results.successful
+                ]
+            );
         } catch (error) {
             console.error('Error logging newsletter send:', error);
         }
@@ -989,23 +715,20 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return;
         
         try {
-            await new Promise((resolve, reject) => {
-                this.db.run(
-                    `INSERT INTO blog_posts (slug, title, content, excerpt, category, tags, meta_description, published_at) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        blogPost.slug,
-                        blogPost.title,
-                        blogPost.content,
-                        blogPost.excerpt,
-                        blogPost.category,
-                        blogPost.tags,
-                        blogPost.metaDescription,
-                        new Date().toISOString()
-                    ],
-                    (err) => err ? reject(err) : resolve()
-                );
-            });
+            await this.dbRun(
+                `INSERT INTO blog_posts (slug, title, content, excerpt, category, tags, meta_description, published_at) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                    blogPost.slug,
+                    blogPost.title,
+                    blogPost.content,
+                    blogPost.excerpt,
+                    blogPost.category,
+                    blogPost.tags,
+                    blogPost.meta_description,
+                    new Date().toISOString()
+                ]
+            );
         } catch (error) {
             console.error('Error saving blog post:', error);
         }
@@ -1015,13 +738,11 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return [];
         
         try {
-            return await new Promise((resolve, reject) => {
-                this.db.all(
-                    'SELECT * FROM blog_posts WHERE status = "published" ORDER BY published_at DESC LIMIT ?',
-                    [limit],
-                    (err, rows) => err ? reject(err) : resolve(rows || [])
-                );
-            });
+            const rows = await this.dbAll(
+                'SELECT * FROM blog_posts WHERE status = $1 ORDER BY published_at DESC LIMIT $2',
+                ['published', limit]
+            );
+            return rows;
         } catch (error) {
             return [];
         }
@@ -1031,17 +752,14 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return null;
         
         try {
-            const post = await new Promise((resolve, reject) => {
-                this.db.get(
-                    'SELECT * FROM blog_posts WHERE slug = ? AND status = "published"',
-                    [slug],
-                    (err, row) => err ? reject(err) : resolve(row)
-                );
-            });
+            const post = await this.dbGet(
+                'SELECT * FROM blog_posts WHERE slug = $1 AND status = $2',
+                [slug, 'published']
+            );
             
             // Increment view count
             if (post) {
-                this.db.run('UPDATE blog_posts SET view_count = view_count + 1 WHERE slug = ?', [slug]);
+                await this.dbRun('UPDATE blog_posts SET view_count = view_count + 1 WHERE slug = $1', [slug]);
             }
             
             return post;
@@ -1054,13 +772,11 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return 0;
         
         try {
-            const result = await new Promise((resolve, reject) => {
-                this.db.get(
-                    'SELECT COUNT(*) as count FROM newsletter_subscribers WHERE status = "active"',
-                    (err, row) => err ? reject(err) : resolve(row?.count || 0)
-                );
-            });
-            return result;
+            const result = await this.dbGet(
+                'SELECT COUNT(*) as count FROM newsletter_subscribers WHERE status = $1',
+                ['active']
+            );
+            return result?.count || 0;
         } catch (error) {
             return 0;
         }
@@ -1070,13 +786,10 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         if (!this.db) return null;
         
         try {
-            const result = await new Promise((resolve, reject) => {
-                this.db.get(
-                    'SELECT sent_at FROM newsletter_content ORDER BY sent_at DESC LIMIT 1',
-                    (err, row) => err ? reject(err) : resolve(row?.sent_at || null)
-                );
-            });
-            return result;
+            const result = await this.dbGet(
+                'SELECT sent_at FROM newsletter_content ORDER BY sent_at DESC LIMIT 1'
+            );
+            return result?.sent_at || null;
         } catch (error) {
             return null;
         }
@@ -1180,28 +893,22 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             }
         });
 
-// Delete blog post endpoint
-this.app.delete('/api/blog/:slug', async (req, res) => {
-    try {
-        const { slug } = req.params;
-        
-        if (!this.db) {
-            return res.status(500).json({ success: false, error: 'Database not available' });
-        }
-        
-        await new Promise((resolve, reject) => {
-            this.db.run(
-                'DELETE FROM blog_posts WHERE slug = ?',
-                [slug],
-                (err) => err ? reject(err) : resolve()
-            );
+        // Delete blog post endpoint
+        this.app.delete('/api/blog/:slug', async (req, res) => {
+            try {
+                const { slug } = req.params;
+                
+                if (!this.db) {
+                    return res.status(500).json({ success: false, error: 'Database not available' });
+                }
+                
+                await this.dbRun('DELETE FROM blog_posts WHERE slug = $1', [slug]);
+                
+                res.json({ success: true, message: 'Blog post deleted' });
+            } catch (error) {
+                res.status(500).json({ success: false, error: error.message });
+            }
         });
-        
-        res.json({ success: true, message: 'Blog post deleted' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
 
         // Basic lead capture endpoint
         this.app.post('/api/capture-lead-email', async (req, res) => {
@@ -1223,14 +930,11 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
                 };
 
                 if (this.db) {
-                    await new Promise((resolve, reject) => {
-                        this.db.run(
-                            `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
-                             VALUES (?, ?, ?, ?, ?, ?)`,
-                            [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at],
-                            (err) => err ? reject(err) : resolve()
-                        );
-                    });
+                    await this.dbRun(
+                        `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
+                         VALUES ($1, $2, $3, $4, $5, $6)`,
+                        [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at]
+                    );
                 }
 
                 // Auto-sell the lead
@@ -1270,15 +974,12 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
                 };
 
                 if (this.db) {
-                    // Insert subscriber
-                    await new Promise((resolve, reject) => {
-                        this.db.run(
-                            `INSERT OR IGNORE INTO newsletter_subscribers (uid, email, source, subscribed_at) 
-                             VALUES (?, ?, ?, ?)`,
-                            [subscriberData.uid, subscriberData.email, subscriberData.source, subscriberData.subscribed_at],
-                            (err) => err ? reject(err) : resolve()
-                        );
-                    });
+                    // Insert subscriber (ignore duplicates)
+                    await this.dbRun(
+                        `INSERT INTO newsletter_subscribers (uid, email, source, subscribed_at) 
+                         VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`,
+                        [subscriberData.uid, subscriberData.email, subscriberData.source, subscriberData.subscribed_at]
+                    );
                 }
 
                 console.log(`📧 Newsletter subscriber added: ${email}`);
@@ -1337,13 +1038,13 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
         });
 
         // Test blog endpoint
-       this.app.post('/api/publish-test-blog', async (req, res) => {
-    try {
-        // Test with a random calculator type
-        const types = ['mortgage', 'investment', 'loan', 'insurance'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        await this.generateAndPublishTopicalBlog(randomType);
-        res.json({ success: true, message: `Test ${randomType} blog published successfully` });
+        this.app.post('/api/publish-test-blog', async (req, res) => {
+            try {
+                // Test with a random calculator type
+                const types = ['mortgage', 'investment', 'loan', 'insurance'];
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                await this.generateAndPublishTopicalBlog(randomType);
+                res.json({ success: true, message: `Test ${randomType} blog published successfully` });
             } catch (error) {
                 console.error('Test blog error:', error);
                 res.status(500).json({ success: false, error: error.message });
@@ -1404,12 +1105,10 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
                     return res.json({ success: true, subscribers: [], count: 0 });
                 }
 
-                const subscribers = await new Promise((resolve, reject) => {
-                    this.db.all(
-                        'SELECT email, subscribed_at, source FROM newsletter_subscribers WHERE status = "active" ORDER BY subscribed_at DESC',
-                        (err, rows) => err ? reject(err) : resolve(rows || [])
-                    );
-                });
+                const subscribers = await this.dbAll(
+                    'SELECT email, subscribed_at, source FROM newsletter_subscribers WHERE status = $1 ORDER BY subscribed_at DESC',
+                    ['active']
+                );
 
                 res.json({ success: true, subscribers, count: subscribers.length });
                 
@@ -1448,12 +1147,8 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
                     });
                 }
 
-                const totalLeads = await new Promise((resolve, reject) => {
-                    this.db.get(
-                        'SELECT COUNT(*) as count FROM leads_enhanced',
-                        (err, row) => err ? reject(err) : resolve(row?.count || 0)
-                    );
-                });
+                const result = await this.dbGet('SELECT COUNT(*) as count FROM leads_enhanced');
+                const totalLeads = result?.count || 0;
 
                 res.json({
                     success: true,
@@ -1494,21 +1189,16 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
         // Get leads for dashboard
         this.app.get('/api/leads', async (req, res) => {
             try {
-                const limit = req.query.limit || 10;
+                const limit = parseInt(req.query.limit) || 10;
                 
                 if (!this.db) {
                     return res.json({ success: true, leads: [] });
                 }
 
-                const leads = await new Promise((resolve, reject) => {
-                    this.db.all(
-                        `SELECT * FROM leads_enhanced 
-                         ORDER BY created_at DESC 
-                         LIMIT ?`,
-                        [limit],
-                        (err, rows) => err ? reject(err) : resolve(rows || [])
-                    );
-                });
+                const leads = await this.dbAll(
+                    'SELECT * FROM leads_enhanced ORDER BY created_at DESC LIMIT $1',
+                    [limit]
+                );
 
                 res.json({ success: true, leads });
                 
@@ -1559,238 +1249,20 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
         });
 
         // Legal Pages Routes
-        // Privacy Policy
         this.app.get('/privacy', (req, res) => {
-            res.send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Privacy Policy - CalculiQ</title>
-                <style>
-                    body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                        max-width: 800px; 
-                        margin: 0 auto; 
-                        padding: 40px 20px; 
-                        line-height: 1.6; 
-                        color: #333;
-                    }
-                    h1 { color: #1a1f3a; margin-bottom: 30px; }
-                    h2 { color: #1a1f3a; margin-top: 30px; margin-bottom: 15px; }
-                    p { margin-bottom: 15px; }
-                    .last-updated { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 30px; }
-                    .highlight { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }
-                    a { color: #646cff; text-decoration: none; }
-                    a:hover { text-decoration: underline; }
-                </style>
-            </head>
-            <body>
-                <h1>CalculiQ Privacy Policy</h1>
-                <div class="last-updated">
-                    <strong>Last Updated:</strong> ${new Date().toLocaleDateString()}
-                </div>
-                
-                <h2>Information We Collect</h2>
-                <p>We collect information you provide when using our calculators, including:</p>
-                <ul>
-                    <li>Email addresses when you request personalized reports</li>
-                    <li>Contact information (name, phone) when you complete profile forms</li>
-                    <li>Financial calculation data you input into our calculators</li>
-                    <li>Usage analytics and website interaction data</li>
-                </ul>
-                
-                <h2>How We Use Your Information</h2>
-                <p>We use your information to:</p>
-                <ul>
-                    <li>Provide personalized financial recommendations and reports</li>
-                    <li>Connect you with relevant financial service providers and lenders</li>
-                    <li>Improve our calculators and website functionality</li>
-                    <li>Send you relevant financial tips and offers (with your consent)</li>
-                </ul>
-                
-                <h2>Information Sharing</h2>
-                <div class="highlight">
-                    <p><strong>Important:</strong> We may share your information with trusted financial partners and lenders to provide you with relevant offers and services. This is how we're able to offer our calculators for free.</p>
-                </div>
-                <p>We may share your information with:</p>
-                <ul>
-                    <li>Verified mortgage lenders, loan providers, and financial institutions</li>
-                    <li>Insurance companies and brokers</li>
-                    <li>Investment advisors and financial planners</li>
-                    <li>Service providers who help us operate our website</li>
-                </ul>
-                
-                <h2>Your Rights and Controls</h2>
-                <p>You have the right to:</p>
-                <ul>
-                    <li>Opt out of marketing communications by clicking unsubscribe links</li>
-                    <li>Request access to your personal information</li>
-                    <li>Request correction or deletion of your data</li>
-                    <li>Limit how your information is shared</li>
-                </ul>
-                
-                <h2>Data Security</h2>
-                <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
-                
-                <h2>Contact Us</h2>
-                <p>Questions about privacy? Contact us:</p>
-                <p><strong>Email:</strong> privacy@calculiq.com<br>
-                <strong>Response Time:</strong> Within 24-48 hours</p>
-                
-                <div style="margin-top: 50px; text-align: center;">
-                    <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
-                        Return to CalculiQ
-                    </a>
-                </div>
-            </body>
-            </html>
-            `);
+            res.send(this.generatePrivacyPage());
         });
 
-        // Terms of Service  
         this.app.get('/terms', (req, res) => {
-            res.send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Terms of Service - CalculiQ</title>
-                <style>
-                    body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                        max-width: 800px; 
-                        margin: 0 auto; 
-                        padding: 40px 20px; 
-                        line-height: 1.6; 
-                        color: #333;
-                    }
-                    h1 { color: #1a1f3a; margin-bottom: 30px; }
-                    h2 { color: #1a1f3a; margin-top: 30px; margin-bottom: 15px; }
-                    p { margin-bottom: 15px; }
-                    .last-updated { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 30px; }
-                    .highlight { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }
-                    a { color: #646cff; text-decoration: none; }
-                    a:hover { text-decoration: underline; }
-                </style>
-            </head>
-            <body>
-                <h1>CalculiQ Terms of Service</h1>
-                <div class="last-updated">
-                    <strong>Last Updated:</strong> ${new Date().toLocaleDateString()}
-                </div>
-                
-                <h2>Calculator Estimates</h2>
-                <p>Our calculators provide estimates only. Actual financial terms may differ from calculator results.</p>
-                
-                <h2>Third-Party Services</h2>
-                <p>We may recommend third-party financial services. We are not responsible for their services or terms.</p>
-                
-                <h2>No Financial Advice</h2>
-                <p>Our calculators and recommendations do not constitute professional financial advice.</p>
-                
-                <h2>Contact</h2>
-                <p>Questions? Contact: legal@calculiq.com</p>
-                
-                <div style="margin-top: 50px; text-align: center;">
-                    <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
-                        Return to CalculiQ
-                    </a>
-                </div>
-            </body>
-            </html>
-            `);
+            res.send(this.generateTermsPage());
         });
 
-        // Contact Page
         this.app.get('/contact', (req, res) => {
-            res.send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Contact - CalculiQ</title>
-                <style>
-                    body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                        max-width: 600px; 
-                        margin: 0 auto; 
-                        padding: 40px 20px; 
-                        line-height: 1.6; 
-                        color: #333;
-                    }
-                    h1 { color: #1a1f3a; text-align: center; }
-                    .contact-card { background: #f8f9fa; padding: 30px; border-radius: 12px; margin: 20px 0; }
-                    a { color: #646cff; text-decoration: none; }
-                </style>
-            </head>
-            <body>
-                <h1>Contact CalculiQ</h1>
-                
-                <div class="contact-card">
-                    <h3>📧 Email Support</h3>
-                    <p><strong>General:</strong> support@calculiq.com</p>
-                    <p><strong>Privacy:</strong> privacy@calculiq.com</p>
-                    <p><strong>Response Time:</strong> 24-48 hours</p>
-                </div>
-                
-                <div style="text-align: center; margin-top: 40px;">
-                    <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px;">
-                        Return to CalculiQ
-                    </a>
-                </div>
-            </body>
-            </html>
-            `);
+            res.send(this.generateContactPage());
         });
 
-        // Do Not Sell
         this.app.get('/do-not-sell', (req, res) => {
-            res.send(`
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Do Not Sell My Info - CalculiQ</title>
-                <style>
-                    body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                        max-width: 600px; 
-                        margin: 0 auto; 
-                        padding: 40px 20px; 
-                        line-height: 1.6; 
-                        color: #333;
-                    }
-                    h1 { color: #1a1f3a; }
-                    .highlight { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; }
-                    a { color: #646cff; text-decoration: none; }
-                </style>
-            </head>
-            <body>
-                <h1>Do Not Sell My Info</h1>
-                
-                <div class="highlight">
-                    <p><strong>California Privacy Rights (CCPA)</strong></p>
-                    <p>California residents can opt out of information sharing for marketing purposes.</p>
-                </div>
-                
-                <h2>To Opt Out:</h2>
-                <p>Email us at: <strong>privacy@calculiq.com</strong></p>
-                <p>Include: Your name, email, and "Do Not Sell Request"</p>
-                <p>We'll process your request within 15 business days.</p>
-                
-                <div style="text-align: center; margin-top: 40px;">
-                    <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px;">
-                        Return to CalculiQ
-                    </a>
-                </div>
-            </body>
-            </html>
-            `);
+            res.send(this.generateDoNotSellPage());
         });
 
         // Catch all route for undefined endpoints
@@ -1930,10 +1402,10 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
                 ${posts.length > 0 ? posts.map(post => `
                     <article class="post-card">
                         <h2><a href="/blog/${post.slug}" class="post-title">${post.title}</a></h2>
-<div class="post-meta">
-    ${new Date(post.published_at).toLocaleDateString()} • 
-    <span class="post-category">${post.category}</span>
-</div>
+                        <div class="post-meta">
+                            ${new Date(post.published_at).toLocaleDateString()} • 
+                            <span class="post-category">${post.category}</span>
+                        </div>
                         <p class="post-excerpt">${post.excerpt}</p>
                     </article>
                 `).join('') : `
@@ -2065,8 +1537,238 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
             ${post.content}
             
             <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
-<p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()}</p>
+                <p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()}</p>
                 <a href="/blog" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">← Back to Blog</a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generatePrivacyPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Privacy Policy - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; margin-bottom: 30px; }
+                h2 { color: #1a1f3a; margin-top: 30px; margin-bottom: 15px; }
+                p { margin-bottom: 15px; }
+                .last-updated { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 30px; }
+                .highlight { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }
+                a { color: #646cff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <h1>CalculiQ Privacy Policy</h1>
+            <div class="last-updated">
+                <strong>Last Updated:</strong> ${new Date().toLocaleDateString()}
+            </div>
+            
+            <h2>Information We Collect</h2>
+            <p>We collect information you provide when using our calculators, including:</p>
+            <ul>
+                <li>Email addresses when you request personalized reports</li>
+                <li>Contact information (name, phone) when you complete profile forms</li>
+                <li>Financial calculation data you input into our calculators</li>
+                <li>Usage analytics and website interaction data</li>
+            </ul>
+            
+            <h2>How We Use Your Information</h2>
+            <p>We use your information to:</p>
+            <ul>
+                <li>Provide personalized financial recommendations and reports</li>
+                <li>Connect you with relevant financial service providers and lenders</li>
+                <li>Improve our calculators and website functionality</li>
+                <li>Send you relevant financial tips and offers (with your consent)</li>
+            </ul>
+            
+            <h2>Information Sharing</h2>
+            <div class="highlight">
+                <p><strong>Important:</strong> We may share your information with trusted financial partners and lenders to provide you with relevant offers and services. This is how we're able to offer our calculators for free.</p>
+            </div>
+            <p>We may share your information with:</p>
+            <ul>
+                <li>Verified mortgage lenders, loan providers, and financial institutions</li>
+                <li>Insurance companies and brokers</li>
+                <li>Investment advisors and financial planners</li>
+                <li>Service providers who help us operate our website</li>
+            </ul>
+            
+            <h2>Your Rights and Controls</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Opt out of marketing communications by clicking unsubscribe links</li>
+                <li>Request access to your personal information</li>
+                <li>Request correction or deletion of your data</li>
+                <li>Limit how your information is shared</li>
+            </ul>
+            
+            <h2>Data Security</h2>
+            <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+            
+            <h2>Contact Us</h2>
+            <p>Questions about privacy? Contact us:</p>
+            <p><strong>Email:</strong> privacy@calculiq.com<br>
+            <strong>Response Time:</strong> Within 24-48 hours</p>
+            
+            <div style="margin-top: 50px; text-align: center;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateTermsPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Terms of Service - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; margin-bottom: 30px; }
+                h2 { color: #1a1f3a; margin-top: 30px; margin-bottom: 15px; }
+                p { margin-bottom: 15px; }
+                .last-updated { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 30px; }
+                .highlight { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; }
+                a { color: #646cff; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <h1>CalculiQ Terms of Service</h1>
+            <div class="last-updated">
+                <strong>Last Updated:</strong> ${new Date().toLocaleDateString()}
+            </div>
+            
+            <h2>Calculator Estimates</h2>
+            <p>Our calculators provide estimates only. Actual financial terms may differ from calculator results.</p>
+            
+            <h2>Third-Party Services</h2>
+            <p>We may recommend third-party financial services. We are not responsible for their services or terms.</p>
+            
+            <h2>No Financial Advice</h2>
+            <p>Our calculators and recommendations do not constitute professional financial advice.</p>
+            
+            <h2>Contact</h2>
+            <p>Questions? Contact: legal@calculiq.com</p>
+            
+            <div style="margin-top: 50px; text-align: center;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateContactPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Contact - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; text-align: center; }
+                .contact-card { background: #f8f9fa; padding: 30px; border-radius: 12px; margin: 20px 0; }
+                a { color: #646cff; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <h1>Contact CalculiQ</h1>
+            
+            <div class="contact-card">
+                <h3>📧 Email Support</h3>
+                <p><strong>General:</strong> support@calculiq.com</p>
+                <p><strong>Privacy:</strong> privacy@calculiq.com</p>
+                <p><strong>Response Time:</strong> 24-48 hours</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px;">
+                    Return to CalculiQ
+                </a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateDoNotSellPage() {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Do Not Sell My Info - CalculiQ</title>
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    padding: 40px 20px; 
+                    line-height: 1.6; 
+                    color: #333;
+                }
+                h1 { color: #1a1f3a; }
+                .highlight { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                a { color: #646cff; text-decoration: none; }
+            </style>
+        </head>
+        <body>
+            <h1>Do Not Sell My Info</h1>
+            
+            <div class="highlight">
+                <p><strong>California Privacy Rights (CCPA)</strong></p>
+                <p>California residents can opt out of information sharing for marketing purposes.</p>
+            </div>
+            
+            <h2>To Opt Out:</h2>
+            <p>Email us at: <strong>privacy@calculiq.com</strong></p>
+            <p>Include: Your name, email, and "Do Not Sell Request"</p>
+            <p>We'll process your request within 15 business days.</p>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px;">
+                    Return to CalculiQ
+                </a>
             </div>
         </body>
         </html>
@@ -2124,7 +1826,7 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
         process.on('SIGTERM', () => {
             console.log('SIGTERM signal received: closing HTTP server');
             if (this.db) {
-                this.db.close();
+                this.db.end();
             }
             process.exit(0);
         });
