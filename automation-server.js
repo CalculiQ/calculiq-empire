@@ -26,14 +26,21 @@ class CalculiQAutomationServer {
         };
         
 // Initialize OpenAI
-        if (process.env.OPENAI_API_KEY) {
-            this.openai = new OpenAI({
-                apiKey: process.env.OPENAI_API_KEY
-            });
-            console.log('✅ OpenAI initialized for unique content generation');
-        } else {
-            console.log('📝 OpenAI not configured - using template system');
-        }
+if (process.env.OPENAI_API_KEY) {
+    try {
+        const { OpenAI } = require('openai');  // Add this line
+        this.openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+        console.log('✅ OpenAI initialized for unique content generation');
+    } catch (error) {
+        console.log('📝 OpenAI initialization failed:', error.message);
+        this.openai = null;
+    }
+} else {
+    console.log('📝 OpenAI not configured - using template system');
+    this.openai = null;
+}
         
         this.setupMiddleware();
         this.initializeDatabase();
