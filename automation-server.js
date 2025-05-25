@@ -336,7 +336,15 @@ async generateOpenAIBlog(calculatorType, marketData) {
             },
             {
                 role: "user",
-content: prompts[calculatorType] + `\n\nEnd with a strong CTA to use our ${calculatorType} calculator. Format the response with a clear title on the first line. Use HTML formatting (h2, h3, p, ul, li, strong tags) instead of markdown.`
+content: prompts[calculatorType] + `\n\nIMPORTANT REQUIREMENTS:
+- MUST be at least 1,500 words (this is critical for SEO)
+- Include multiple detailed sections with examples
+- Add comprehensive explanations and scenarios  
+- Include step-by-step guides where relevant
+- Expand on each topic with real-world applications
+- End with a strong CTA to use our ${calculatorType} calculator
+- Format with HTML tags (h2, h3, p, ul, li, strong)
+- First line is ONLY the title, no HTML tags`
             }
         ],
 temperature: 0.8,
