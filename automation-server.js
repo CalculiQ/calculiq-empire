@@ -9,6 +9,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
+const OpenAI = require('openai');
 
 require('dotenv').config();
 
@@ -23,6 +24,16 @@ class CalculiQAutomationServer {
             avgRevenuePerVisitor: 0,
             monthlyRevenue: 0
         };
+        
+// Initialize OpenAI
+        if (process.env.OPENAI_API_KEY) {
+            this.openai = new OpenAI({
+                apiKey: process.env.OPENAI_API_KEY
+            });
+            console.log('✅ OpenAI initialized for unique content generation');
+        } else {
+            console.log('📝 OpenAI not configured - using template system');
+        }
         
         this.setupMiddleware();
         this.initializeDatabase();
@@ -352,61 +363,141 @@ async generateAndPublishDailyBlog() {
         return content;
     }
 
-    async generateBlogContent(dayName, marketData) {
-        const blogTopics = {
-            monday: [
-                "Market Monday: This Week's Financial Outlook",
-                "Mortgage Monday: Today's Rates and Trends",
-                "Money Monday: Weekly Financial Planning Tips"
-            ],
-            tuesday: [
-                "Tax Tuesday: Smart Strategies to Save Money",
-                "Investment Tuesday: Building Your Portfolio",
-                "Budgeting Tuesday: Track Your Spending"
-            ],
-            wednesday: [
-                "Wealth Wednesday: Long-term Financial Planning",
-                "Insurance Wednesday: Protecting Your Assets",
-                "Credit Wednesday: Improving Your Score"
-            ],
-            thursday: [
-                "Retirement Thursday: Planning Your Future",
-                "Real Estate Thursday: Home Buying Tips",
-                "Savings Thursday: Emergency Fund Strategies"
-            ],
-            friday: [
-                "Finance Friday: Week in Review",
-                "Calculator Friday: How to Use Our Tools",
-                "FAQ Friday: Your Questions Answered"
-            ],
-            saturday: [
-                "Weekend Reads: Financial Education",
-                "Success Saturday: Real Customer Stories",
-                "Planning Saturday: Weekend Money Tasks"
-            ],
-            sunday: [
-                "Sunday Prep: Week Ahead Financial Planning",
-                "Reflection Sunday: Monthly Money Review",
-                "Family Sunday: Teaching Kids About Money"
-            ]
-        };
+async generateBlogContent(dayName, marketData) {
+    // If OpenAI is available, use it for unique content
+    if (this.openai) {
+        try {
+            const topicRotation = {
+                monday: 'mortgage market analysis and weekly outlook',
+                tuesday: 'investment strategies and market opportunities',
+                wednesday: 'personal loans and debt management',
+                thursday: 'insurance planning and coverage optimization',
+                friday: 'weekly financial wrap-up and money tips',
+                saturday: 'real estate trends and homebuying guides',
+                sunday: 'financial planning and budgeting strategies'
+            };
 
-        const topics = blogTopics[dayName];
-        const selectedTopic = topics[Math.floor(Math.random() * topics.length)];
-        
-        // Generate content based on the day and topic
-        const content = this.createBlogContent(dayName, selectedTopic, marketData);
-        
-        return {
-            title: content.title,
-            slug: this.createSlug(content.title),
-            content: content.html,
-            excerpt: content.excerpt,
-            category: content.category,
-            tags: content.tags.join(','),
-            metaDescription: content.metaDescription
-        };
+            const topic = topicRotation[dayName] || 'financial insights';
+
+            const prompt = `Write a comprehensive 1,200-word blog post about ${topic} for ${new Date().toLocaleDateString()}.
+
+MUST include this exact real market data:
+- 30-Year Mortgage Rate: ${marketData.rates.mortgage.thirtyYear}% (${marketData.rates.mortgage.trend} from last week)
+- 15-Year Mortgage Rate: ${marketData.rates.mortgage.fifteenYear}%
+- Stock Market: S&P 500 ${marketData.markets.sp500 > 0 ? '+' : ''}${marketData.markets.sp500}%
+- Latest News: "${marketData.news[0] || 'Markets showing mixed signals'}"
+
+Requirements:
+1. Create a unique, catchy title that includes the current date
+2. Use the EXACT rates provided above in your calculations
+3. Include specific, actionable advice based on current market conditions
+4. Add a section analyzing what these rates mean for consumers
+5. Include 3-4 practical tips readers can implement today
+6. Write in an engaging, conversational tone
+7. Format with proper HTML tags (h2, h3, p, ul, li, strong)
+8. End with a call-to-action to use our calculators
+9. Make it genuinely helpful and specific to TODAY's market
+10. Include at least one calculation example using the rates provided
+
+Start with the title on the first line, then the article content.`;
+
+            const completion = await this.openai.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are an expert financial writer who creates unique, timely, data-driven content. Never use generic filler. Always incorporate exact market data provided."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.9, // High creativity for uniqueness
+                max_tokens: 2000
+            });
+
+            const aiResponse = completion.choices[0].message.content;
+            const lines = aiResponse.split('\n');
+            const title = lines[0].replace(/^[#\s]+/, '').trim();
+            const content = lines.slice(1).join('\n');
+
+            console.log(`🤖 AI generated unique blog: "${title}"`);
+
+            return {
+                title: title,
+                slug: this.createSlug(title + '-' + new Date().toISOString().split('T')[0]),
+                content: `
+                    <article class="blog-post">
+                        <header>
+                            <h1>${title}</h1>
+                            <p class="post-meta">Published ${new Date().toLocaleDateString()} | ${Math.floor(content.split(' ').length / 200)} min read</p>
+                            <p><em>*Analysis based on real-time data from Federal Reserve (FRED) and market APIs</em></p>
+                        </header>
+                        <section>
+                            ${content}
+                            
+                            <div class="cta-box">
+                                <h3>📊 Calculate Your Personal Scenario</h3>
+                                <p>Use our free calculators with today's real rates to see your options.</p>
+                                <a href="/" class="cta-button">Start Calculating</a>
+                            </div>
+                        </section>
+                    </article>
+                `,
+                excerpt: title.substring(0, 150) + '...',
+                category: this.getCategoryForDay(dayName),
+                tags: this.getTagsForDay(dayName).join(','),
+                metaDescription: `${title}. Real-time rates and analysis for ${new Date().toLocaleDateString()}.`
+            };
+
+        } catch (error) {
+            console.error('❌ OpenAI generation failed:', error.message);
+            // Fall back to template system
+            return this.generateTemplateBlogContent(dayName, marketData);
+        }
+    } else {
+        // No OpenAI key, use template system
+        return this.generateTemplateBlogContent(dayName, marketData);
     }
+}
+
+// Add these helper methods
+getCategoryForDay(dayName) {
+    const categories = {
+        monday: 'Market Analysis',
+        tuesday: 'Investment Guide',
+        wednesday: 'Loan Insights',
+        thursday: 'Insurance Tips',
+        friday: 'Weekly Recap',
+        saturday: 'Real Estate',
+        sunday: 'Financial Planning'
+    };
+    return categories[dayName] || 'Financial News';
+}
+
+getTagsForDay(dayName) {
+    const tags = {
+        monday: ['mortgage rates', 'market analysis', 'weekly outlook', 'real estate'],
+        tuesday: ['investing', 'stock market', 'portfolio', 'wealth building'],
+        wednesday: ['personal loans', 'debt', 'credit', 'financing'],
+        thursday: ['insurance', 'coverage', 'protection', 'risk management'],
+        friday: ['weekly recap', 'financial news', 'market summary', 'tips'],
+        saturday: ['home buying', 'real estate', 'property', 'housing market'],
+        sunday: ['budgeting', 'financial planning', 'money management', 'savings']
+    };
+    return tags[dayName] || ['finance', 'money', 'tips'];
+}
+
+// Rename your old method to this
+generateTemplateBlogContent(dayName, marketData) {
+    // Your existing template-based code here
+    const blogTopics = {
+        monday: ["Market Monday: This Week's Financial Outlook"],
+        // ... rest of your existing template code
+    };
+    // ... etc
+}
 
     createBlogContent(dayName, topic, marketData) {
         if (dayName === 'monday') {
