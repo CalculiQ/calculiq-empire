@@ -520,7 +520,6 @@ if (!excerpt) {
     excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
 }
 
-    convertMarkdownToHTML(markdown) {
         return markdown
             // Headers
             .replace(/^### (.*$)/gim, '<h3>$1</h3>')
