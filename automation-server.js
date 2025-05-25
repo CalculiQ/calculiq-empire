@@ -611,33 +611,57 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         }
     }
 
-    async generateOpenAIBlog(calculatorType, marketData) {
+async generateOpenAIBlog(calculatorType, marketData) {
         const prompts = {
             mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
 Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
-Make the title natural and engaging - don't always include the word "calculator" in the title.
-Focus on the benefit/outcome (saving money, getting approved, finding the best rate).
+
+CRITICAL TITLE REQUIREMENTS:
+- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
+- Avoid clichéd openings like "Ultimate Guide" or "Complete Guide"
+- Use action words like: Navigate, Maximize, Transform, Optimize, Leverage, Discover, Build
+- Or use question formats: "How to...", "What You Need to Know About...", "Is Now the Right Time to..."
+- Or use benefit-focused titles: "Save Thousands on Your Mortgage", "Get Approved for Better Rates"
+
 Within the article, naturally mention and link to our mortgage calculator as a helpful tool.
 Topics: down payment strategies, rate shopping, first-time buyer tips, refinancing opportunities.`,
 
             investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
 Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
-Make the title natural and engaging - don't always include the word "calculator" in the title.
-Focus on the benefit/outcome (building wealth, retirement planning, financial freedom).
+
+CRITICAL TITLE REQUIREMENTS:
+- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
+- Avoid overused phrases like "Financial Freedom" in the beginning
+- Use fresh angles: "The Smart Investor's Playbook", "Building Wealth in a Volatile Market", "Investment Strategies That Actually Work"
+- Or use timely hooks: "Post-Pandemic Portfolio Building", "Investing When Rates Are High"
+- Or use specific benefits: "Turn $500/Month into $1 Million", "Recession-Proof Investment Strategies"
+
 Within the article, naturally mention and link to our investment calculator as a planning tool.
 Topics: compound interest power, portfolio diversification, retirement strategies, market timing.`,
 
             loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
 Include: Current rate environment, consolidation opportunities, credit optimization.
-Make the title natural and engaging - don't always include the word "calculator" in the title.
-Focus on the benefit/outcome (saving on interest, paying off debt faster, improving credit).
+
+CRITICAL TITLE REQUIREMENTS:
+- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
+- Avoid generic openings like "Everything You Need to Know"
+- Use specific scenarios: "Consolidate High-Interest Debt Before Rates Rise", "Personal Loans vs Credit Cards: The Math That Matters"
+- Or use problem-solving angles: "Escape the Debt Cycle", "Lower Your Monthly Payments Without Extending Terms"
+- Or use achievement-focused: "From 600 to 750: Credit Score Transformation", "Pay Off Debt 5 Years Faster"
+
 Within the article, naturally mention and link to our loan calculator for comparing options.
 Topics: debt consolidation, personal loan uses, credit score improvement, refinancing strategies.`,
 
             insurance: `Write a comprehensive 1,500+ word blog post about protecting your family and financial security for ${new Date().toLocaleDateString()}.
 Include: Life insurance trends, coverage needs analysis, premium factors.
-Make the title natural and engaging - don't always include the word "calculator" in the title.
-Focus on the benefit/outcome (family protection, peace of mind, financial security).
+
+CRITICAL TITLE REQUIREMENTS:
+- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
+- Avoid clichés like "Secure Your Family's Future" at the start
+- Use specific angles: "Life Insurance at 30 vs 50: The Cost Difference", "Term Life Myths Debunked"
+- Or use calculational hooks: "How Much Life Insurance Do You Really Need?", "$1 Million Coverage for Less Than Netflix"
+- Or use comparative titles: "Why Young Families Choose Term Life", "Whole Life vs Investing: A Numbers Game"
+
 Within the article, naturally mention and link to our insurance calculator for coverage estimates.
 Topics: term vs whole life, coverage amount strategies, beneficiary planning, cost-saving tips.`
         };
@@ -647,7 +671,9 @@ Topics: term vs whole life, coverage amount strategies, beneficiary planning, co
             messages: [
                 {
                     role: "system",
-                    content: "You are an expert financial writer creating comprehensive, SEO-optimized content. You MUST write detailed, thorough articles with specific examples, calculations, and actionable advice. Each article MUST be 1,500-2,000 words minimum."
+                    content: `You are an expert financial writer creating comprehensive, SEO-optimized content. You MUST write detailed, thorough articles with specific examples, calculations, and actionable advice. Each article MUST be 1,500-2,000 words minimum.
+
+CRITICAL: You must create UNIQUE titles that don't repeat patterns from previous articles. Avoid starting with Unlock, Unlocking, Master, Mastering, Ultimate, Complete, or similar overused words. Be creative and varied with each title.`
                 },
                 {
                     role: "user",
@@ -1095,13 +1121,15 @@ return {
             }
         });
 
-        // Test blog endpoint
+// Test blog endpoint
         this.app.post('/api/publish-test-blog', async (req, res) => {
             try {
+                const { type } = req.body;
                 const types = ['mortgage', 'investment', 'loan', 'insurance'];
-                const randomType = types[Math.floor(Math.random() * types.length)];
-                await this.generateAndPublishTopicalBlog(randomType);
-                res.json({ success: true, message: `Test ${randomType} blog published successfully` });
+                const selectedType = type && types.includes(type) ? type : types[Math.floor(Math.random() * types.length)];
+                
+                await this.generateAndPublishTopicalBlog(selectedType);
+                res.json({ success: true, message: `Test ${selectedType} blog published successfully` });
             } catch (error) {
                 console.error('Test blog error:', error);
                 res.status(500).json({ success: false, error: error.message });
