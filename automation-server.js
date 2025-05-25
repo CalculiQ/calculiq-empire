@@ -670,14 +670,23 @@ Within the article, naturally mention and link to our insurance calculator for c
 Topics: term vs whole life, coverage amount strategies, beneficiary planning, cost-saving tips.`
         };
 
-        const completion = await this.openai.chat.completions.create({
+const completion = await this.openai.chat.completions.create({
             model: "gpt-4-turbo-preview",
             messages: [
                 {
                     role: "system",
                     content: `You are an expert financial writer creating comprehensive, SEO-optimized content. You MUST write detailed, thorough articles with specific examples, calculations, and actionable advice. Each article MUST be 1,500-2,000 words minimum.
 
-CRITICAL: You must create UNIQUE titles that don't repeat patterns from previous articles. Avoid starting with Unlock, Unlocking, Master, Mastering, Ultimate, Complete, or similar overused words. Be creative and varied with each title.`
+CRITICAL VARIETY REQUIREMENTS:
+1. TITLES: Create UNIQUE titles that don't repeat patterns. Avoid starting with Unlock, Unlocking, Master, Mastering, Ultimate, Complete, or similar overused words.
+2. INTRODUCTIONS: NEVER start articles with "In the ever-changing", "In an ever-evolving", "In today's", "In the world of", or similar clichéd openings. 
+3. Use varied opening approaches:
+   - Start with a striking statistic or fact
+   - Open with a question that addresses reader pain points
+   - Begin with a brief anecdote or scenario
+   - Lead with the main benefit or outcome
+   - Start with a counterintuitive statement
+4. Make each article's opening paragraph distinctly different from others.`
                 },
                 {
                     role: "user",
@@ -692,13 +701,13 @@ CRITICAL: You must create UNIQUE titles that don't repeat patterns from previous
                     - End with a compelling CTA to use our ${calculatorType} calculator
                     - Format with HTML tags (h2, h3, p, ul, li, strong, table)
                     - First line is title text only (no HTML tags)
-                    - Write naturally but comprehensively - don't pad, but explore the topic fully`
+                    - Write naturally but comprehensively - don't pad, but explore the topic fully
+                    - IMPORTANT: Start the article with an engaging, unique opening - avoid clichéd beginnings`
                 }
             ],
             temperature: 0.7,
             max_tokens: 4000
         });
-
         const responseText = completion.choices[0].message.content;
         const cleanedResponse = responseText
             .replace(/<!DOCTYPE.*?>/i, '')
