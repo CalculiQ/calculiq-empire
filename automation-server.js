@@ -1930,11 +1930,10 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
                 ${posts.length > 0 ? posts.map(post => `
                     <article class="post-card">
                         <h2><a href="/blog/${post.slug}" class="post-title">${post.title}</a></h2>
-                        <div class="post-meta">
-                            ${new Date(post.published_at).toLocaleDateString()} • 
-                            <span class="post-category">${post.category}</span> • 
-                            ${post.view_count || 0} views
-                        </div>
+<div class="post-meta">
+    ${new Date(post.published_at).toLocaleDateString()} • 
+    <span class="post-category">${post.category}</span>
+</div>
                         <p class="post-excerpt">${post.excerpt}</p>
                     </article>
                 `).join('') : `
@@ -2066,7 +2065,7 @@ this.app.delete('/api/blog/:slug', async (req, res) => {
             ${post.content}
             
             <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
-                <p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()} • ${post.view_count || 0} views</p>
+<p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()}</p>
                 <a href="/blog" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">← Back to Blog</a>
             </div>
         </body>
