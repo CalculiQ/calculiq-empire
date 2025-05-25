@@ -427,27 +427,34 @@ class CalculiQAutomationServer {
 
     async generateOpenAIBlog(calculatorType, marketData) {
         const prompts = {
-            mortgage: `Write a comprehensive 1,500+ word blog post about mortgage calculators and home buying for ${new Date().toLocaleDateString()}.
-                Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
-                Focus on: How to use mortgage calculators, payment calculations, down payment strategies.
-                MUST include real examples with actual numbers and link to our mortgage calculator.`,
-            
-            investment: `Write a comprehensive 1,500+ word blog post about investment calculators and wealth building for ${new Date().toLocaleDateString()}.
-                Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
-                Focus on: Compound interest calculations, retirement planning, portfolio strategies.
-                MUST include specific calculations and link to our investment calculator.`,
-            
-            loan: `Write a comprehensive 1,500+ word blog post about personal loan calculators for ${new Date().toLocaleDateString()}.
-                Include: Current rates, debt consolidation benefits, payment calculations.
-                Focus on: How loan calculators help compare options, save money on interest.
-                MUST include real loan scenarios and link to our loan calculator.`,
-            
-            insurance: `Write a comprehensive 1,500+ word blog post about life insurance calculators for ${new Date().toLocaleDateString()}.
-                Include: Coverage calculations, premium factors, term vs whole life math.
-                Focus on: How to calculate proper coverage, age-based pricing, family protection.
-                MUST include coverage examples and link to our insurance calculator.`
-        };
+           mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
+    Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
+    Make the title natural and engaging - don't always include the word "calculator" in the title.
+    Focus on the benefit/outcome (saving money, getting approved, finding the best rate).
+    Within the article, naturally mention and link to our mortgage calculator as a helpful tool.
+    Topics: down payment strategies, rate shopping, first-time buyer tips, refinancing opportunities.`,
 
+investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
+    Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
+    Make the title natural and engaging - don't always include the word "calculator" in the title.
+    Focus on the benefit/outcome (building wealth, retirement planning, financial freedom).
+    Within the article, naturally mention and link to our investment calculator as a planning tool.
+    Topics: compound interest power, portfolio diversification, retirement strategies, market timing.`,
+
+loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
+    Include: Current rate environment, consolidation opportunities, credit optimization.
+    Make the title natural and engaging - don't always include the word "calculator" in the title.
+    Focus on the benefit/outcome (saving on interest, paying off debt faster, improving credit).
+    Within the article, naturally mention and link to our loan calculator for comparing options.
+    Topics: debt consolidation, personal loan uses, credit score improvement, refinancing strategies.`,
+
+insurance: `Write a comprehensive 1,500+ word blog post about protecting your family and financial security for ${new Date().toLocaleDateString()}.
+    Include: Life insurance trends, coverage needs analysis, premium factors.
+    Make the title natural and engaging - don't always include the word "calculator" in the title.
+    Focus on the benefit/outcome (family protection, peace of mind, financial security).
+    Within the article, naturally mention and link to our insurance calculator for coverage estimates.
+    Topics: term vs whole life, coverage amount strategies, beneficiary planning, cost-saving tips.`
+}; 
 const completion = await this.openai.chat.completions.create({
             model: "gpt-4-turbo-preview", // Use GPT-4 for better instruction following
             messages: [
@@ -813,7 +820,6 @@ async saveBlogPost(blogPost) {
             .replace(/[^a-z0-9 -]/g, '')
             .replace(/\s+/g, '-')
             .replace(/-+/g, '-')
-            .substring(0, 50);
     }
 
     getFallbackMarketData() {
