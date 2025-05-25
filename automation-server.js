@@ -501,6 +501,24 @@ const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0
 
 // Convert to HTML first so we can extract from it
 const htmlContent = this.convertMarkdownToHTML(content);
+// Extract all paragraphs and find the first meaningful one
+const allParagraphs = htmlContent.match(/<p>(.*?)<\/p>/g) || [];
+let excerpt = '';
+
+for (const para of allParagraphs) {
+    const cleanPara = para.replace(/<\/?p>/g, '').trim();
+    // Skip if it's too short or looks like a subheading
+    if (cleanPara.length > 50 && !cleanPara.endsWith(':')) {
+        excerpt = cleanPara.substring(0, 160) + '...';
+        break;
+    }
+}
+
+// Fallback if no good paragraph found
+if (!excerpt) {
+    excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
+}
+
 const firstParagraph = htmlContent.match(/<p>(.*?)<\/p>/)?.[1] || '';
 const excerpt = firstParagraph.substring(0, 160) + '...';
 
