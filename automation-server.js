@@ -67,11 +67,15 @@ class CalculiQAutomationServer {
         }
     }
 
-    setupMiddleware() {
+setupMiddleware() {
         this.app.use(cors());
         this.app.use(express.json());
-        this.app.use(express.static('public'));
-        this.app.use(express.static('.'));
+        
+        // Serve static files from root directory
+        this.app.use(express.static(path.join(__dirname)));
+        
+        // Also serve from public directory if it exists
+        this.app.use(express.static(path.join(__dirname, 'public')));
 
         // Request logging
         this.app.use((req, res, next) => {
