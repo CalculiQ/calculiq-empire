@@ -711,29 +711,38 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         }
     }
 
-    async saveBlogPost(blogPost) {
-        if (!this.db) return;
+async saveBlogPost(blogPost) {
+    if (!this.db) return;
+    
+    try {
+        console.log('📝 Attempting to save blog post:', {
+            slug: blogPost.slug,
+            title: blogPost.title,
+            hasContent: !!blogPost.content,
+            contentLength: blogPost.content?.length,
+            allFields: Object.keys(blogPost)
+        });
         
-        try {
-            await this.dbRun(
-                `INSERT INTO blog_posts (slug, title, content, excerpt, category, tags, meta_description, published_at) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-                [
-                    blogPost.slug,
-                    blogPost.title,
-                    blogPost.content,
-                    blogPost.excerpt,
-                    blogPost.category,
-                    blogPost.tags,
-                    blogPost.meta_description,
-                    new Date().toISOString()
-                ]
-            );
-        } catch (error) {
-            console.error('Error saving blog post:', error);
-        }
+        await this.dbRun(
+            `INSERT INTO blog_posts (slug, title, content, excerpt, category, tags, meta_description, published_at) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [
+                blogPost.slug,
+                blogPost.title,
+                blogPost.content,
+                blogPost.excerpt,
+                blogPost.category,
+                blogPost.tags,
+                blogPost.meta_description,
+                new Date().toISOString()
+            ]
+        );
+        console.log('✅ Blog post saved to database successfully');
+    } catch (error) {
+        console.error('❌ Error saving blog post:', error);
+        console.error('Full error details:', error.message, error.code);
     }
-
+}
     async getRecentPosts(limit = 10) {
         if (!this.db) return [];
         
