@@ -512,6 +512,7 @@ return {
     calculatorType: calculatorType,
     metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
 };
+}
 
     convertMarkdownToHTML(markdown) {
         return markdown
