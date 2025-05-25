@@ -578,25 +578,25 @@ class CalculiQAutomationServer {
         const host = process.env.HOST || '0.0.0.0';
         
         this.app.listen(port, host, () => {
-            console.log(`
-🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
-
-✅ Host: ${host}:${port}
-✅ Environment: ${process.env.NODE_ENV || 'development'}
-✅ Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}
-✅ Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}
-✅ Health Check: /api/automation-status
-✅ Alternative Health: /health
-
-📧 Newsletter System: Automated weekly emails every Monday at 9 AM
-📝 Blog System: Automated daily posts every day at 8 AM
-
-🌐 Server is ready to accept connections
-📊 API endpoints are active
-🎯 Lead capture system is ready
-
-⚡ Your CalculiQ server is LIVE!
-            `);
+            console.log('\n========================================');
+            console.log('CALCULIQ AUTOMATION SERVER RUNNING');
+            console.log('========================================');
+            console.log(`Port: ${port}`);
+            console.log(`Host: ${host}:${port}`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}`);
+            console.log(`Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}`);
+            console.log(`Health Check: /api/automation-status`);
+            console.log(`Alternative Health: /health`);
+            console.log('\nAutomated Systems:');
+            console.log('- Newsletter: Weekly emails every Monday at 9 AM');
+            console.log('- Blog: Daily posts every day at 8 AM');
+            console.log('\nServer Status:');
+            console.log('- Server is ready to accept connections');
+            console.log('- API endpoints are active');
+            console.log('- Lead capture system is ready');
+            console.log('\nYour CalculiQ server is LIVE!');
+            console.log('========================================\n');
         });
 
         // Graceful shutdown
