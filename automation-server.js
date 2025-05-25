@@ -484,30 +484,34 @@ const completion = await this.openai.chat.completions.create({
 
         const responseText = completion.choices[0].message.content;
 
-        // Remove any DOCTYPE or html wrapper if OpenAI included it
-        const cleanedResponse = responseText
-            .replace(/<!DOCTYPE.*?>/i, '')
-            .replace(/<\/?html.*?>/gi, '')
-            .replace(/<\/?head.*?>/gi, '')
-            .replace(/<\/?body.*?>/gi, '')
-            .replace(/<title.*?<\/title>/gi, '')
-            .trim();
+// Remove any DOCTYPE or html wrapper if OpenAI included it
+const cleanedResponse = responseText
+    .replace(/<!DOCTYPE.*?>/i, '')
+    .replace(/<\/?html.*?>/gi, '')
+    .replace(/<\/?head.*?>/gi, '')
+    .replace(/<\/?body.*?>/gi, '')
+    .replace(/<title.*?<\/title>/gi, '')
+    .trim();
 
-        const lines = cleanedResponse.split('\n');
-        const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
-        const content = lines.slice(1).join('\n');
-        
-        const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
-        
-        return {
-            title: title,
-            slug: slug,
-            content: `<article class="blog-post">${this.convertMarkdownToHTML(content)}</article>`,
-            excerpt: title.substring(0, 160) + '...',
-            calculatorType: calculatorType,
-            metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
-        };
-    }
+const lines = cleanedResponse.split('\n');
+const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
+const content = lines.slice(1).join('\n');
+
+const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
+
+// Convert to HTML first so we can extract from it
+const htmlContent = this.convertMarkdownToHTML(content);
+const firstParagraph = htmlContent.match(/<p>(.*?)<\/p>/)?.[1] || '';
+const excerpt = firstParagraph.substring(0, 160) + '...';
+
+return {
+    title: title,
+    slug: slug,
+    content: `<article class="blog-post">${htmlContent}</article>`,
+    excerpt: excerpt,  // Use the extracted first paragraph
+    calculatorType: calculatorType,
+    metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
+};
 
     convertMarkdownToHTML(markdown) {
         return markdown
