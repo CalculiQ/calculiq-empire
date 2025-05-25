@@ -501,6 +501,7 @@ const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0
 
 // Convert to HTML first so we can extract from it
 const htmlContent = this.convertMarkdownToHTML(content);
+
 // Extract all paragraphs and find the first meaningful one
 const allParagraphs = htmlContent.match(/<p>(.*?)<\/p>/g) || [];
 let excerpt = '';
@@ -521,7 +522,6 @@ if (!excerpt) {
 
 const firstParagraph = htmlContent.match(/<p>(.*?)<\/p>/)?.[1] || '';
 const excerpt = firstParagraph.substring(0, 160) + '...';
-
 return {
     title: title,
     slug: slug,
