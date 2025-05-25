@@ -678,37 +678,52 @@ Topics: term vs whole life, coverage amount strategies, beneficiary planning, co
             .replace(/<title.*?<\/title>/gi, '')
             .trim();
 
-        const lines = cleanedResponse.split('\n');
-        const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
-        const content = lines.slice(1).join('\n');
+const lines = cleanedResponse.split('\n');
+const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
+const content = lines.slice(1).join('\n');
+const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
+const htmlContent = this.convertMarkdownToHTML(content);
 
-        const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
-        const htmlContent = this.convertMarkdownToHTML(content);
+// Extract excerpt - improved to skip headings and get actual content
+const cleanTextContent = htmlContent
+    .replace(/<h[1-6]>.*?<\/h[1-6]>/gi, '') // Remove all headings
+    .replace(/<[^>]+>/g, ' ') // Remove all HTML tags
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
 
-        // Extract excerpt
-        const allParagraphs = htmlContent.match(/<p>(.*?)<\/p>/g) || [];
-        let excerpt = '';
+// Find the first meaningful sentence (at least 50 chars)
+const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
+let excerpt = '';
 
-        for (const para of allParagraphs) {
-            const cleanPara = para.replace(/<\/?p>/g, '').trim();
-            if (cleanPara.length > 50 && !cleanPara.endsWith(':')) {
-                excerpt = cleanPara.substring(0, 160) + '...';
-                break;
-            }
-        }
+for (const sentence of sentences) {
+    const cleanSentence = sentence.trim();
+    if (cleanSentence.length > 50) {
+        // Take up to 160 characters for the excerpt
+        excerpt = cleanSentence.length > 160 
+            ? cleanSentence.substring(0, 157) + '...' 
+            : cleanSentence;
+        break;
+    }
+}
 
-        if (!excerpt) {
-            excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
-        }
+// If no sentence found, try to get first 160 chars of content
+if (!excerpt && cleanTextContent.length > 50) {
+    excerpt = cleanTextContent.substring(0, 157) + '...';
+}
 
-        return {
-            title,
-            content: htmlContent,
-            excerpt,
-            slug,
-            calculatorType,
-            metaDescription: excerpt
-        };
+// Final fallback
+if (!excerpt) {
+    excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
+}
+
+return {
+    title,
+    content: htmlContent,
+    excerpt,
+    slug,
+    calculatorType,
+    metaDescription: excerpt
+};
     }
 
     convertMarkdownToHTML(markdown) {
