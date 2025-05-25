@@ -550,71 +550,8 @@ class CalculiQAutomationServer {
             </div>
         </body>
         </html>
+        `;
     }
-
-    // Helper methods
-    generateUID() {
-        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
-    }
-    
-    calculateLeadPrice(leadData) {
-        const basePrice = 25;
-        const leadScore = leadData.lead_score || 0;
-        const hasPhone = leadData.phone ? 20 : 0;
-        const calculatorBonus = {
-            'mortgage': 30,
-            'investment': 15,
-            'loan': 20,
-            'insurance': 25
-        };
-        
-        const bonus = calculatorBonus[leadData.calculatorType] || 10;
-        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
-    }
-    
-    // FIXED: Use Railway's PORT environment variable
-    start() {
-        const port = process.env.PORT || 3001;
-        const host = process.env.HOST || '0.0.0.0';
-        
-        this.app.listen(port, host, () => {
-            console.log('\n========================================');
-            console.log('CALCULIQ AUTOMATION SERVER RUNNING');
-            console.log('========================================');
-            console.log(`Port: ${port}`);
-            console.log(`Host: ${host}:${port}`);
-            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}`);
-            console.log(`Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}`);
-            console.log(`Health Check: /api/automation-status`);
-            console.log(`Alternative Health: /health`);
-            console.log('\nAutomated Systems:');
-            console.log('- Newsletter: Weekly emails every Monday at 9 AM');
-            console.log('- Blog: Daily posts every day at 8 AM');
-            console.log('\nServer Status:');
-            console.log('- Server is ready to accept connections');
-            console.log('- API endpoints are active');
-            console.log('- Lead capture system is ready');
-            console.log('\nYour CalculiQ server is LIVE!');
-            console.log('========================================\n');
-        });
-
-        // Graceful shutdown
-        process.on('SIGTERM', () => {
-            console.log('SIGTERM signal received: closing HTTP server');
-            if (this.db) {
-                this.db.close();
-            }
-            process.exit(0);
-        });
-    }
-}
-
-// Start the server
-const server = new CalculiQAutomationServer();
-server.start();
-
-module.exports = CalculiQAutomationServer;
 
     generateNewsletterText(marketData, tip) {
         const rates = marketData.rates.mortgage;
@@ -880,6 +817,26 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         const day = d.getDay();
         const diff = d.getDate() - day;
         return new Date(d.setDate(diff)).toISOString().split('T')[0];
+    }
+
+    // Helper methods
+    generateUID() {
+        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
+    }
+    
+    calculateLeadPrice(leadData) {
+        const basePrice = 25;
+        const leadScore = leadData.lead_score || 0;
+        const hasPhone = leadData.phone ? 20 : 0;
+        const calculatorBonus = {
+            'mortgage': 30,
+            'investment': 15,
+            'loan': 20,
+            'insurance': 25
+        };
+        
+        const bonus = calculatorBonus[leadData.calculatorType] || 10;
+        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
     }
 
     setupRoutes() {
@@ -1810,3 +1767,48 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         </body>
         </html>
         `;
+    }
+
+    // FIXED: Use Railway's PORT environment variable
+    start() {
+        const port = process.env.PORT || 3001;
+        const host = process.env.HOST || '0.0.0.0';
+        
+        this.app.listen(port, host, () => {
+            console.log('\n========================================');
+            console.log('CALCULIQ AUTOMATION SERVER RUNNING');
+            console.log('========================================');
+            console.log(`Port: ${port}`);
+            console.log(`Host: ${host}:${port}`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}`);
+            console.log(`Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}`);
+            console.log(`Health Check: /api/automation-status`);
+            console.log(`Alternative Health: /health`);
+            console.log('\nAutomated Systems:');
+            console.log('- Newsletter: Weekly emails every Monday at 9 AM');
+            console.log('- Blog: Daily posts every day at 8 AM');
+            console.log('\nServer Status:');
+            console.log('- Server is ready to accept connections');
+            console.log('- API endpoints are active');
+            console.log('- Lead capture system is ready');
+            console.log('\nYour CalculiQ server is LIVE!');
+            console.log('========================================\n');
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('SIGTERM signal received: closing HTTP server');
+            if (this.db) {
+                this.db.close();
+            }
+            process.exit(0);
+        });
+    }
+}
+
+// Start the server
+const server = new CalculiQAutomationServer();
+server.start();
+
+module.exports = CalculiQAutomationServer;
