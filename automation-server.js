@@ -343,10 +343,20 @@ content: prompts[calculatorType] + `\n\nEnd with a strong CTA to use our ${calcu
         max_tokens: 2500
     });
 
-    const responseText = completion.choices[0].message.content;
-    const lines = responseText.split('\n');
-    const title = lines[0].replace(/^[#\s]+/, '').trim();
-    const content = lines.slice(1).join('\n');
+const responseText = completion.choices[0].message.content;
+
+// Remove any DOCTYPE or html wrapper if OpenAI included it
+const cleanedResponse = responseText
+    .replace(/<!DOCTYPE.*?>/i, '')
+    .replace(/<\/?html.*?>/gi, '')
+    .replace(/<\/?head.*?>/gi, '')
+    .replace(/<\/?body.*?>/gi, '')
+    .replace(/<title.*?<\/title>/gi, '')
+    .trim();
+
+const lines = cleanedResponse.split('\n');
+const title = lines[0].replace(/^[#\s<>]+/, '').replace(/<.*?>/g, '').trim();
+const content = lines.slice(1).join('\n');
     
     const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
     
