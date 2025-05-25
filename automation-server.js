@@ -344,7 +344,7 @@ class CalculiQAutomationServer {
             ]
         };
 
-        const topics = blogTopics[dayName];
+        const topics = blogTopics[dayName] || blogTopics.monday;
         const selectedTopic = topics[Math.floor(Math.random() * topics.length)];
         
         // Generate content based on the day and topic
@@ -550,8 +550,71 @@ class CalculiQAutomationServer {
             </div>
         </body>
         </html>
-        `;
     }
+
+    // Helper methods
+    generateUID() {
+        return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
+    }
+    
+    calculateLeadPrice(leadData) {
+        const basePrice = 25;
+        const leadScore = leadData.lead_score || 0;
+        const hasPhone = leadData.phone ? 20 : 0;
+        const calculatorBonus = {
+            'mortgage': 30,
+            'investment': 15,
+            'loan': 20,
+            'insurance': 25
+        };
+        
+        const bonus = calculatorBonus[leadData.calculatorType] || 10;
+        return Math.round(basePrice + (leadScore * 0.5) + hasPhone + bonus);
+    }
+    
+    // FIXED: Use Railway's PORT environment variable
+    start() {
+        const port = process.env.PORT || 3001;
+        const host = process.env.HOST || '0.0.0.0';
+        
+        this.app.listen(port, host, () => {
+            console.log(`
+🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
+
+✅ Host: ${host}:${port}
+✅ Environment: ${process.env.NODE_ENV || 'development'}
+✅ Database: ${this.db ? 'Connected' : 'Error (continuing without DB)'}
+✅ Email: ${this.emailTransporter ? 'Ready' : 'Disabled'}
+✅ Health Check: /api/automation-status
+✅ Alternative Health: /health
+
+📧 Newsletter System: Automated weekly emails every Monday at 9 AM
+📝 Blog System: Automated daily posts every day at 8 AM
+
+🌐 Server is ready to accept connections
+📊 API endpoints are active
+🎯 Lead capture system is ready
+
+⚡ Your CalculiQ server is LIVE!
+            `);
+        });
+
+        // Graceful shutdown
+        process.on('SIGTERM', () => {
+            console.log('SIGTERM signal received: closing HTTP server');
+            if (this.db) {
+                this.db.close();
+            }
+            process.exit(0);
+        });
+    }
+}
+
+// Start the server
+const server = new CalculiQAutomationServer();
+server.start();
+
+module.exports = CalculiQAutomationServer;
 
     generateNewsletterText(marketData, tip) {
         const rates = marketData.rates.mortgage;
@@ -1563,3 +1626,187 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
                     text-decoration: none;
                 }
                 .cta-section {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 40px;
+                    border-radius: 15px;
+                    text-align: center;
+                    margin-top: 40px;
+                }
+                .cta-button {
+                    background: white;
+                    color: #667eea;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    display: inline-block;
+                    margin-top: 15px;
+                }
+                .nav-link {
+                    color: #646cff;
+                    text-decoration: none;
+                    margin: 0 15px;
+                }
+                .nav-link:hover {
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>📊 CalculiQ Financial Blog</h1>
+                <p>Daily insights to make smarter money decisions</p>
+                <nav style="margin-top: 20px;">
+                    <a href="/" class="nav-link">🏠 Home</a>
+                    <a href="/blog" class="nav-link">📝 Blog</a>
+                    <a href="/#calculators" class="nav-link">🧮 Calculators</a>
+                </nav>
+            </div>
+            
+            <div class="post-grid">
+                ${posts.length > 0 ? posts.map(post => `
+                    <article class="post-card">
+                        <h2><a href="/blog/${post.slug}" class="post-title">${post.title}</a></h2>
+                        <div class="post-meta">
+                            ${new Date(post.published_at).toLocaleDateString()} • 
+                            <span class="post-category">${post.category}</span> • 
+                            ${post.view_count || 0} views
+                        </div>
+                        <p class="post-excerpt">${post.excerpt}</p>
+                    </article>
+                `).join('') : `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>📝 Fresh Content Coming Soon!</h3>
+                        <p>Check back tomorrow for expert financial insights and money-saving strategies.</p>
+                    </div>
+                `}
+            </div>
+            
+            <div class="cta-section">
+                <h2>Ready to Calculate Your Financial Future?</h2>
+                <p>Use our free calculators to make informed financial decisions</p>
+                <a href="/" class="cta-button">Try Our Calculators</a>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    generateBlogPostPage(post) {
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${post.title} - CalculiQ Blog</title>
+            <meta name="description" content="${post.meta_description}">
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .nav {
+                    text-align: center;
+                    padding: 20px 0;
+                    border-bottom: 1px solid #eee;
+                    margin-bottom: 30px;
+                }
+                .nav-link {
+                    color: #646cff;
+                    text-decoration: none;
+                    margin: 0 15px;
+                }
+                .blog-post h1 {
+                    color: #1a1f3a;
+                    font-size: 2.2rem;
+                    margin-bottom: 15px;
+                }
+                .blog-post h2 {
+                    color: #1a1f3a;
+                    font-size: 1.5rem;
+                    margin: 30px 0 15px 0;
+                }
+                .blog-post h3 {
+                    color: #1a1f3a;
+                    font-size: 1.2rem;
+                    margin: 25px 0 10px 0;
+                }
+                .post-meta {
+                    color: #666;
+                    font-size: 0.9rem;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid #eee;
+                    margin-bottom: 30px;
+                }
+                .rate-box, .tip-box, .calculator-highlight, .cta-box {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                    border-left: 4px solid #646cff;
+                }
+                .cta-box {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    text-align: center;
+                }
+                .cta-button {
+                    background: white;
+                    color: #667eea;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    display: inline-block;
+                    margin-top: 10px;
+                }
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                    margin: 20px 0;
+                }
+                .stat-item {
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 8px;
+                    text-align: center;
+                }
+                a {
+                    color: #646cff;
+                    text-decoration: none;
+                }
+                a:hover {
+                    text-decoration: underline;
+                }
+                ul, ol {
+                    margin: 15px 0;
+                    padding-left: 20px;
+                }
+                li {
+                    margin: 8px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <nav class="nav">
+                <a href="/" class="nav-link">🏠 Home</a>
+                <a href="/blog" class="nav-link">📝 Blog</a>
+                <a href="/#calculators" class="nav-link">🧮 Calculators</a>
+            </nav>
+            
+            ${post.content}
+            
+            <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid #eee;">
+                <p style="color: #666; margin-bottom: 20px;">Published ${new Date(post.published_at).toLocaleDateString()} • ${post.view_count || 0} views</p>
+                <a href="/blog" style="background: #646cff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">← Back to Blog</a>
+            </div>
+        </body>
+        </html>
+        `;
