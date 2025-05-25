@@ -306,26 +306,26 @@ async generateAndPublishDailyBlog() {
 
 async generateOpenAIBlog(calculatorType, marketData) {
     const prompts = {
-        mortgage: `Write a 1,500-word blog post about mortgage calculators and home buying for ${new Date().toLocaleDateString()}.
-            Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
-            Focus on: How to use mortgage calculators, payment calculations, down payment strategies.
-            MUST include real examples with actual numbers and link to our mortgage calculator.`,
-        
-        investment: `Write a 1,500-word blog post about investment calculators and wealth building for ${new Date().toLocaleDateString()}.
-            Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
-            Focus on: Compound interest calculations, retirement planning, portfolio strategies.
-            MUST include specific calculations and link to our investment calculator.`,
-        
-        loan: `Write a 1,500-word blog post about personal loan calculators for ${new Date().toLocaleDateString()}.
-            Include: Current rates, debt consolidation benefits, payment calculations.
-            Focus on: How loan calculators help compare options, save money on interest.
-            MUST include real loan scenarios and link to our loan calculator.`,
-        
-        insurance: `Write a 1,500-word blog post about life insurance calculators for ${new Date().toLocaleDateString()}.
-            Include: Coverage calculations, premium factors, term vs whole life math.
-            Focus on: How to calculate proper coverage, age-based pricing, family protection.
-            MUST include coverage examples and link to our insurance calculator.`
-    };
+    mortgage: `Write a comprehensive 1,500+ word blog post about mortgage calculators and home buying for ${new Date().toLocaleDateString()}.
+        Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
+        Focus on: How to use mortgage calculators, payment calculations, down payment strategies.
+        MUST include real examples with actual numbers and link to our mortgage calculator.`,
+    
+    investment: `Write a comprehensive 1,500+ word blog post about investment calculators and wealth building for ${new Date().toLocaleDateString()}.
+        Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
+        Focus on: Compound interest calculations, retirement planning, portfolio strategies.
+        MUST include specific calculations and link to our investment calculator.`,
+    
+    loan: `Write a comprehensive 1,500+ word blog post about personal loan calculators for ${new Date().toLocaleDateString()}.
+        Include: Current rates, debt consolidation benefits, payment calculations.
+        Focus on: How loan calculators help compare options, save money on interest.
+        MUST include real loan scenarios and link to our loan calculator.`,
+    
+    insurance: `Write a comprehensive 1,500+ word blog post about life insurance calculators for ${new Date().toLocaleDateString()}.
+        Include: Coverage calculations, premium factors, term vs whole life math.
+        Focus on: How to calculate proper coverage, age-based pricing, family protection.
+        MUST include coverage examples and link to our insurance calculator.`
+};
 
     const completion = await this.openai.chat.completions.create({
         model: "gpt-3.5-turbo",
@@ -339,8 +339,8 @@ async generateOpenAIBlog(calculatorType, marketData) {
 content: prompts[calculatorType] + `\n\nEnd with a strong CTA to use our ${calculatorType} calculator. Format the response with a clear title on the first line. Use HTML formatting (h2, h3, p, ul, li, strong tags) instead of markdown.`
             }
         ],
-        temperature: 0.8,
-        max_tokens: 2500
+temperature: 0.8,
+max_tokens: 4000
     });
 
 const responseText = completion.choices[0].message.content;
@@ -355,7 +355,7 @@ const cleanedResponse = responseText
     .trim();
 
 const lines = cleanedResponse.split('\n');
-const title = lines[0].replace(/^[#\s<>]+/, '').replace(/<.*?>/g, '').trim();
+const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
 const content = lines.slice(1).join('\n');
     
     const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
