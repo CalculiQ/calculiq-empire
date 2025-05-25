@@ -102,17 +102,23 @@
             color: var(--primary);
         }
         
-        /* Calculator Grid */
-        .calculators {
-            max-width: 1200px;
-            margin: -40px auto 80px;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            position: relative;
-            z-index: 2;
-        }
+/* Calculator Grid */
+.calculators {
+    max-width: 1200px;
+    margin: -40px auto 80px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    position: relative;
+    z-index: 2;
+}
+
+@media (max-width: 768px) {
+    .calculators {
+        grid-template-columns: 1fr;
+    }
+}
         
         .calc-card {
             background: white;
