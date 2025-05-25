@@ -864,7 +864,17 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
                 res.status(500).json({ status: 'ERROR', message: error.message });
             }
         });
-
+// Manual database initialization endpoint
+this.app.get('/api/init-tables', async (req, res) => {
+    try {
+        console.log('🔧 Manually initializing database tables...');
+        await this.initializeDatabase();
+        res.json({ success: true, message: 'Tables initialized successfully!' });
+    } catch (error) {
+        console.error('❌ Manual table init failed:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
         // Serve main calculator website
         this.app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, 'index.html'));
