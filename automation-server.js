@@ -520,18 +520,6 @@ if (!excerpt) {
     excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
 }
 
-const firstParagraph = htmlContent.match(/<p>(.*?)<\/p>/)?.[1] || '';
-const excerpt = firstParagraph.substring(0, 160) + '...';
-return {
-    title: title,
-    slug: slug,
-    content: `<article class="blog-post">${htmlContent}</article>`,
-    excerpt: excerpt,  // Use the extracted first paragraph
-    calculatorType: calculatorType,
-    metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
-};
-}
-
     convertMarkdownToHTML(markdown) {
         return markdown
             // Headers
