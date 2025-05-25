@@ -206,20 +206,34 @@ class CalculiQAutomationServer {
         }
     }
 
-    async initializeBlogSystem() {
-        try {
-            // Set up automated blog - posts every day at 8 AM
-            cron.schedule('0 8 * * *', async () => {
-                console.log('📝 Automated blog post scheduled...');
-                await this.generateAndPublishDailyBlog();
-            });
-            
-            console.log('✅ Blog automation scheduled for daily at 8 AM');
-        } catch (error) {
-            console.log('📝 Blog system initialization skipped:', error.message);
-        }
+async initializeBlogSystem() {
+    try {
+        // 4 blogs per day, each for a different calculator
+        cron.schedule('0 8 * * *', async () => {
+            console.log('📝 Morning blog: Mortgage focus (8 AM)...');
+            await this.generateAndPublishTopicalBlog('mortgage');
+        });
+        
+        cron.schedule('0 12 * * *', async () => {
+            console.log('📝 Noon blog: Investment focus (12 PM)...');
+            await this.generateAndPublishTopicalBlog('investment');
+        });
+        
+        cron.schedule('0 16 * * *', async () => {
+            console.log('📝 Afternoon blog: Loan focus (4 PM)...');
+            await this.generateAndPublishTopicalBlog('loan');
+        });
+        
+        cron.schedule('0 20 * * *', async () => {
+            console.log('📝 Evening blog: Insurance focus (8 PM)...');
+            await this.generateAndPublishTopicalBlog('insurance');
+        });
+        
+        console.log('✅ Blog automation: 4 calculator-focused posts daily');
+    } catch (error) {
+        console.log('📝 Blog system initialization skipped:', error.message);
     }
-
+}
     async generateAndSendWeeklyNewsletter() {
         try {
             console.log('🤖 Generating automated newsletter content...');
@@ -274,7 +288,7 @@ async generateAndPublishDailyBlog() {
             tags: `${article.calculatorType},calculator,${today.getFullYear()},financial calculator`,
             meta_description: article.metaDescription,
             status: 'published'
-        });
+           });
         
         console.log(`✅ Dynamic SEO blog published: "${article.title}"`);
         
@@ -282,6 +296,107 @@ async generateAndPublishDailyBlog() {
         console.error('❌ Dynamic blog generation failed:', error);
     }
 }
+
+async generateOpenAIBlog(calculatorType, marketData) {
+    const prompts = {
+        mortgage: `Write a 1,500-word blog post about mortgage calculators and home buying for ${new Date().toLocaleDateString()}.
+            Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
+            Focus on: How to use mortgage calculators, payment calculations, down payment strategies.
+            MUST include real examples with actual numbers and link to our mortgage calculator.`,
+        
+        investment: `Write a 1,500-word blog post about investment calculators and wealth building for ${new Date().toLocaleDateString()}.
+            Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
+            Focus on: Compound interest calculations, retirement planning, portfolio strategies.
+            MUST include specific calculations and link to our investment calculator.`,
+        
+        loan: `Write a 1,500-word blog post about personal loan calculators for ${new Date().toLocaleDateString()}.
+            Include: Current rates, debt consolidation benefits, payment calculations.
+            Focus on: How loan calculators help compare options, save money on interest.
+            MUST include real loan scenarios and link to our loan calculator.`,
+        
+        insurance: `Write a 1,500-word blog post about life insurance calculators for ${new Date().toLocaleDateString()}.
+            Include: Coverage calculations, premium factors, term vs whole life math.
+            Focus on: How to calculate proper coverage, age-based pricing, family protection.
+            MUST include coverage examples and link to our insurance calculator.`
+    };
+
+    const completion = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+            {
+                role: "system",
+                content: "You are an expert financial writer creating SEO-optimized, helpful content about financial calculators. Always include specific numbers, calculations, and examples."
+            },
+            {
+                role: "user",
+                content: prompts[calculatorType] + `\n\nEnd with a strong CTA to use our ${calculatorType} calculator. Format the response with a clear title on the first line.`
+            }
+        ],
+        temperature: 0.8,
+        max_tokens: 2500
+    });
+
+    const responseText = completion.choices[0].message.content;
+    const lines = responseText.split('\n');
+    const title = lines[0].replace(/^[#\s]+/, '').trim();
+    const content = lines.slice(1).join('\n');
+    
+    const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
+    
+    return {
+        title: title,
+        slug: slug,
+        content: `<article class="blog-post">${content}</article>`,
+        excerpt: title.substring(0, 160) + '...',
+        calculatorType: calculatorType,
+        metaDescription: `${title}. Expert ${calculatorType} analysis and calculator guide for ${new Date().toLocaleDateString()}.`
+    };
+}
+
+async generateAndPublishTopicalBlog(calculatorType) {
+    try {
+        // Get market data
+        const marketData = await this.fetchCurrentMarketData();
+        
+        let article;
+        
+        // Try OpenAI first
+        if (this.openai) {
+            try {
+                console.log(`🤖 Generating ${calculatorType} blog with OpenAI...`);
+                article = await this.generateOpenAIBlog(calculatorType, marketData);
+            } catch (error) {
+                console.error('❌ OpenAI failed, using dynamic generator:', error.message);
+                const DynamicBlogGenerator = require('./dynamic-blog-generator');
+                const generator = new DynamicBlogGenerator();
+                article = await generator.generateArticle(calculatorType);
+            }
+        } else {
+            console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
+            const DynamicBlogGenerator = require('./dynamic-blog-generator');
+            const generator = new DynamicBlogGenerator();
+            article = await generator.generateArticle(calculatorType);
+        }
+        
+        // Save to database
+        await this.saveBlogPost({
+            slug: article.slug,
+            title: article.title,
+            content: article.content,
+            excerpt: article.excerpt,
+            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+            tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
+            meta_description: article.metaDescription || article.excerpt,
+            status: 'published'
+        });
+        
+        console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
+        
+    } catch (error) {
+        console.error(`❌ ${calculatorType} blog generation failed:`, error);
+    }
+}
+        
     async fetchCurrentMarketData() {
     try {
         // API Keys
