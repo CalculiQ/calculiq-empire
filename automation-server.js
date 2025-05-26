@@ -26,7 +26,7 @@ require('dotenv').config();
 
 console.log('✅ Dotenv loaded');
 
-javascriptrequire('dotenv').config();
+require('dotenv').config();
 
 console.log('✅ Dotenv loaded');
 

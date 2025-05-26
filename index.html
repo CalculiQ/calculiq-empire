@@ -65,7 +65,7 @@
         }
         
         .floating-logo-text {
-            font-size: 3rem;
+            font-size: 4.5rem;
             font-weight: 900;
             letter-spacing: -1px;
             background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
@@ -91,6 +91,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+	    overflow: hidden;
         }
         
         .hero-badge {
@@ -106,7 +107,7 @@
         }
         
         .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-size: clamp(2rem, 4vw, 3.2rem);
             font-weight: 800;
             margin-bottom: 20px;
             background: var(--accent-gradient);
@@ -679,27 +680,45 @@
         }
         
         /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1.1rem;
-            }
-            
-            .calculator-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .newsletter-form {
-                flex-direction: column;
-            }
-            
-            .calculator-container {
-                padding: 25px;
-            }
-        }
+/* Responsive */
+@media (max-width: 768px) {
+    .floating-logo-text {
+        font-size: 3rem;
+    }
+    
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .calculator-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+    }
+    
+    .calculator-container {
+        padding: 25px;
+    }
+    
+    /* Fix horizontal scroll */
+    .floating-orb {
+        display: none;
+    }
+    
+    body, html {
+        overflow-x: hidden !important;
+    }
+    
+    .hero, .calculators-section, .features-section, .newsletter-section {
+        overflow-x: hidden !important;
+    }
+}
         
         /* Quick access dots navigation */
         .nav-dots {
