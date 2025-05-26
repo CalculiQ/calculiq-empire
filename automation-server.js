@@ -1010,6 +1010,76 @@ return {
                 res.status(500).json({ success: false, error: error.message });
             }
         });
+// Get all blog posts for admin panel
+this.app.get('/api/blog-posts-admin', async (req, res) => {
+    try {
+        if (!this.db) {
+            return res.json({ success: true, posts: [] });
+        }
+
+        const posts = await this.dbAll(
+            'SELECT slug, title, excerpt, category, published_at, view_count FROM blog_posts WHERE status = $1 ORDER BY published_at DESC',
+            ['published']
+        );
+
+        res.json({ success: true, posts });
+    } catch (error) {
+        console.error('Error fetching admin posts:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Update blog post
+this.app.patch('/api/blog/:slug/update', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const { title, excerpt, category } = req.body;
+        
+        if (!this.db) {
+            return res.status(500).json({ success: false, error: 'Database not available' });
+        }
+
+        // Update the post
+        await this.dbRun(
+            'UPDATE blog_posts SET title = $1, excerpt = $2, category = $3, updated_at = CURRENT_TIMESTAMP WHERE slug = $4',
+            [title, excerpt, category, slug]
+        );
+        
+        res.json({ success: true, message: 'Post updated successfully' });
+    } catch (error) {
+        console.error('Error updating post:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get single blog post details (full content)
+this.app.get('/api/blog-post/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        
+        if (!this.db) {
+            return res.status(500).json({ success: false, error: 'Database not available' });
+        }
+
+        const post = await this.dbGet(
+            'SELECT * FROM blog_posts WHERE slug = $1',
+            [slug]
+        );
+        
+        if (!post) {
+            return res.status(404).json({ success: false, error: 'Post not found' });
+        }
+
+        res.json({ success: true, post });
+    } catch (error) {
+        console.error('Error fetching post details:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+<script>
+        const API_BASE = '';
+        let allPosts = [];
+        let currentEditSlug = '';
 
         // Lead capture endpoints
         this.app.post('/api/capture-lead-email', async (req, res) => {
@@ -1194,6 +1264,11 @@ return {
                     stats: { totalPosts: 0, totalViews: 0, systemActive: false }
                 });
             }
+        });
+
+// Serve blog admin page
+        this.app.get('/blog-admin', (req, res) => {
+            res.sendFile(path.join(__dirname, 'blog-admin.html'));
         });
 
         // Get newsletter subscribers
