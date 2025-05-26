@@ -1,70 +1,886 @@
-// Update the integrateWithCalculator method in calculator-lead-integration.js
-
-integrateWithCalculator(calculatorType, calculatorElement) {
-    this.currentCalculatorType = calculatorType;
-    this.trackInteraction('calculator_opened', { type: calculatorType });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalculiQ - Smart Financial Calculators</title>
+    <meta name="description" content="Free financial calculators for mortgages, investments, loans, and insurance. Get personalized quotes from verified lenders.">
     
-    // Don't insert the lead form immediately - wait for calculation
-    console.log(`🧮 Calculator integrated: ${calculatorType}`);
-}
-
-// Update the onCalculationComplete method
-onCalculationComplete(calculatorType, results) {
-    this.currentCalculatorType = calculatorType;
-    this.currentResults = results;
-    this.calculationCompleted = true;
-    this.userProfile.calculatorUsage++;
-    
-    this.trackInteraction('calculation_completed', {
-        type: calculatorType,
-        results: results
-    });
-    
-    // Insert lead capture form after calculation
-    this.insertLeadCaptureForm(calculatorType, results);
-    
-    // Setup exit intent after calculation
-    setTimeout(() => {
-        this.enableExitIntent();
-    }, 5000);
-    
-    console.log(`📊 Calculation completed: ${calculatorType}`, results);
-}
-
-// Add new method to insert lead capture form
-insertLeadCaptureForm(calculatorType, results) {
-    // Find the container for this calculator's lead capture
-    const containerId = `${calculatorType}-lead-capture-container`;
-    const container = document.getElementById(containerId);
-    
-    if (container && !container.hasChildNodes()) {
-        const leadFormHTML = this.generateProgressiveLeadForm(calculatorType, results);
-        container.innerHTML = leadFormHTML;
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
-        // Re-run the input field fix for the new form
-        this.fixInputFields();
-    }
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-button {
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Calculators Section */
+        .calculators-section {
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #1a1f3a;
+        }
+        
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .calculator-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .calculator-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .calculator-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #1a1f3a;
+        }
+        
+        .calculator-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .calculator-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .calculator-button:hover {
+            opacity: 0.9;
+        }
+        
+        /* Calculator Container */
+        .calculator-container {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .calculator-container.active {
+            display: block;
+        }
+        
+        .calculator-form {
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .results-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+        
+        .result-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #1a1f3a;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .result-label {
+            color: #666;
+        }
+        
+        .result-value {
+            font-weight: 700;
+            color: #1a1f3a;
+            font-size: 1.1rem;
+        }
+        
+        /* Features Section */
+        .features-section {
+            background: white;
+            padding: 60px 20px;
+        }
+        
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+        
+        .feature-item {
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #1a1f3a;
+        }
+        
+        .feature-description {
+            color: #666;
+        }
+        
+        /* Newsletter Section */
+        .newsletter-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .newsletter-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .newsletter-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .newsletter-form {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .newsletter-input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+        
+        .newsletter-button {
+            background: white;
+            color: #667eea;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .newsletter-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1a1f3a;
+            color: white;
+            padding: 40px 20px 20px;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .footer-links a:hover {
+            opacity: 1;
+        }
+        
+        .footer-copyright {
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+            }
+            
+            .calculator-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <a href="/" class="logo">📈 CalculiQ</a>
+            <nav class="nav-links">
+                <a href="#calculators">Calculators</a>
+                <a href="/blog">Blog</a>
+                <a href="#features">Features</a>
+                <a href="#newsletter">Newsletter</a>
+            </nav>
+        </div>
+    </header>
 
-// Also update the generateProgressiveLeadForm to have better spacing
-generateProgressiveLeadForm(calculatorType, results) {
-    const urgencyMessage = this.getUrgencyMessage(calculatorType, results);
-    const personalizedMessage = this.getPersonalizedMessage(calculatorType, results);
-    const socialProof = this.getSocialProof(calculatorType);
-    
-    return `
-    <div class="calculiq-lead-capture" id="leadCaptureContainer" style="
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin: 30px 0 0 0; /* Add top margin to separate from results */
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    ">
-        <!-- Rest of your lead capture form HTML stays the same -->
-        ${/* ... rest of the form ... */}
-    </div>
-    `;
-}
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Smart Financial Calculators</h1>
+        <p>Make informed decisions with our free calculators and get connected with verified lenders for the best rates</p>
+        <a href="#calculators" class="cta-button">Start Calculating</a>
+    </section>
+
+    <!-- Calculators Section -->
+    <section class="calculators-section" id="calculators">
+        <h2 class="section-title">Choose Your Calculator</h2>
+        
+        <div class="calculator-grid">
+            <!-- Mortgage Calculator Card -->
+            <div class="calculator-card" onclick="showCalculator('mortgage')">
+                <div class="calculator-icon">🏠</div>
+                <h3 class="calculator-title">Mortgage Calculator</h3>
+                <p class="calculator-description">Calculate monthly payments, compare rates, and find the perfect home loan</p>
+                <button class="calculator-button">Calculate Now</button>
+            </div>
+            
+            <!-- Investment Calculator Card -->
+            <div class="calculator-card" onclick="showCalculator('investment')">
+                <div class="calculator-icon">📈</div>
+                <h3 class="calculator-title">Investment Calculator</h3>
+                <p class="calculator-description">Project your wealth growth and plan for financial independence</p>
+                <button class="calculator-button">Calculate Now</button>
+            </div>
+            
+            <!-- Loan Calculator Card -->
+            <div class="calculator-card" onclick="showCalculator('loan')">
+                <div class="calculator-icon">💰</div>
+                <h3 class="calculator-title">Loan Calculator</h3>
+                <p class="calculator-description">Compare personal loans, calculate payments, and save on interest</p>
+                <button class="calculator-button">Calculate Now</button>
+            </div>
+            
+            <!-- Insurance Calculator Card -->
+            <div class="calculator-card" onclick="showCalculator('insurance')">
+                <div class="calculator-icon">🛡️</div>
+                <h3 class="calculator-title">Insurance Calculator</h3>
+                <p class="calculator-description">Find the right coverage amount and compare insurance quotes</p>
+                <button class="calculator-button">Calculate Now</button>
+            </div>
+        </div>
+        
+        <!-- Calculator Containers -->
+        <div id="mortgage-calculator" class="calculator-container">
+            <h3 class="calculator-title">Mortgage Calculator</h3>
+            <form class="calculator-form" onsubmit="calculateMortgage(event)">
+                <div class="form-group">
+                    <label class="form-label">Home Price ($)</label>
+                    <input type="number" class="form-input" id="homePrice" required min="0" placeholder="400,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Down Payment ($)</label>
+                    <input type="number" class="form-input" id="downPayment" required min="0" placeholder="80,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Interest Rate (%)</label>
+                    <input type="number" class="form-input" id="interestRate" required min="0" step="0.01" placeholder="7.0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Loan Term (years)</label>
+                    <select class="form-input" id="loanTerm">
+                        <option value="30">30 years</option>
+                        <option value="15">15 years</option>
+                    </select>
+                </div>
+                <button type="submit" class="calculate-btn">Calculate Payment</button>
+            </form>
+            <div id="mortgage-results" style="display: none;"></div>
+            <div id="mortgage-lead-capture-container"></div>
+        </div>
+        
+        <div id="investment-calculator" class="calculator-container">
+            <h3 class="calculator-title">Investment Calculator</h3>
+            <form class="calculator-form" onsubmit="calculateInvestment(event)">
+                <div class="form-group">
+                    <label class="form-label">Initial Investment ($)</label>
+                    <input type="number" class="form-input" id="initialInvestment" required min="0" placeholder="10,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Contribution ($)</label>
+                    <input type="number" class="form-input" id="monthlyContribution" required min="0" placeholder="500">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Annual Return (%)</label>
+                    <input type="number" class="form-input" id="annualReturn" required min="0" step="0.01" placeholder="8">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Investment Period (years)</label>
+                    <input type="number" class="form-input" id="investmentPeriod" required min="1" placeholder="20">
+                </div>
+                <button type="submit" class="calculate-btn">Calculate Growth</button>
+            </form>
+            <div id="investment-results" style="display: none;"></div>
+            <div id="investment-lead-capture-container"></div>
+        </div>
+        
+        <div id="loan-calculator" class="calculator-container">
+            <h3 class="calculator-title">Personal Loan Calculator</h3>
+            <form class="calculator-form" onsubmit="calculateLoan(event)">
+                <div class="form-group">
+                    <label class="form-label">Loan Amount ($)</label>
+                    <input type="number" class="form-input" id="loanAmount" required min="0" placeholder="25,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Interest Rate (%)</label>
+                    <input type="number" class="form-input" id="loanInterestRate" required min="0" step="0.01" placeholder="12">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Loan Term (years)</label>
+                    <input type="number" class="form-input" id="personalLoanTerm" required min="1" placeholder="5">
+                </div>
+                <button type="submit" class="calculate-btn">Calculate Payment</button>
+            </form>
+            <div id="loan-results" style="display: none;"></div>
+            <div id="loan-lead-capture-container"></div>
+        </div>
+        
+        <div id="insurance-calculator" class="calculator-container">
+            <h3 class="calculator-title">Life Insurance Calculator</h3>
+            <form class="calculator-form" onsubmit="calculateInsurance(event)">
+                <div class="form-group">
+                    <label class="form-label">Annual Income ($)</label>
+                    <input type="number" class="form-input" id="annualIncome" required min="0" placeholder="75,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Years of Coverage Needed</label>
+                    <input type="number" class="form-input" id="coverageYears" required min="1" placeholder="20">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Outstanding Debts ($)</label>
+                    <input type="number" class="form-input" id="outstandingDebts" required min="0" placeholder="250,000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Final Expenses ($)</label>
+                    <input type="number" class="form-input" id="finalExpenses" required min="0" placeholder="15,000">
+                </div>
+                <button type="submit" class="calculate-btn">Calculate Coverage</button>
+            </form>
+            <div id="insurance-results" style="display: none;"></div>
+            <div id="insurance-lead-capture-container"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <h2 class="section-title">Why Choose CalculiQ?</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🎯</div>
+                <h3 class="feature-title">Accurate Calculations</h3>
+                <p class="feature-description">Professional-grade algorithms ensure precise results for all your financial planning needs</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">100% Secure</h3>
+                <p class="feature-description">Your data is protected with enterprise-level security and never sold to third parties</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💸</div>
+                <h3 class="feature-title">Save Money</h3>
+                <p class="feature-description">Connect with verified lenders and insurance providers for the best rates available</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Expert Insights</h3>
+                <p class="feature-description">Get personalized recommendations based on your unique financial situation</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section" id="newsletter">
+        <div class="newsletter-content">
+            <h2 class="newsletter-title">📧 Get Weekly Financial Tips</h2>
+            <p>Join our growing community getting expert insights and market updates</p>
+            <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
+                <input type="email" class="newsletter-input" placeholder="Enter your email" required>
+                <button type="submit" class="newsletter-button">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+            <a href="/contact">Contact Us</a>
+            <a href="/do-not-sell">Do Not Sell My Info</a>
+            <a href="/blog">Blog</a>
+        </div>
+        <p class="footer-copyright">© 2024 CalculiQ. All rights reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/calculator-lead-integration.js"></script>
+    <script>
+        let activeCalculator = null;
+        
+        function showCalculator(type) {
+            // Hide all calculators
+            document.querySelectorAll('.calculator-container').forEach(calc => {
+                calc.classList.remove('active');
+            });
+            
+            // Show selected calculator
+            const calculator = document.getElementById(`${type}-calculator`);
+            calculator.classList.add('active');
+            activeCalculator = type;
+            
+            // Smooth scroll to calculator
+            calculator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Initialize lead integration
+            if (window.calculiqIntegration) {
+                window.calculiqIntegration.integrateWithCalculator(type, calculator);
+            }
+        }
+        
+        // Mortgage Calculator
+        function calculateMortgage(event) {
+            event.preventDefault();
+            
+            const homePrice = parseFloat(document.getElementById('homePrice').value);
+            const downPayment = parseFloat(document.getElementById('downPayment').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
+            const loanTerm = parseInt(document.getElementById('loanTerm').value);
+            
+            const loanAmount = homePrice - downPayment;
+            const monthlyRate = interestRate / 12;
+            const numPayments = loanTerm * 12;
+            
+            const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                                  (Math.pow(1 + monthlyRate, numPayments) - 1);
+            
+            const totalPayment = monthlyPayment * numPayments;
+            const totalInterest = totalPayment - loanAmount;
+            
+            const results = {
+                homePrice: homePrice,
+                downPayment: downPayment,
+                loanAmount: loanAmount,
+                monthlyPayment: monthlyPayment,
+                totalPayment: totalPayment,
+                totalInterest: totalInterest
+            };
+            
+            displayMortgageResults(results);
+            
+            // Trigger lead capture
+            if (window.calculiqIntegration) {
+                window.calculiqIntegration.onCalculationComplete('mortgage', results);
+            }
+        }
+        
+        function displayMortgageResults(results) {
+            const resultsDiv = document.getElementById('mortgage-results');
+            resultsDiv.innerHTML = `
+                <div class="results-container">
+                    <h3 class="result-title">Your Mortgage Calculation</h3>
+                    <div class="result-item">
+                        <span class="result-label">Monthly Payment:</span>
+                        <span class="result-value">$${results.monthlyPayment.toFixed(2).toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Loan Amount:</span>
+                        <span class="result-value">$${results.loanAmount.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Interest:</span>
+                        <span class="result-value">$${results.totalInterest.toFixed(2).toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Payment:</span>
+                        <span class="result-value">$${results.totalPayment.toFixed(2).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Investment Calculator
+        function calculateInvestment(event) {
+            event.preventDefault();
+            
+            const initialInvestment = parseFloat(document.getElementById('initialInvestment').value);
+            const monthlyContribution = parseFloat(document.getElementById('monthlyContribution').value);
+            const annualReturn = parseFloat(document.getElementById('annualReturn').value) / 100;
+            const years = parseInt(document.getElementById('investmentPeriod').value);
+            
+            const monthlyReturn = annualReturn / 12;
+            const months = years * 12;
+            
+            let futureValue = initialInvestment * Math.pow(1 + annualReturn, years);
+            
+            // Add monthly contributions
+            futureValue += monthlyContribution * ((Math.pow(1 + monthlyReturn, months) - 1) / monthlyReturn);
+            
+            const totalContributed = initialInvestment + (monthlyContribution * months);
+            const totalEarnings = futureValue - totalContributed;
+            
+            const results = {
+                initialInvestment: initialInvestment,
+                monthlyContribution: monthlyContribution,
+                finalAmount: futureValue,
+                totalContributed: totalContributed,
+                totalEarnings: totalEarnings
+            };
+            
+            displayInvestmentResults(results);
+            
+            // Trigger lead capture
+            if (window.calculiqIntegration) {
+                window.calculiqIntegration.onCalculationComplete('investment', results);
+            }
+        }
+        
+        function displayInvestmentResults(results) {
+            const resultsDiv = document.getElementById('investment-results');
+            resultsDiv.innerHTML = `
+                <div class="results-container">
+                    <h3 class="result-title">Your Investment Projection</h3>
+                    <div class="result-item">
+                        <span class="result-label">Future Value:</span>
+                        <span class="result-value">$${results.finalAmount.toFixed(2).toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Contributed:</span>
+                        <span class="result-value">$${results.totalContributed.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Earnings:</span>
+                        <span class="result-value">$${results.totalEarnings.toFixed(2).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Loan Calculator
+        function calculateLoan(event) {
+            event.preventDefault();
+            
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const interestRate = parseFloat(document.getElementById('loanInterestRate').value) / 100;
+            const years = parseInt(document.getElementById('personalLoanTerm').value);
+            
+            const monthlyRate = interestRate / 12;
+            const numPayments = years * 12;
+            
+            const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                                  (Math.pow(1 + monthlyRate, numPayments) - 1);
+            
+            const totalPayment = monthlyPayment * numPayments;
+            const totalInterest = totalPayment - loanAmount;
+            
+            const results = {
+                loanAmount: loanAmount,
+                monthlyPayment: monthlyPayment,
+                totalPayment: totalPayment,
+                totalInterest: totalInterest
+            };
+            
+            displayLoanResults(results);
+            
+            // Trigger lead capture
+            if (window.calculiqIntegration) {
+                window.calculiqIntegration.onCalculationComplete('loan', results);
+            }
+        }
+        
+        function displayLoanResults(results) {
+            const resultsDiv = document.getElementById('loan-results');
+            resultsDiv.innerHTML = `
+                <div class="results-container">
+                    <h3 class="result-title">Your Loan Calculation</h3>
+                    <div class="result-item">
+                        <span class="result-label">Monthly Payment:</span>
+                        <span class="result-value">$${results.monthlyPayment.toFixed(2).toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Interest:</span>
+                        <span class="result-value">$${results.totalInterest.toFixed(2).toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Total Payment:</span>
+                        <span class="result-value">$${results.totalPayment.toFixed(2).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Insurance Calculator
+        function calculateInsurance(event) {
+            event.preventDefault();
+            
+            const annualIncome = parseFloat(document.getElementById('annualIncome').value);
+            const coverageYears = parseInt(document.getElementById('coverageYears').value);
+            const outstandingDebts = parseFloat(document.getElementById('outstandingDebts').value);
+            const finalExpenses = parseFloat(document.getElementById('finalExpenses').value);
+            
+            const incomeReplacement = annualIncome * coverageYears;
+            const totalCoverage = incomeReplacement + outstandingDebts + finalExpenses;
+            
+            const results = {
+                insuranceCoverage: totalCoverage,
+                incomeReplacement: incomeReplacement,
+                debtsAndExpenses: outstandingDebts + finalExpenses
+            };
+            
+            displayInsuranceResults(results);
+            
+            // Trigger lead capture
+            if (window.calculiqIntegration) {
+                window.calculiqIntegration.onCalculationComplete('insurance', results);
+            }
+        }
+        
+        function displayInsuranceResults(results) {
+            const resultsDiv = document.getElementById('insurance-results');
+            resultsDiv.innerHTML = `
+                <div class="results-container">
+                    <h3 class="result-title">Recommended Coverage</h3>
+                    <div class="result-item">
+                        <span class="result-label">Total Coverage Needed:</span>
+                        <span class="result-value">$${results.insuranceCoverage.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Income Replacement:</span>
+                        <span class="result-value">$${results.incomeReplacement.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Debts & Expenses:</span>
+                        <span class="result-value">$${results.debtsAndExpenses.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Newsletter Subscription
+        async function subscribeNewsletter(event) {
+            event.preventDefault();
+            const email = event.target.querySelector('input[type="email"]').value;
+            
+            try {
+                const response = await fetch('/api/subscribe-newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, source: 'newsletter_section' })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Thank you for subscribing! Check your email for confirmation.');
+                    event.target.reset();
+                } else {
+                    alert('Subscription failed. Please try again.');
+                }
+            } catch (error) {
+                alert('Error subscribing. Please try again later.');
+            }
+        }
+    </script>
+</body>
+</html>

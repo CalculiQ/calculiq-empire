@@ -615,155 +615,218 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         }
     }
 
+// Updated generateOpenAIBlog method for automation-server.js
+// Replace the existing generateOpenAIBlog method with this one
+
 async generateOpenAIBlog(calculatorType, marketData) {
-        const prompts = {
-            mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
+    // Get variety in prompts based on date/time
+    const dayOfWeek = new Date().getDay();
+    const weekOfMonth = Math.floor(new Date().getDate() / 7);
+    const varietyIndex = (dayOfWeek + weekOfMonth) % 10;
+    
+    const titlePatterns = [
+        {
+            prefix: "How to",
+            examples: ["How to Save Thousands", "How to Get Better Rates", "How to Choose the Right"]
+        },
+        {
+            prefix: "The",
+            examples: ["The Smart Buyer's Guide", "The Hidden Truth About", "The Complete Playbook"]
+        },
+        {
+            prefix: "Why",
+            examples: ["Why Smart Buyers Choose", "Why Now Is the Time", "Why Rates Matter More Than Ever"]
+        },
+        {
+            prefix: "5/7/10",
+            examples: ["5 Proven Strategies", "7 Insider Secrets", "10 Must-Know Tips"]
+        },
+        {
+            prefix: "Your",
+            examples: ["Your Path to Better Rates", "Your Money-Saving Blueprint", "Your Financial Roadmap"]
+        },
+        {
+            prefix: "What",
+            examples: ["What You Need to Know", "What Experts Recommend", "What Changes Mean for You"]
+        },
+        {
+            prefix: "Is",
+            examples: ["Is This the Right Time?", "Is Your Strategy Working?", "Is There a Better Way?"]
+        },
+        {
+            prefix: "From X to Y",
+            examples: ["From Application to Approval", "From Planning to Profit", "From Confusion to Clarity"]
+        },
+        {
+            prefix: "The Truth About",
+            examples: ["The Truth About Current Rates", "The Truth About Hidden Fees", "The Truth About Timing"]
+        },
+        {
+            prefix: "Breaking Down",
+            examples: ["Breaking Down the Numbers", "Breaking Down Your Options", "Breaking Down Complex Terms"]
+        }
+    ];
+
+    const selectedPattern = titlePatterns[varietyIndex];
+    
+    const prompts = {
+        mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
 Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
 
 CRITICAL TITLE REQUIREMENTS:
-- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
-- Avoid clichéd openings like "Ultimate Guide" or "Complete Guide"
-- Use action words like: Navigate, Maximize, Transform, Optimize, Leverage, Discover, Build
-- Or use question formats: "How to...", "What You Need to Know About...", "Is Now the Right Time to..."
-- Or use benefit-focused titles: "Save Thousands on Your Mortgage", "Get Approved for Better Rates"
+- Start with "${selectedPattern.prefix}" pattern
+- Examples: ${selectedPattern.examples.join(', ')}
+- Be specific and benefit-focused
+- Include numbers when relevant (e.g., "How to Save $50,000 on Your Mortgage")
+- Make it timely but not always date-specific
+- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Ultimate, Complete Guide
+
+Article focus based on variety index ${varietyIndex}:
+${varietyIndex % 3 === 0 ? 'Focus on first-time buyers' : varietyIndex % 3 === 1 ? 'Focus on refinancing' : 'Focus on investment properties'}
 
 Within the article, naturally mention and link to our mortgage calculator as a helpful tool.
-Topics: down payment strategies, rate shopping, first-time buyer tips, refinancing opportunities.`,
+Topics: down payment strategies, rate shopping, market timing, cost-saving tips.`,
 
-            investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
-Include: S&P 500 at ${marketData.markets.sp500}% change, current market volatility.
+        investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
+Include: S&P 500 at ${marketData.markets.sp500}% change, current market conditions.
 
 CRITICAL TITLE REQUIREMENTS:
-- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
-- Avoid overused phrases like "Financial Freedom" in the beginning
-- Use fresh angles: "The Smart Investor's Playbook", "Building Wealth in a Volatile Market", "Investment Strategies That Actually Work"
-- Or use timely hooks: "Post-Pandemic Portfolio Building", "Investing When Rates Are High"
-- Or use specific benefits: "Turn $500/Month into $1 Million", "Recession-Proof Investment Strategies"
+- Start with "${selectedPattern.prefix}" pattern
+- Examples: ${selectedPattern.examples.join(', ')}
+- Focus on specific outcomes (e.g., "How to Build a $1 Million Portfolio by 50")
+- Use action-oriented language
+- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Ultimate Guide
+
+Article angle based on variety ${varietyIndex}:
+${varietyIndex % 3 === 0 ? 'Focus on beginners and getting started' : varietyIndex % 3 === 1 ? 'Focus on retirement planning' : 'Focus on aggressive growth strategies'}
 
 Within the article, naturally mention and link to our investment calculator as a planning tool.
-Topics: compound interest power, portfolio diversification, retirement strategies, market timing.`,
+Topics: compound interest, diversification, market cycles, tax-efficient investing.`,
 
-            loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
-Include: Current rate environment, consolidation opportunities, credit optimization.
+        loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
+Include: Current lending environment, consolidation opportunities.
 
 CRITICAL TITLE REQUIREMENTS:
-- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
-- Avoid generic openings like "Everything You Need to Know"
-- Use specific scenarios: "Consolidate High-Interest Debt Before Rates Rise", "Personal Loans vs Credit Cards: The Math That Matters"
-- Or use problem-solving angles: "Escape the Debt Cycle", "Lower Your Monthly Payments Without Extending Terms"
-- Or use achievement-focused: "From 600 to 750: Credit Score Transformation", "Pay Off Debt 5 Years Faster"
+- Start with "${selectedPattern.prefix}" pattern
+- Examples: ${selectedPattern.examples.join(', ')}
+- Address specific pain points (e.g., "How to Escape High-Interest Debt in 2025")
+- Be solution-focused
+- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating
+
+Content angle ${varietyIndex}:
+${varietyIndex % 3 === 0 ? 'Focus on debt consolidation' : varietyIndex % 3 === 1 ? 'Focus on credit improvement' : 'Focus on emergency loans'}
 
 Within the article, naturally mention and link to our loan calculator for comparing options.
-Topics: debt consolidation, personal loan uses, credit score improvement, refinancing strategies.`,
+Topics: loan types, credit optimization, repayment strategies, avoiding predatory lending.`,
 
-            insurance: `Write a comprehensive 1,500+ word blog post about protecting your family and financial security for ${new Date().toLocaleDateString()}, but don't always include the year in the title - only when it adds specific value.
-Include: Life insurance trends, coverage needs analysis, premium factors.
+        insurance: `Write a comprehensive 1,500+ word blog post about protecting your family's financial future for ${new Date().toLocaleDateString()}.
+Include: Life insurance trends, coverage analysis.
 
 CRITICAL TITLE REQUIREMENTS:
-- Create a unique, engaging title that doesn't start with "Unlock", "Unlocking", "Master", or "Mastering"
-- Avoid clichés like "Secure Your Family's Future" at the start
-- Use specific angles: "Life Insurance at 30 vs 50: The Cost Difference", "Term Life Myths Debunked"
-- Or use calculational hooks: "How Much Life Insurance Do You Really Need?", "$1 Million Coverage for Less Than Netflix"
-- Or use comparative titles: "Why Young Families Choose Term Life", "Whole Life vs Investing: A Numbers Game"
+- Start with "${selectedPattern.prefix}" pattern
+- Examples: ${selectedPattern.examples.join(', ')}
+- Make it personal and relatable (e.g., "What Young Parents Need to Know About Life Insurance")
+- Focus on protection and peace of mind
+- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating
+
+Article perspective ${varietyIndex}:
+${varietyIndex % 3 === 0 ? 'Focus on young families' : varietyIndex % 3 === 1 ? 'Focus on retirement planning' : 'Focus on business owners'}
 
 Within the article, naturally mention and link to our insurance calculator for coverage estimates.
-Topics: term vs whole life, coverage amount strategies, beneficiary planning, cost-saving tips.`
-        };
+Topics: coverage types, premium factors, beneficiary planning, policy comparisons.`
+    };
 
-const completion = await this.openai.chat.completions.create({
-            model: "gpt-4-turbo-preview",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an expert financial writer creating comprehensive, SEO-optimized content. You MUST write detailed, thorough articles with specific examples, calculations, and actionable advice. Each article MUST be 1,500-2,000 words minimum.
+    const completion = await this.openai.chat.completions.create({
+        model: "gpt-4-turbo-preview",
+        messages: [
+            {
+                role: "system",
+                content: `You are an expert financial writer creating varied, engaging content. Each article must be unique in style and approach.
 
 CRITICAL VARIETY REQUIREMENTS:
-1. TITLES: Create UNIQUE titles that don't repeat patterns. Avoid starting with Unlock, Unlocking, Master, Mastering, Ultimate, Complete, or similar overused words.
-2. INTRODUCTIONS: NEVER start articles with "In the ever-changing", "In an ever-evolving", "In today's", "In the world of", or similar clichéd openings. 
-3. Use varied opening approaches:
-   - Start with a striking statistic or fact
-   - Open with a question that addresses reader pain points
-   - Begin with a brief anecdote or scenario
-   - Lead with the main benefit or outcome
-   - Start with a counterintuitive statement
-4. Make each article's opening paragraph distinctly different from others.`
-                },
-                {
-                    role: "user",
-                    content: prompts[calculatorType] + `\n\nCRITICAL REQUIREMENTS:
-                    - MINIMUM 1,500 words - this is NON-NEGOTIABLE for SEO
-                    - Include at least 5 main sections with 300+ words each
-                    - Add detailed examples with real numbers
-                    - Include comparison tables or data where relevant
-                    - Provide step-by-step calculations
-                    - Add tips, warnings, and best practices
-                    - Include FAQs section with 5+ questions
-                    - End with a compelling CTA to use our ${calculatorType} calculator
-                    - Format with HTML tags (h2, h3, p, ul, li, strong, table)
-                    - First line is title text only (no HTML tags)
-                    - Write naturally but comprehensively - don't pad, but explore the topic fully
-                    - IMPORTANT: Start the article with an engaging, unique opening - avoid clichéd beginnings`
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 4000
-        });
-        const responseText = completion.choices[0].message.content;
-        const cleanedResponse = responseText
-            .replace(/<!DOCTYPE.*?>/i, '')
-            .replace(/<\/?html.*?>/gi, '')
-            .replace(/<\/?head.*?>/gi, '')
-            .replace(/<\/?body.*?>/gi, '')
-            .replace(/<title.*?<\/title>/gi, '')
-            .trim();
+1. TITLES: Use the provided pattern "${selectedPattern.prefix}" to start your title. Make it specific and compelling.
+2. BANNED WORDS in titles: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Ultimate, Complete, Everything You Need
+3. OPENINGS: Vary your opening style:
+   - Statistical hook: "Did you know that 73% of homebuyers..."
+   - Question: "Have you ever wondered why..."
+   - Scenario: "Picture this: You're sitting at the closing table..."
+   - Contrarian: "Forget everything you've heard about..."
+   - News hook: "With rates hitting new levels this month..."
+   - Personal angle: "Last week, a reader asked me..."
+4. Write in a conversational yet authoritative tone
+5. Include specific examples, calculations, and actionable advice
+6. Minimum 1,500 words with substantial, valuable content`
+            },
+            {
+                role: "user",
+                content: prompts[calculatorType] + `\n\nREMEMBER:
+                    - Start title with "${selectedPattern.prefix}"
+                    - Reference one of these examples: ${selectedPattern.examples.join(', ')}
+                    - Make the opening paragraph unique and engaging
+                    - Include 5+ detailed sections
+                    - Add comparison tables or numbered lists
+                    - Include an FAQ section
+                    - End with a clear call-to-action
+                    - Format with HTML tags`
+            }
+        ],
+        temperature: 0.8, // Slightly higher for more variety
+        max_tokens: 4000
+    });
 
-const lines = cleanedResponse.split('\n');
-const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
-const content = lines.slice(1).join('\n');
-const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
-const htmlContent = this.convertMarkdownToHTML(content);
+    // Process the response...
+    const responseText = completion.choices[0].message.content;
+    const cleanedResponse = responseText
+        .replace(/<!DOCTYPE.*?>/i, '')
+        .replace(/<\/?html.*?>/gi, '')
+        .replace(/<\/?head.*?>/gi, '')
+        .replace(/<\/?body.*?>/gi, '')
+        .replace(/<title.*?<\/title>/gi, '')
+        .trim();
 
-// Extract excerpt - improved to skip headings and get actual content
-const cleanTextContent = htmlContent
-    .replace(/<h[1-6]>.*?<\/h[1-6]>/gi, '') // Remove all headings
-    .replace(/<[^>]+>/g, ' ') // Remove all HTML tags
-    .replace(/\s+/g, ' ') // Normalize whitespace
-    .trim();
+    const lines = cleanedResponse.split('\n');
+    const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
+    const content = lines.slice(1).join('\n');
+    const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
+    const htmlContent = this.convertMarkdownToHTML(content);
 
-// Find the first meaningful sentence (at least 50 chars)
-const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
-let excerpt = '';
+    // Extract excerpt
+    const cleanTextContent = htmlContent
+        .replace(/<h[1-6]>.*?<\/h[1-6]>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
-for (const sentence of sentences) {
-    const cleanSentence = sentence.trim();
-    if (cleanSentence.length > 50) {
-        // Take up to 160 characters for the excerpt
-        excerpt = cleanSentence.length > 160 
-            ? cleanSentence.substring(0, 157) + '...' 
-            : cleanSentence;
-        break;
+    const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
+    let excerpt = '';
+
+    for (const sentence of sentences) {
+        const cleanSentence = sentence.trim();
+        if (cleanSentence.length > 50) {
+            excerpt = cleanSentence.length > 160 
+                ? cleanSentence.substring(0, 157) + '...' 
+                : cleanSentence;
+            break;
+        }
     }
-}
 
-// If no sentence found, try to get first 160 chars of content
-if (!excerpt && cleanTextContent.length > 50) {
-    excerpt = cleanTextContent.substring(0, 157) + '...';
-}
-
-// Final fallback
-if (!excerpt) {
-    excerpt = `Expert insights on ${calculatorType} strategies and financial planning for ${new Date().toLocaleDateString()}.`;
-}
-
-return {
-    title,
-    content: htmlContent,
-    excerpt,
-    slug,
-    calculatorType,
-    metaDescription: excerpt
-};
+    if (!excerpt && cleanTextContent.length > 50) {
+        excerpt = cleanTextContent.substring(0, 157) + '...';
     }
+
+    if (!excerpt) {
+        excerpt = `Expert insights on ${calculatorType} strategies and financial planning.`;
+    }
+
+    return {
+        title,
+        content: htmlContent,
+        excerpt,
+        slug,
+        calculatorType,
+        metaDescription: excerpt
+    };
+}
 
     convertMarkdownToHTML(markdown) {
         return markdown
