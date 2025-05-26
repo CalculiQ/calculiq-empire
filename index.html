@@ -54,70 +54,30 @@
             100% { transform: translate(50px, 50px); }
         }
         
-        /* Remove traditional header - integrate logo into hero */
+        /* Update floating logo to be just text, bigger */
         .floating-logo {
             position: fixed;
-            top: 30px;
-            left: 30px;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
             animation: fadeInDown 1s ease-out;
         }
         
-        .floating-logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            backdrop-filter: blur(10px);
+        .floating-logo-text {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             transition: all 0.3s ease;
-        }
-        
-        .floating-logo:hover .floating-logo-icon {
-            background: var(--accent-gradient);
-            border-color: transparent;
-            transform: rotate(10deg);
-        }
-        
-        /* Floating menu button for mobile */
-        .floating-menu {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            z-index: 1000;
-            width: 50px;
-            height: 50px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
             cursor: pointer;
-            transition: all 0.3s ease;
-            animation: fadeInDown 1s ease-out;
         }
         
-        .floating-menu:hover {
-            background: var(--accent-gradient);
-            border-color: transparent;
-            transform: scale(1.1);
-        }
-        
-        .menu-icon {
-            font-size: 1.5rem;
+        .floating-logo-text:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
         }
         
         /* Update hero section padding since no header */
@@ -807,13 +767,7 @@
 <body>
     <!-- Floating Logo -->
     <div class="floating-logo">
-        <div class="floating-logo-icon">📊</div>
-        <span>CalculiQ</span>
-    </div>
-    
-    <!-- Floating Menu (Mobile) -->
-    <div class="floating-menu" onclick="toggleMenu()">
-        <span class="menu-icon">☰</span>
+        <h1 class="floating-logo-text">CalculiQ</h1>
     </div>
     
     <!-- Navigation Dots -->
@@ -1070,12 +1024,6 @@
             if (section) {
                 section.scrollIntoView({ behavior: 'smooth' });
             }
-        }
-        
-        // Mobile menu toggle
-        function toggleMenu() {
-            // You can implement a slide-out menu here if needed
-            alert('Menu functionality coming soon!');
         }
         
         function showCalculator(type) {
