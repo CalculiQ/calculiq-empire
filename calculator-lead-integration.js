@@ -1,6 +1,6 @@
 // calculator-lead-integration.js
 // Frontend Lead Capture Integration for CalculiQ Calculators
-// FIXED: Decimal display and input field issues
+// Updated to insert lead forms AFTER calculation results
 
 class CalculiQLeadIntegration {
     constructor() {
@@ -26,7 +26,7 @@ class CalculiQLeadIntegration {
         this.setupExitIntentHandlers();
         this.setupMobileExitIntent();
         this.trackPageView();
-        this.fixInputFields(); // Add input field fix
+        this.fixInputFields();
         
         console.log('📊 CalculiQ Lead Integration initialized');
     }
@@ -81,7 +81,60 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // PROGRESSIVE LEAD CAPTURE SYSTEM
+    // CALCULATOR INTEGRATION
+    // ======================
+
+    integrateWithCalculator(calculatorType, calculatorElement) {
+        this.currentCalculatorType = calculatorType;
+        this.trackInteraction('calculator_opened', { type: calculatorType });
+        
+        // Don't insert the lead form immediately - wait for calculation
+        console.log(`🧮 Calculator integrated: ${calculatorType}`);
+    }
+
+    onCalculationComplete(calculatorType, results) {
+        this.currentCalculatorType = calculatorType;
+        this.currentResults = results;
+        this.calculationCompleted = true;
+        this.userProfile.calculatorUsage++;
+        
+        this.trackInteraction('calculation_completed', {
+            type: calculatorType,
+            results: results
+        });
+        
+        // Insert lead capture form after calculation
+        this.insertLeadCaptureForm(calculatorType, results);
+        
+        // Setup exit intent after calculation
+        setTimeout(() => {
+            this.enableExitIntent();
+        }, 5000);
+        
+        console.log(`📊 Calculation completed: ${calculatorType}`, results);
+    }
+
+    insertLeadCaptureForm(calculatorType, results) {
+        // Find the container for this calculator's lead capture
+        const containerId = `${calculatorType}-lead-capture-container`;
+        const container = document.getElementById(containerId);
+        
+        if (container && !container.hasChildNodes()) {
+            const leadFormHTML = this.generateProgressiveLeadForm(calculatorType, results);
+            container.innerHTML = leadFormHTML;
+            
+            // Re-run the input field fix for the new form
+            this.fixInputFields();
+            
+            // Smooth scroll to the lead form
+            setTimeout(() => {
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    }
+
+    // ======================
+    // PROGRESSIVE LEAD CAPTURE FORM
     // ======================
 
     generateProgressiveLeadForm(calculatorType, results) {
@@ -95,7 +148,7 @@ class CalculiQLeadIntegration {
             color: white;
             padding: 30px;
             border-radius: 15px;
-            margin: 25px 0;
+            margin: 30px 0 0 0;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -387,7 +440,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // EXIT INTENT CAPTURE SYSTEM
+    // EXIT INTENT CAPTURE
     // ======================
 
     generateExitIntentModal(calculatorType, results) {
@@ -676,73 +729,11 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // CALCULATOR INTEGRATION METHODS
-    // ======================
-
-    integrateWithCalculator(calculatorType, calculatorElement) {
-        this.currentCalculatorType = calculatorType;
-        this.trackInteraction('calculator_opened', { type: calculatorType });
-        
-        // Find the results container and add lead capture
-        const resultsContainer = calculatorElement.querySelector('.calc-results') || 
-                               calculatorElement.querySelector('#' + calculatorType + '-results');
-        
-        if (resultsContainer) {
-            // Insert lead capture form before existing CTA
-            const existingCta = resultsContainer.querySelector('.results-cta') || 
-                              resultsContainer.querySelector('.cta-button')?.parentElement;
-            
-            const leadFormHTML = this.generateProgressiveLeadForm(calculatorType, {});
-            
-            if (existingCta) {
-                existingCta.insertAdjacentHTML('beforebegin', leadFormHTML);
-            } else {
-                resultsContainer.insertAdjacentHTML('beforeend', leadFormHTML);
-            }
-        }
-        
-        console.log(`🧮 Calculator integrated: ${calculatorType}`);
-    }
-
-    onCalculationComplete(calculatorType, results) {
-        this.currentCalculatorType = calculatorType;
-        this.currentResults = results;
-        this.calculationCompleted = true;
-        this.userProfile.calculatorUsage++;
-        
-        this.trackInteraction('calculation_completed', {
-            type: calculatorType,
-            results: results
-        });
-        
-        // Update the lead form with actual results
-        this.updateLeadFormWithResults(calculatorType, results);
-        
-        // Setup exit intent after calculation
-        setTimeout(() => {
-            this.enableExitIntent();
-        }, 5000); // Wait 5 seconds before enabling exit intent
-        
-        console.log(`📊 Calculation completed: ${calculatorType}`, results);
-    }
-
-    updateLeadFormWithResults(calculatorType, results) {
-        const container = document.getElementById('leadCaptureContainer');
-        if (container) {
-            // Update the personalized message with actual results
-            const messageElement = container.querySelector('p');
-            if (messageElement) {
-                messageElement.textContent = this.getPersonalizedMessage(calculatorType, results);
-            }
-        }
-    }
-
-    // ======================
     // EVENT HANDLERS
     // ======================
 
     setupExitIntentHandlers() {
-        if (this.isMobile()) return; // Mobile uses scroll-based exit intent
+        if (this.isMobile()) return;
         
         document.addEventListener('mouseleave', (e) => {
             if (e.clientY <= 0 && this.canShowExitIntent()) {
@@ -750,10 +741,9 @@ class CalculiQLeadIntegration {
             }
         });
         
-        // Prevent exit intent on internal navigation
         document.addEventListener('mouseenter', (e) => {
             if (e.target.tagName === 'A' && e.target.href) {
-                this.exitIntentShown = true; // Disable for this session
+                this.exitIntentShown = true;
             }
         });
     }
@@ -768,7 +758,6 @@ class CalculiQLeadIntegration {
         window.addEventListener('scroll', () => {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             
-            // Detect upward scroll (user trying to leave)
             if (scrollTop < lastScrollTop && scrollTop > 100) {
                 scrollCount++;
                 
@@ -788,7 +777,7 @@ class CalculiQLeadIntegration {
         return this.calculationCompleted && 
                !this.exitIntentShown && 
                !this.leadCaptured &&
-               this.userProfile.timeOnSite > 30; // At least 30 seconds on site
+               this.userProfile.timeOnSite > 30;
     }
 
     enableExitIntent() {
@@ -820,7 +809,6 @@ class CalculiQLeadIntegration {
         if (trigger) {
             trigger.style.display = 'block';
             
-            // Auto-hide after 10 seconds
             setTimeout(() => {
                 trigger.style.display = 'none';
             }, 10000);
@@ -842,7 +830,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // API COMMUNICATION - FIXED (RELATIVE URLS)
+    // API COMMUNICATION
     // ======================
 
     async submitEmailCapture(calculatorType) {
@@ -1066,7 +1054,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // TRACKING & ANALYTICS - FIXED (RELATIVE URLS)
+    // TRACKING & ANALYTICS
     // ======================
 
     trackInteraction(type, data = {}) {
@@ -1079,7 +1067,7 @@ class CalculiQLeadIntegration {
         
         this.userProfile.interactions.push(interaction);
         
-        // Send to backend - FIXED: Use relative URL
+        // Send to backend
         fetch('/api/track-lead-interaction', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
