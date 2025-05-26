@@ -26,6 +26,31 @@ require('dotenv').config();
 
 console.log('✅ Dotenv loaded');
 
+javascriptrequire('dotenv').config();
+
+console.log('✅ Dotenv loaded');
+
+// Basic auth middleware - ADD HERE (around line 29)
+const basicAuth = (req, res, next) => {
+    const auth = req.headers.authorization;
+    
+    if (!auth || !auth.startsWith('Basic ')) {
+        res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
+        return res.status(401).send('Authentication required');
+    }
+    
+    const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
+    const username = credentials[0];
+    const password = credentials[1];
+    
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        next();
+    } else {
+        res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
+        res.status(401).send('Invalid credentials');
+    }
+};
+
 class CalculiQAutomationServer {
     constructor() {
         this.app = express();
