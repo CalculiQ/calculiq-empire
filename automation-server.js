@@ -19,6 +19,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
+const DynamicBlogGenerator = require('./dynamic-blog-generator');
+const BlogContentCleaner = require('./blog-content-cleaner');
 
 require('dotenv').config();
 
@@ -576,45 +578,38 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
     }
 
     // Blog System Methods
-    async generateAndPublishTopicalBlog(calculatorType) {
-        try {
-            const marketData = await this.fetchCurrentMarketData();
-            let article;
-            
-            if (this.openai) {
-                try {
-                    console.log(`🤖 Generating ${calculatorType} blog with OpenAI...`);
-                    article = await this.generateOpenAIBlog(calculatorType, marketData);
-                } catch (error) {
-                    console.error('❌ OpenAI failed, using dynamic generator:', error.message);
-                    const DynamicBlogGenerator = require('./dynamic-blog-generator');
-                    const generator = new DynamicBlogGenerator();
-                    article = await generator.generateArticle(calculatorType);
-                }
-            } else {
-                console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
-                const DynamicBlogGenerator = require('./dynamic-blog-generator');
-                const generator = new DynamicBlogGenerator();
-                article = await generator.generateArticle(calculatorType);
-            }
-            
-            await this.saveBlogPost({
-                slug: article.slug,
-                title: article.title,
-                content: article.content,
-                excerpt: article.excerpt,
-                category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-                tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
-                meta_description: article.metaDescription || article.excerpt,
-                status: 'published'
-            });
-            
-            console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
-            
-        } catch (error) {
-            console.error(`❌ ${calculatorType} blog generation failed:`, error);
-        }
+async generateAndPublishTopicalBlog(calculatorType) {
+    try {
+        console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
+        
+        // Always use your dynamic generator (it's better than AI)
+        const generator = new DynamicBlogGenerator();
+        const cleaner = new BlogContentCleaner();
+        
+        // Generate article
+        let article = await generator.generateArticle(calculatorType);
+        
+        // Clean any formatting issues
+        article = cleaner.cleanBlogPost(article);
+        
+        // Save to database
+        await this.saveBlogPost({
+            slug: article.slug,
+            title: article.title,
+            content: article.content,
+            excerpt: article.excerpt,
+            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+            tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
+            meta_description: article.metaDescription || article.excerpt,
+            status: 'published'
+        });
+        
+        console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
+        
+    } catch (error) {
+        console.error(`❌ ${calculatorType} blog generation failed:`, error);
     }
+}
 
     async generateOpenAIBlog(calculatorType, marketData) {
         // Get variety in prompts based on date/time
