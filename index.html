@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CalculiQ - Smart Financial Calculators</title>
-    <meta name="description" content="Free financial calculators for mortgages, investments, loans, and insurance. Get personalized quotes from verified lenders.">
+    <title>CalculiQ - Next-Gen Financial Intelligence</title>
+    <meta name="description" content="Advanced financial calculators powered by next-generation algorithms. Make smarter decisions with CalculiQ.">
     
     <style>
         * {
@@ -13,22 +13,64 @@
             box-sizing: border-box;
         }
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f5f5f5;
+        :root {
+            --primary-dark: #0a0e27;
+            --secondary-dark: #151932;
+            --accent-blue: #00d4ff;
+            --accent-purple: #7b2ff7;
+            --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
         
-        /* Header Styles */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 0;
-            position: sticky;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background Grid */
+        body::before {
+            content: '';
+            position: fixed;
             top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px 0;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled {
+            padding: 15px 0;
+            background: rgba(10, 14, 39, 0.95);
         }
         
         .nav-container {
@@ -44,163 +86,364 @@
             font-size: 1.8rem;
             font-weight: 800;
             text-decoration: none;
-            color: white;
-        }
-        
-        .nav-links {
+            color: var(--text-primary);
             display: flex;
-            gap: 30px;
             align-items: center;
+            gap: 10px;
+            letter-spacing: -0.5px;
         }
         
-        .nav-links a {
-            color: white;
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .nav-button {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 10px 25px;
+            border-radius: 25px;
             text-decoration: none;
             font-weight: 500;
-            transition: opacity 0.3s;
-        }
-        
-        .nav-links a:hover {
-            opacity: 0.8;
-        }
-        
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 20px;
-            text-align: center;
-        }
-        
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            font-weight: 800;
-        }
-        
-        .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .cta-button {
-            background: white;
-            color: #667eea;
-            padding: 15px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.1rem;
-            display: inline-block;
-            transition: transform 0.3s;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        
-        /* Calculators Section */
-        .calculators-section {
-            padding: 60px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 50px;
-            color: #1a1f3a;
-        }
-        
-        .calculator-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-        
-        .calculator-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-            cursor: pointer;
-        }
-        
-        .calculator-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-        
-        .calculator-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-        
-        .calculator-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #1a1f3a;
-        }
-        
-        .calculator-description {
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .calculator-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
         
-        .calculator-button::before {
+        .nav-button::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
+            background: var(--accent-gradient);
+            transition: left 0.3s ease;
+            z-index: -1;
         }
         
-        .calculator-button:hover::before {
+        .nav-button:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .nav-button:hover::before {
+            left: 0;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 150px 20px 100px;
+            text-align: center;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, rgba(123, 47, 247, 0.1) 0%, transparent 50%);
+        }
+        
+        .hero-badge {
+            display: inline-block;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            color: var(--accent-blue);
+            animation: fadeInDown 0.8s ease-out;
+        }
+        
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hero-cta {
+            display: inline-block;
+            background: var(--accent-gradient);
+            color: white;
+            padding: 18px 45px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
+        }
+        
+        .hero-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(123, 47, 247, 0.4);
+        }
+        
+        .hero-cta:hover::before {
             left: 100%;
         }
         
+        /* Floating Elements */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+            filter: blur(40px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .orb-1 {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: -150px;
+            animation: float 15s ease-in-out infinite;
+        }
+        
+        .orb-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 10%;
+            right: -100px;
+            animation: float 20s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(50px, -30px); }
+            66% { transform: translate(-30px, 30px); }
+        }
+        
+        /* Calculators Section */
+        .calculators-section {
+            padding: 100px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        @media (min-width: 1200px) {
+            .calculator-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .calculator-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .calculator-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .calculator-card:hover::before {
+            opacity: 0.1;
+        }
+        
+        .calculator-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .calculator-card:hover .calculator-icon {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            transform: rotate(10deg);
+        }
+        
+        .calculator-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        
+        .calculator-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .calculator-button {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .calculator-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        .calculator-card:nth-child(1) .calculator-button::after { animation-delay: 0s; }
+        .calculator-card:nth-child(2) .calculator-button::after { animation-delay: 0.5s; }
+        .calculator-card:nth-child(3) .calculator-button::after { animation-delay: 1s; }
+        .calculator-card:nth-child(4) .calculator-button::after { animation-delay: 1.5s; }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+        
         .calculator-button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            background: var(--accent-gradient);
+            border-color: transparent;
+            transform: translateY(-2px);
         }
         
         /* Calculator Container */
         .calculator-container {
             display: none;
-            background: white;
-            border-radius: 15px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 40px;
             margin: 30px 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.5s ease-out;
         }
         
         .calculator-container.active {
             display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .calculator-form {
@@ -208,42 +451,51 @@
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
         }
         
         .form-input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 14px 20px;
+            background: var(--primary-dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
             font-size: 1rem;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
         }
         
         .form-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: var(--text-secondary);
         }
         
         .calculate-btn {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            background: var(--accent-gradient);
             color: white;
-            padding: 15px 40px;
+            padding: 16px 40px;
             border: none;
-            border-radius: 50px;
+            border-radius: 25px;
             font-size: 1.1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             width: 100%;
             margin-top: 20px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
@@ -255,54 +507,79 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.6s;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
         }
         
         .calculate-btn:hover::before {
             left: 100%;
         }
         
-        .calculate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
-        }
-        
         .results-container {
-            background: #f8f9fa;
+            background: var(--primary-dark);
+            border: 1px solid var(--glass-border);
             padding: 30px;
-            border-radius: 12px;
+            border-radius: 15px;
             margin-top: 30px;
+            animation: fadeIn 0.5s ease-out;
         }
         
         .result-title {
             font-size: 1.3rem;
-            margin-bottom: 20px;
-            color: #1a1f3a;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--accent-blue);
         }
         
         .result-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
         
         .result-label {
-            color: #666;
+            color: var(--text-secondary);
         }
         
         .result-value {
             font-weight: 700;
-            color: #1a1f3a;
-            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         /* Features Section */
         .features-section {
-            background: white;
-            padding: 60px 20px;
+            background: var(--secondary-dark);
+            padding: 100px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .features-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent-gradient);
         }
         
         .features-grid {
@@ -315,29 +592,52 @@
         
         .feature-item {
             text-align: center;
+            padding: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
         }
         
         .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
+            width: 80px;
+            height: 80px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover .feature-icon {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            transform: rotate(5deg);
         }
         
         .feature-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
             margin-bottom: 15px;
-            color: #1a1f3a;
+            color: var(--text-primary);
         }
         
         .feature-description {
-            color: #666;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
         
         /* Newsletter Section */
         .newsletter-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 20px;
+            padding: 100px 20px;
             text-align: center;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
         }
         
         .newsletter-content {
@@ -347,44 +647,70 @@
         
         .newsletter-title {
             font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 20px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .newsletter-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
         }
         
         .newsletter-form {
             display: flex;
             gap: 15px;
-            margin-top: 30px;
+            max-width: 500px;
+            margin: 0 auto;
         }
         
         .newsletter-input {
             flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 50px;
+            padding: 16px 25px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            color: var(--text-primary);
             font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .newsletter-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        .newsletter-input::placeholder {
+            color: var(--text-secondary);
         }
         
         .newsletter-button {
-            background: white;
-            color: #667eea;
-            padding: 15px 30px;
+            background: var(--accent-gradient);
+            color: white;
+            padding: 16px 35px;
             border: none;
-            border-radius: 50px;
-            font-weight: 700;
+            border-radius: 30px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s ease;
+            white-space: nowrap;
         }
         
         .newsletter-button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
         }
         
         /* Footer */
         .footer {
-            background: #1a1f3a;
-            color: white;
-            padding: 40px 20px 20px;
+            background: var(--primary-dark);
+            padding: 60px 20px 30px;
             text-align: center;
+            border-top: 1px solid var(--glass-border);
         }
         
         .footer-links {
@@ -396,58 +722,34 @@
         }
         
         .footer-links a {
-            color: white;
+            color: var(--text-secondary);
             text-decoration: none;
-            opacity: 0.8;
-            transition: opacity 0.3s;
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
         }
         
         .footer-links a:hover {
-            opacity: 1;
+            color: var(--accent-blue);
         }
         
         .footer-copyright {
-            opacity: 0.6;
+            color: var(--text-secondary);
             font-size: 0.9rem;
+            opacity: 0.7;
         }
-        
-        /* Auto-shimmer animation for calculator buttons */
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 200%; }
-        }
-        
-        .calculator-card:nth-child(1) .calculator-button::after,
-        .calculator-card:nth-child(2) .calculator-button::after,
-        .calculator-card:nth-child(3) .calculator-button::after,
-        .calculator-card:nth-child(4) .calculator-button::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 3s infinite;
-        }
-        
-        .calculator-card:nth-child(1) .calculator-button::after { animation-delay: 0s; }
-        .calculator-card:nth-child(2) .calculator-button::after { animation-delay: 0.5s; }
-        .calculator-card:nth-child(3) .calculator-button::after { animation-delay: 1s; }
-        .calculator-card:nth-child(4) .calculator-button::after { animation-delay: 1.5s; }
         
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
             }
             
-            .hero p {
+            .hero-subtitle {
                 font-size: 1.1rem;
             }
             
-            .nav-links {
-                display: none;
+            .calculator-grid {
+                grid-template-columns: 1fr;
             }
             
             .newsletter-form {
@@ -455,67 +757,97 @@
             }
             
             .calculator-container {
-                padding: 20px;
+                padding: 25px;
+            }
+        }
+        
+        /* Mobile Navigation */
+        @media (max-width: 768px) {
+            .nav-button {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                background: transparent;
+                border: 1px solid var(--glass-border);
+                color: var(--text-primary);
+                padding: 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
+    <header class="header" id="header">
         <div class="nav-container">
-            <a href="/" class="logo">📈 CalculiQ</a>
-            <nav class="nav-links">
-                <a href="#calculators">Calculators</a>
-                <!-- <a href="/blog">Blog</a> -->
-                <a href="#features">Features</a>
-                <a href="#newsletter">Newsletter</a>
-            </nav>
+            <a href="/" class="logo">
+                <div class="logo-icon">📊</div>
+                CalculiQ
+            </a>
+            <a href="#calculators" class="nav-button">Start Calculating</a>
+            <button class="mobile-menu-btn">☰</button>
         </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero">
-        <h1>Smart Financial Calculators</h1>
-        <p>Make informed decisions with our free calculators and get connected with verified lenders for the best rates</p>
-        <a href="#calculators" class="cta-button">Start Calculating</a>
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        
+        <div class="hero-badge">✨ AI-Powered Financial Intelligence</div>
+        <h1>Next-Generation<br>Financial Calculators</h1>
+        <p class="hero-subtitle">Make smarter financial decisions with advanced algorithms and real-time market data</p>
+        <a href="#calculators" class="hero-cta">Launch Calculator Suite</a>
     </section>
 
     <!-- Calculators Section -->
     <section class="calculators-section" id="calculators">
-        <h2 class="section-title">Choose Your Calculator</h2>
+        <div class="section-header">
+            <h2 class="section-title">Choose Your Calculator</h2>
+            <p class="section-subtitle">Professional-grade tools for modern financial planning</p>
+        </div>
         
         <div class="calculator-grid">
             <!-- Mortgage Calculator Card -->
             <div class="calculator-card" onclick="showCalculator('mortgage')">
                 <div class="calculator-icon">🏠</div>
-                <h3 class="calculator-title">Mortgage Calculator</h3>
-                <p class="calculator-description">Calculate monthly payments, compare rates, and find the perfect home loan</p>
-                <button class="calculator-button">Calculate Now</button>
+                <h3 class="calculator-title">Mortgage Pro</h3>
+                <p class="calculator-description">Advanced mortgage analysis with real-time rates</p>
+                <button class="calculator-button">Launch Tool</button>
             </div>
             
             <!-- Investment Calculator Card -->
             <div class="calculator-card" onclick="showCalculator('investment')">
                 <div class="calculator-icon">📈</div>
-                <h3 class="calculator-title">Investment Calculator</h3>
-                <p class="calculator-description">Project your wealth growth and plan for financial independence</p>
-                <button class="calculator-button">Calculate Now</button>
+                <h3 class="calculator-title">Wealth Builder</h3>
+                <p class="calculator-description">AI-optimized investment projections</p>
+                <button class="calculator-button">Launch Tool</button>
             </div>
             
             <!-- Loan Calculator Card -->
             <div class="calculator-card" onclick="showCalculator('loan')">
                 <div class="calculator-icon">💰</div>
-                <h3 class="calculator-title">Loan Calculator</h3>
-                <p class="calculator-description">Compare personal loans, calculate payments, and save on interest</p>
-                <button class="calculator-button">Calculate Now</button>
+                <h3 class="calculator-title">Smart Loan</h3>
+                <p class="calculator-description">Intelligent loan comparison engine</p>
+                <button class="calculator-button">Launch Tool</button>
             </div>
             
             <!-- Insurance Calculator Card -->
             <div class="calculator-card" onclick="showCalculator('insurance')">
                 <div class="calculator-icon">🛡️</div>
-                <h3 class="calculator-title">Insurance Calculator</h3>
-                <p class="calculator-description">Find the right coverage amount and compare insurance quotes</p>
-                <button class="calculator-button">Calculate Now</button>
+                <h3 class="calculator-title">Coverage AI</h3>
+                <p class="calculator-description">Personalized insurance optimization</p>
+                <button class="calculator-button">Launch Tool</button>
             </div>
         </div>
         
@@ -622,27 +954,29 @@
 
     <!-- Features Section -->
     <section class="features-section" id="features">
-        <h2 class="section-title">Why Choose CalculiQ?</h2>
+        <div class="section-header">
+            <h2 class="section-title">Why Choose CalculiQ?</h2>
+        </div>
         <div class="features-grid">
             <div class="feature-item">
                 <div class="feature-icon">🎯</div>
-                <h3 class="feature-title">Accurate Calculations</h3>
-                <p class="feature-description">Professional-grade algorithms ensure precise results for all your financial planning needs</p>
+                <h3 class="feature-title">Precision Algorithms</h3>
+                <p class="feature-description">Advanced calculations powered by financial-grade algorithms for accurate results</p>
             </div>
             <div class="feature-item">
                 <div class="feature-icon">🔒</div>
-                <h3 class="feature-title">100% Secure</h3>
-                <p class="feature-description">Your data is protected with enterprise-level security and never sold to third parties</p>
+                <h3 class="feature-title">Bank-Level Security</h3>
+                <p class="feature-description">Your data is encrypted and protected with enterprise security standards</p>
             </div>
             <div class="feature-item">
                 <div class="feature-icon">💸</div>
-                <h3 class="feature-title">Save Money</h3>
-                <p class="feature-description">Connect with verified lenders and insurance providers for the best rates available</p>
+                <h3 class="feature-title">Save Thousands</h3>
+                <p class="feature-description">Connect with verified lenders for exclusive rates and maximum savings</p>
             </div>
             <div class="feature-item">
                 <div class="feature-icon">📊</div>
-                <h3 class="feature-title">Expert Insights</h3>
-                <p class="feature-description">Get personalized recommendations based on your unique financial situation</p>
+                <h3 class="feature-title">Smart Analytics</h3>
+                <p class="feature-description">AI-powered insights to optimize your financial decisions</p>
             </div>
         </div>
     </section>
@@ -650,8 +984,8 @@
     <!-- Newsletter Section -->
     <section class="newsletter-section" id="newsletter">
         <div class="newsletter-content">
-            <h2 class="newsletter-title">📧 Get Weekly Financial Tips</h2>
-            <p>Join our growing community getting expert insights and market updates</p>
+            <h2 class="newsletter-title">Weekly Financial Intelligence</h2>
+            <p class="newsletter-subtitle">Join our community for market insights and exclusive financial tips</p>
             <form class="newsletter-form" onsubmit="subscribeNewsletter(event)">
                 <input type="email" class="newsletter-input" placeholder="Enter your email" required>
                 <button type="submit" class="newsletter-button">Subscribe</button>
@@ -664,9 +998,8 @@
         <div class="footer-links">
             <a href="/privacy">Privacy Policy</a>
             <a href="/terms">Terms of Service</a>
-            <a href="/contact">Contact Us</a>
+            <a href="/contact">Contact</a>
             <a href="/do-not-sell">Do Not Sell My Info</a>
-            <!-- <a href="/blog">Blog</a> -->
         </div>
         <p class="footer-copyright">© 2024 CalculiQ. All rights reserved.</p>
     </footer>
@@ -675,6 +1008,16 @@
     <script src="/calculator-lead-integration.js"></script>
     <script>
         let activeCalculator = null;
+        
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
         
         function showCalculator(type) {
             // Hide all calculators
@@ -736,7 +1079,7 @@
             const resultsDiv = document.getElementById('mortgage-results');
             resultsDiv.innerHTML = `
                 <div class="results-container">
-                    <h3 class="result-title">Your Mortgage Calculation</h3>
+                    <h3 class="result-title">Your Mortgage Analysis</h3>
                     <div class="result-item">
                         <span class="result-label">Monthly Payment:</span>
                         <span class="result-value">$${results.monthlyPayment.toFixed(2).toLocaleString()}</span>
@@ -852,7 +1195,7 @@
             const resultsDiv = document.getElementById('loan-results');
             resultsDiv.innerHTML = `
                 <div class="results-container">
-                    <h3 class="result-title">Your Loan Calculation</h3>
+                    <h3 class="result-title">Your Loan Analysis</h3>
                     <div class="result-item">
                         <span class="result-label">Monthly Payment:</span>
                         <span class="result-value">$${results.monthlyPayment.toFixed(2).toLocaleString()}</span>
