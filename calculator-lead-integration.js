@@ -1,6 +1,6 @@
 // calculator-lead-integration.js
-// Frontend Lead Capture Integration for CalculiQ Calculators
-// Updated to insert lead forms AFTER calculation results
+// Frontend Lead Capture Integration for CalculiQ Calculators - Dark Theme Version
+// Updated with futuristic dark theme styling
 
 class CalculiQLeadIntegration {
     constructor() {
@@ -73,7 +73,7 @@ class CalculiQLeadIntegration {
                     });
                     
                     input.addEventListener('focus', function() {
-                        this.style.outline = '2px solid #667eea';
+                        this.style.outline = '2px solid #00d4ff';
                     });
                 }
             });
@@ -134,7 +134,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // PROGRESSIVE LEAD CAPTURE FORM
+    // DARK THEME PROGRESSIVE LEAD CAPTURE FORM
     // ======================
 
     generateProgressiveLeadForm(calculatorType, results) {
@@ -144,15 +144,17 @@ class CalculiQLeadIntegration {
         
         return `
         <div class="calculiq-lead-capture" id="leadCaptureContainer" style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
             margin: 30px 0 0 0;
             text-align: center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.5s ease-out;
         ">
             <!-- Animated background -->
             <div class="bg-animation" style="
@@ -161,31 +163,45 @@ class CalculiQLeadIntegration {
                 left: -50%; 
                 width: 200%; 
                 height: 200%; 
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); 
-                animation: calculiqFloat 6s ease-in-out infinite;
+                background: radial-gradient(circle at 30% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 70% 80%, rgba(123, 47, 247, 0.05) 0%, transparent 50%);
+                animation: floatGradient 10s ease-in-out infinite;
                 pointer-events: none;
             "></div>
             
             <!-- Urgency Header -->
             <div class="urgency-alert" style="
-                background: rgba(231, 76, 60, 0.95); 
-                margin: -30px -30px 25px -30px; 
+                background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+                margin: -40px -40px 30px -40px; 
                 padding: 15px; 
                 font-weight: 600;
-                animation: calculiqPulse 2s infinite;
                 position: relative;
                 z-index: 2;
+                font-size: 0.95rem;
+                letter-spacing: 0.5px;
             ">
                 ${urgencyMessage}
             </div>
             
             <!-- Step 1: Email Capture -->
             <div class="capture-step active" id="emailCaptureStep" data-step="1" style="position: relative; z-index: 2;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.8rem;">
-                    🎯 Get Personalized Rate Quotes
+                <h3 style="
+                    margin: 0 0 20px 0; 
+                    font-size: 2rem;
+                    font-weight: 700;
+                    background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                ">
+                    Get Personalized Rate Quotes
                 </h3>
                 
-                <p style="margin: 0 0 25px 0; font-size: 1.2rem; opacity: 0.95;">
+                <p style="
+                    margin: 0 0 30px 0; 
+                    font-size: 1.1rem; 
+                    color: #94a3b8;
+                    line-height: 1.6;
+                ">
                     ${personalizedMessage}
                 </p>
                 
@@ -194,45 +210,46 @@ class CalculiQLeadIntegration {
                     <input type="email" 
                            id="leadEmailInput" 
                            name="email"
-                           placeholder="Enter your email for personalized quotes" 
+                           placeholder="Enter your email for exclusive rates" 
                            autocomplete="email"
                            style="
                                width: 100%; 
-                               max-width: 400px; 
+                               max-width: 450px; 
                                padding: 18px 25px; 
-                               border: none; 
-                               border-radius: 50px; 
-                               font-size: 1.1rem; 
+                               background: #0a0e27;
+                               border: 1px solid rgba(255, 255, 255, 0.1);
+                               border-radius: 30px; 
+                               font-size: 1rem; 
                                margin: 0 0 20px 0;
-                               box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                                text-align: center;
                                transition: all 0.3s ease;
-                               color: #333;
-                               background: white;
+                               color: #ffffff;
                            "
+                           onfocus="this.style.borderColor='#00d4ff'; this.style.backgroundColor='rgba(0, 212, 255, 0.05)'; this.style.boxShadow='0 0 0 3px rgba(0, 212, 255, 0.1)'"
+                           onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.backgroundColor='#0a0e27'; this.style.boxShadow='none'"
                            onkeypress="if(event.key==='Enter') submitEmailCapture('${calculatorType}')">
                     
                     <button onclick="submitEmailCapture('${calculatorType}')" 
                             class="primary-capture-btn"
                             style="
-                                background: linear-gradient(135deg, #27ae60, #2ecc71); 
+                                background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
                                 color: white; 
                                 border: none; 
-                                padding: 18px 40px; 
-                                border-radius: 50px; 
-                                font-size: 1.2rem; 
-                                font-weight: 700; 
+                                padding: 18px 50px; 
+                                border-radius: 30px; 
+                                font-size: 1.1rem; 
+                                font-weight: 600; 
                                 cursor: pointer; 
                                 display: block; 
-                                margin: 0 auto 25px auto;
-                                box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+                                margin: 0 auto 30px auto;
                                 transition: all 0.3s ease;
                                 position: relative;
                                 overflow: hidden;
+                                box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
                             "
-                            onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(39, 174, 96, 0.6)'"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 15px rgba(39, 174, 96, 0.4)'">
-                        <span>📞 Get My Quotes</span>
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(123, 47, 247, 0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(123, 47, 247, 0.3)'">
+                        <span>Get My Quotes</span>
                     </button>
                 </div>
                 
@@ -240,15 +257,15 @@ class CalculiQLeadIntegration {
                 <div class="trust-signals" style="
                     display: flex; 
                     justify-content: center; 
-                    gap: 25px; 
+                    gap: 30px; 
                     flex-wrap: wrap; 
                     font-size: 0.9rem; 
-                    opacity: 0.9;
+                    color: #94a3b8;
                 ">
-                    <span style="display: flex; align-items: center; gap: 5px;">🔒 100% Secure</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">📞 Direct Lender Contact</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">⚡ 24-Hour Response</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">💰 ${socialProof}</span>
+                    <span>🔒 100% Secure</span>
+                    <span>📞 Direct Lender Contact</span>
+                    <span>⚡ 24-Hour Response</span>
+                    <span>💰 ${socialProof}</span>
                 </div>
             </div>
             
@@ -258,18 +275,29 @@ class CalculiQLeadIntegration {
                     display: flex; 
                     justify-content: center; 
                     gap: 15px; 
-                    margin-bottom: 25px;
+                    margin-bottom: 30px;
                 ">
-                    <div style="width: 30px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 2px;"></div>
-                    <div style="width: 30px; height: 4px; background: white; border-radius: 2px;"></div>
+                    <div style="width: 40px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px;"></div>
+                    <div style="width: 40px; height: 3px; background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%); border-radius: 2px;"></div>
                 </div>
                 
-                <h3 style="margin: 0 0 15px 0; font-size: 1.8rem;">
-                    🚀 Get Premium Rate Access
+                <h3 style="
+                    margin: 0 0 20px 0; 
+                    font-size: 1.8rem;
+                    font-weight: 700;
+                    background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                ">
+                    Get Premium Rate Access
                 </h3>
                 
-                <p style="margin: 0 0 25px 0; font-size: 1.1rem; opacity: 0.95;">
-                    Complete your profile for priority lender matching and exclusive rates
+                <p style="
+                    margin: 0 0 30px 0; 
+                    font-size: 1rem; 
+                    color: #94a3b8;
+                ">
+                    Complete your profile for priority lender matching
                 </p>
                 
                 <!-- Profile Form -->
@@ -277,21 +305,41 @@ class CalculiQLeadIntegration {
                     max-width: 500px; 
                     margin: 0 auto;
                     display: grid;
-                    gap: 15px;
+                    gap: 20px;
                 ">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <input type="text" 
                                id="firstNameInput"
                                name="firstName"
                                placeholder="First Name"
                                autocomplete="given-name" 
-                               style="padding: 15px; border: none; border-radius: 8px; font-size: 1rem; color: #333; background: white;">
+                               style="
+                                   padding: 15px 20px; 
+                                   background: #0a0e27;
+                                   border: 1px solid rgba(255, 255, 255, 0.1);
+                                   border-radius: 10px; 
+                                   font-size: 1rem; 
+                                   color: #ffffff;
+                                   transition: all 0.3s ease;
+                               "
+                               onfocus="this.style.borderColor='#00d4ff'; this.style.backgroundColor='rgba(0, 212, 255, 0.05)'"
+                               onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.backgroundColor='#0a0e27'">
                         <input type="text" 
                                id="lastNameInput"
                                name="lastName" 
                                placeholder="Last Name"
                                autocomplete="family-name"
-                               style="padding: 15px; border: none; border-radius: 8px; font-size: 1rem; color: #333; background: white;">
+                               style="
+                                   padding: 15px 20px; 
+                                   background: #0a0e27;
+                                   border: 1px solid rgba(255, 255, 255, 0.1);
+                                   border-radius: 10px; 
+                                   font-size: 1rem; 
+                                   color: #ffffff;
+                                   transition: all 0.3s ease;
+                               "
+                               onfocus="this.style.borderColor='#00d4ff'; this.style.backgroundColor='rgba(0, 212, 255, 0.05)'"
+                               onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.backgroundColor='#0a0e27'">
                     </div>
                     
                     <input type="tel" 
@@ -299,49 +347,71 @@ class CalculiQLeadIntegration {
                            name="phone"
                            placeholder="Phone (for priority contact)"
                            autocomplete="tel" 
-                           style="padding: 15px; border: none; border-radius: 8px; font-size: 1rem; color: #333; background: white;">
+                           style="
+                               padding: 15px 20px; 
+                               background: #0a0e27;
+                               border: 1px solid rgba(255, 255, 255, 0.1);
+                               border-radius: 10px; 
+                               font-size: 1rem; 
+                               color: #ffffff;
+                               transition: all 0.3s ease;
+                           "
+                           onfocus="this.style.borderColor='#00d4ff'; this.style.backgroundColor='rgba(0, 212, 255, 0.05)'"
+                           onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.backgroundColor='#0a0e27'">
                     
                     <select id="creditScoreInput"
                             name="creditScore" 
-                            style="padding: 15px; border: none; border-radius: 8px; font-size: 1rem; color: #333; background: white;">
-                        <option value="">Select Credit Score Range</option>
-                        <option value="800+">Excellent (800+)</option>
-                        <option value="750-799">Very Good (750-799)</option>
-                        <option value="700-749">Good (700-749)</option>
-                        <option value="650-699">Fair (650-699)</option>
-                        <option value="600-649">Poor (600-649)</option>
-                        <option value="<600">Building Credit (<600)</option>
+                            style="
+                                padding: 15px 20px; 
+                                background: #0a0e27;
+                                border: 1px solid rgba(255, 255, 255, 0.1);
+                                border-radius: 10px; 
+                                font-size: 1rem; 
+                                color: #ffffff;
+                                transition: all 0.3s ease;
+                                cursor: pointer;
+                            "
+                            onfocus="this.style.borderColor='#00d4ff'; this.style.backgroundColor='rgba(0, 212, 255, 0.05)'"
+                            onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.backgroundColor='#0a0e27'">
+                        <option value="" style="background: #0a0e27;">Select Credit Score Range</option>
+                        <option value="800+" style="background: #0a0e27;">Excellent (800+)</option>
+                        <option value="750-799" style="background: #0a0e27;">Very Good (750-799)</option>
+                        <option value="700-749" style="background: #0a0e27;">Good (700-749)</option>
+                        <option value="650-699" style="background: #0a0e27;">Fair (650-699)</option>
+                        <option value="600-649" style="background: #0a0e27;">Poor (600-649)</option>
+                        <option value="<600" style="background: #0a0e27;">Building Credit (<600)</option>
                     </select>
                     
                     <button onclick="submitProfileCapture('${calculatorType}')" 
                             style="
-                                background: linear-gradient(135deg, #e74c3c, #c0392b); 
+                                background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
                                 color: white; 
                                 border: none; 
                                 padding: 18px 40px; 
-                                border-radius: 50px; 
-                                font-size: 1.2rem; 
-                                font-weight: 700; 
+                                border-radius: 30px; 
+                                font-size: 1.1rem; 
+                                font-weight: 600; 
                                 cursor: pointer; 
-                                box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+                                box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
                                 transition: all 0.3s ease;
+                                margin-top: 10px;
                             "
-                            onmouseover="this.style.transform='translateY(-2px)'"
-                            onmouseout="this.style.transform='translateY(0)'">
-                        🎯 Get Priority Access
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(123, 47, 247, 0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(123, 47, 247, 0.3)'">
+                        Get Priority Access
                     </button>
                 </div>
                 
                 <!-- Premium Benefits -->
                 <div class="premium-benefits" style="
-                    margin-top: 25px; 
+                    margin-top: 30px; 
                     font-size: 0.9rem; 
-                    opacity: 0.9;
+                    color: #94a3b8;
                 ">
                     <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
                         <span>✅ Pre-approved rates</span>
                         <span>✅ Priority contact</span>
-                        <span>✅ Multiple lender quotes</span>
+                        <span>✅ Multiple quotes</span>
                         <span>✅ Exclusive offers</span>
                     </div>
                 </div>
@@ -349,73 +419,78 @@ class CalculiQLeadIntegration {
             
             <!-- Success Step -->
             <div class="capture-step success-step" id="successStep" style="display: none; position: relative; z-index: 2;">
-                <div style="font-size: 4rem; margin-bottom: 15px; animation: calculiqBounce 1s ease-out;">🎉</div>
-                <h3 style="margin: 0 0 15px 0; color: #27ae60; font-size: 2rem;">Success!</h3>
-                <p style="margin: 0 0 25px 0; font-size: 1.2rem;">
+                <div style="
+                    font-size: 4rem; 
+                    margin-bottom: 20px; 
+                    background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    animation: successPulse 1s ease-out;
+                ">✓</div>
+                <h3 style="
+                    margin: 0 0 20px 0; 
+                    color: #00d4ff; 
+                    font-size: 2rem;
+                    font-weight: 700;
+                ">Success!</h3>
+                <p style="
+                    margin: 0 0 30px 0; 
+                    font-size: 1.1rem;
+                    color: #94a3b8;
+                ">
                     Your information has been submitted.<br>
-                    <strong>Our verified partners will contact you within 24 hours!</strong>
+                    <strong style="color: #ffffff;">Our verified partners will contact you within 24 hours!</strong>
                 </p>
                 <div id="nextStepsContainer" style="
-                    background: rgba(255,255,255,0.1); 
-                    padding: 20px; 
-                    border-radius: 10px; 
-                    margin-top: 20px;
+                    background: rgba(255, 255, 255, 0.05); 
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 25px; 
+                    border-radius: 15px; 
+                    margin-top: 25px;
                 ">
-                    <h4 style="margin: 0 0 15px 0;">What happens next:</h4>
-                    <div style="text-align: left; max-width: 300px; margin: 0 auto;">
-                        <div style="margin: 8px 0;">✅ Verified lenders will call you</div>
-                        <div style="margin: 8px 0;">✅ Personalized rate quotes</div>
-                        <div style="margin: 8px 0;">✅ Pre-approval opportunities</div>
-                        <div style="margin: 8px 0;">✅ Money-saving comparisons</div>
+                    <h4 style="margin: 0 0 20px 0; color: #00d4ff;">What happens next:</h4>
+                    <div style="text-align: left; max-width: 350px; margin: 0 auto; color: #94a3b8;">
+                        <div style="margin: 10px 0;">✓ Verified lenders will call you</div>
+                        <div style="margin: 10px 0;">✓ Personalized rate quotes</div>
+                        <div style="margin: 10px 0;">✓ Pre-approval opportunities</div>
+                        <div style="margin: 10px 0;">✓ Money-saving comparisons</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <style>
-            @keyframes calculiqFloat {
-                0%, 100% { transform: translateY(0px) rotate(0deg); }
-                50% { transform: translateY(-20px) rotate(180deg); }
+            @keyframes floatGradient {
+                0%, 100% { transform: translate(0, 0) scale(1); }
+                50% { transform: translate(-20px, -20px) scale(1.1); }
             }
             
-            @keyframes calculiqPulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.8; }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
             }
             
-            @keyframes calculiqBounce {
+            @keyframes successPulse {
                 0% { transform: scale(0.3); opacity: 0; }
                 50% { transform: scale(1.1); }
                 100% { transform: scale(1); opacity: 1; }
             }
             
-            .calculiq-lead-capture input:focus {
-                outline: 2px solid #27ae60 !important;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                transform: translateY(-2px);
+            .calculiq-lead-capture select option {
+                background: #0a0e27 !important;
+                color: #ffffff !important;
             }
             
-            .primary-capture-btn::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                transition: left 0.5s;
-                pointer-events: none;
-            }
-            
-            .primary-capture-btn:hover::before {
-                left: 100%;
+            .calculiq-lead-capture input::placeholder,
+            .calculiq-lead-capture select {
+                color: #94a3b8;
             }
             
             @media (max-width: 768px) {
                 .calculiq-lead-capture {
-                    margin: 15px -15px !important;
+                    margin: 20px -20px !important;
                     border-radius: 0 !important;
-                    padding: 20px !important;
+                    padding: 30px 20px !important;
                 }
                 
                 .profile-form > div {
@@ -423,16 +498,7 @@ class CalculiQLeadIntegration {
                 }
                 
                 .trust-signals {
-                    flex-direction: column !important;
-                    gap: 10px !important;
-                }
-                
-                .calculiq-lead-capture h3 {
-                    font-size: 1.4rem !important;
-                }
-                
-                .calculiq-lead-capture p {
-                    font-size: 1rem !important;
+                    gap: 15px !important;
                 }
             }
         </style>
@@ -440,7 +506,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // EXIT INTENT CAPTURE
+    // DARK THEME EXIT INTENT
     // ======================
 
     generateExitIntentModal(calculatorType, results) {
@@ -453,23 +519,26 @@ class CalculiQLeadIntegration {
             left: 0; 
             width: 100%; 
             height: 100%; 
-            background: rgba(0,0,0,0.9); 
+            background: rgba(10, 14, 39, 0.95); 
             z-index: 999999; 
             display: flex; 
             align-items: center; 
             justify-content: center;
-            animation: calculiqFadeIn 0.3s ease-out;
+            animation: fadeInModal 0.3s ease-out;
+            backdrop-filter: blur(10px);
         ">
             <div style="
-                background: white; 
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 padding: 50px; 
-                border-radius: 20px; 
+                border-radius: 25px; 
                 max-width: 650px; 
                 width: 90%; 
                 text-align: center; 
                 position: relative;
-                box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-                animation: calculiqSlideIn 0.4s ease-out;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(20px);
+                animation: slideInModal 0.4s ease-out;
             ">
                 <!-- Close Button -->
                 <button onclick="closeExitIntent()" style="
@@ -478,47 +547,72 @@ class CalculiQLeadIntegration {
                     right: 25px; 
                     background: none; 
                     border: none; 
-                    font-size: 2.5rem; 
+                    font-size: 2rem; 
                     cursor: pointer; 
-                    color: #999;
+                    color: #94a3b8;
                     line-height: 1;
-                    transition: color 0.3s ease;
-                " onmouseover="this.style.color='#333'" onmouseout="this.style.color='#999'">&times;</button>
+                    transition: all 0.3s ease;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                " 
+                onmouseover="this.style.color='#00d4ff'; this.style.background='rgba(255,255,255,0.05)'" 
+                onmouseout="this.style.color='#94a3b8'; this.style.background='none'">×</button>
                 
                 <!-- Warning Icon -->
-                <div style="font-size: 4rem; margin-bottom: 20px; animation: calculiqShake 0.8s ease-in-out;">⚠️</div>
+                <div style="
+                    font-size: 4rem; 
+                    margin-bottom: 25px; 
+                    background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    animation: iconPulse 2s ease-in-out infinite;
+                ">⚡</div>
                 
                 <!-- Main Headline -->
                 <h2 style="
-                    color: #e74c3c; 
-                    margin: 0 0 15px 0; 
-                    font-size: 2.4rem;
-                    font-weight: 800;
+                    color: #ffffff; 
+                    margin: 0 0 20px 0; 
+                    font-size: 2.2rem;
+                    font-weight: 700;
+                    line-height: 1.2;
                 ">
-                    Wait! Don't Miss Out on Better Rates
+                    Wait! Don't Miss Out on <br>Better Rates
                 </h2>
                 
                 <!-- Value Proposition -->
                 <p style="
-                    font-size: 1.4rem; 
-                    margin: 0 0 30px 0; 
-                    color: #2c3e50;
-                    line-height: 1.4;
+                    font-size: 1.3rem; 
+                    margin: 0 0 35px 0; 
+                    color: #94a3b8;
+                    line-height: 1.5;
                 ">
-                    You could save <strong style="color: #27ae60; font-size: 1.6rem;">$${savings.toLocaleString()}/year</strong><br>
-                    with verified lender quotes from our partners
+                    You could save <strong style="
+                        color: #00d4ff; 
+                        font-size: 1.5rem;
+                        font-weight: 700;
+                    ">$${savings.toLocaleString()}/year</strong><br>
+                    with verified lender quotes
                 </p>
                 
                 <!-- Benefits Box -->
                 <div style="
-                    background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+                    background: rgba(0, 212, 255, 0.05); 
+                    border: 1px solid rgba(0, 212, 255, 0.2);
                     padding: 30px; 
                     border-radius: 15px; 
                     margin: 30px 0;
-                    border-left: 5px solid #27ae60;
                 ">
-                    <h4 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 1.3rem;">
-                        🎯 Get Connected with Verified Lenders:
+                    <h4 style="
+                        margin: 0 0 20px 0; 
+                        color: #00d4ff; 
+                        font-size: 1.2rem;
+                        font-weight: 600;
+                    ">
+                        Get Connected with Verified Lenders:
                     </h4>
                     <div style="
                         display: grid; 
@@ -526,21 +620,21 @@ class CalculiQLeadIntegration {
                         gap: 15px; 
                         text-align: left;
                     ">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
-                            <span>Personalized rate quotes based on your calculation</span>
+                        <div style="display: flex; align-items: center; gap: 10px; color: #94a3b8;">
+                            <span style="color: #00d4ff; font-size: 1.2rem;">✓</span>
+                            <span>Personalized quotes based on your data</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
+                        <div style="display: flex; align-items: center; gap: 10px; color: #94a3b8;">
+                            <span style="color: #00d4ff; font-size: 1.2rem;">✓</span>
                             <span>Direct contact from verified lenders</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
+                        <div style="display: flex; align-items: center; gap: 10px; color: #94a3b8;">
+                            <span style="color: #00d4ff; font-size: 1.2rem;">✓</span>
                             <span>Pre-approval opportunities</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="color: #27ae60; font-size: 1.2rem;">✅</span>
-                            <span>Compare multiple offers to save money</span>
+                        <div style="display: flex; align-items: center; gap: 10px; color: #94a3b8;">
+                            <span style="color: #00d4ff; font-size: 1.2rem;">✓</span>
+                            <span>Compare multiple offers easily</span>
                         </div>
                     </div>
                 </div>
@@ -549,7 +643,7 @@ class CalculiQLeadIntegration {
                 <div style="
                     display: flex; 
                     gap: 15px; 
-                    margin: 30px 0; 
+                    margin: 35px 0; 
                     align-items: center;
                     max-width: 500px;
                     margin-left: auto;
@@ -558,36 +652,38 @@ class CalculiQLeadIntegration {
                     <input type="email" 
                            id="exitIntentEmail"
                            name="exitEmail"
-                           placeholder="Enter your email for lender quotes"
+                           placeholder="Enter your email for quotes"
                            autocomplete="email"
                            style="
                                flex: 1; 
-                               padding: 20px; 
-                               border: 2px solid #e0e0e0; 
-                               border-radius: 12px; 
-                               font-size: 1.1rem;
+                               padding: 18px 25px; 
+                               background: #0a0e27;
+                               border: 1px solid rgba(255, 255, 255, 0.1);
+                               border-radius: 30px; 
+                               font-size: 1rem;
                                transition: all 0.3s ease;
-                               color: #333;
+                               color: #ffffff;
                            "
                            onkeypress="if(event.key==='Enter') captureExitEmail('${calculatorType}')"
-                           onfocus="this.style.borderColor='#27ae60'; this.style.boxShadow='0 0 0 3px rgba(39,174,96,0.1)'"
-                           onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'">
+                           onfocus="this.style.borderColor='#00d4ff'; this.style.backgroundColor='rgba(0, 212, 255, 0.05)'; this.style.boxShadow='0 0 0 3px rgba(0, 212, 255, 0.1)'"
+                           onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.backgroundColor='#0a0e27'; this.style.boxShadow='none'">
                     
                     <button onclick="captureExitEmail('${calculatorType}')" 
                             style="
-                                background: linear-gradient(135deg, #27ae60, #2ecc71); 
+                                background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
                                 color: white; 
                                 border: none; 
-                                padding: 20px 30px; 
-                                border-radius: 12px; 
-                                font-size: 1.1rem; 
+                                padding: 18px 35px; 
+                                border-radius: 30px; 
+                                font-size: 1rem; 
                                 font-weight: 600; 
                                 cursor: pointer;
                                 white-space: nowrap;
                                 transition: all 0.3s ease;
+                                box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
                             "
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(39,174,96,0.3)'"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(123, 47, 247, 0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(123, 47, 247, 0.3)'">
                         Get Quotes
                     </button>
                 </div>
@@ -596,57 +692,60 @@ class CalculiQLeadIntegration {
                 <div style="
                     display: flex; 
                     justify-content: center; 
-                    gap: 25px; 
+                    gap: 30px; 
                     flex-wrap: wrap; 
                     font-size: 0.9rem; 
-                    color: #666; 
-                    margin: 20px 0;
+                    color: #94a3b8; 
+                    margin: 25px 0;
                 ">
-                    <span style="display: flex; align-items: center; gap: 5px;">🔒 100% secure</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">📞 Direct lender contact</span>
-                    <span style="display: flex; align-items: center; gap: 5px;">🚀 24-hour response</span>
+                    <span>🔒 100% secure</span>
+                    <span>📞 Direct lender contact</span>
+                    <span>🚀 24-hour response</span>
                 </div>
                 
                 <!-- Social Proof Footer -->
                 <div style="
-                    margin-top: 25px; 
-                    padding-top: 20px; 
-                    border-top: 1px solid #eee; 
+                    margin-top: 30px; 
+                    padding-top: 25px; 
+                    border-top: 1px solid rgba(255, 255, 255, 0.1); 
                     font-size: 0.85rem; 
-                    color: #999;
+                    color: #94a3b8;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     gap: 10px;
                 ">
                     <div style="display: flex; gap: 5px;">
-                        <span style="color: #f39c12;">⭐⭐⭐⭐⭐</span>
+                        <span style="color: #00d4ff;">⭐⭐⭐⭐⭐</span>
                     </div>
-                    <span>Join 50,000+ smart savers who use CalculiQ</span>
+                    <span>Join thousands of smart savers using CalculiQ</span>
                 </div>
             </div>
         </div>
 
         <style>
-            @keyframes calculiqFadeIn {
+            @keyframes fadeInModal {
                 from { opacity: 0; }
                 to { opacity: 1; }
             }
             
-            @keyframes calculiqSlideIn {
-                from { transform: translateY(-50px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
+            @keyframes slideInModal {
+                from { transform: translateY(-50px) scale(0.9); opacity: 0; }
+                to { transform: translateY(0) scale(1); opacity: 1; }
             }
             
-            @keyframes calculiqShake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
+            @keyframes iconPulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+            
+            #calculiqExitModal input::placeholder {
+                color: #94a3b8;
             }
             
             @media (max-width: 768px) {
                 #calculiqExitModal > div {
-                    padding: 30px 20px !important;
+                    padding: 35px 25px !important;
                     margin: 20px !important;
                     max-width: 95% !important;
                 }
@@ -678,7 +777,7 @@ class CalculiQLeadIntegration {
     }
 
     // ======================
-    // MOBILE EXIT TRIGGER
+    // MOBILE EXIT TRIGGER (DARK THEME)
     // ======================
 
     generateMobileExitTrigger(calculatorType) {
@@ -688,7 +787,7 @@ class CalculiQLeadIntegration {
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
             color: white;
             padding: 15px 25px;
             border-radius: 30px;
@@ -696,7 +795,7 @@ class CalculiQLeadIntegration {
             font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+            box-shadow: 0 10px 30px rgba(123, 47, 247, 0.4);
             z-index: 10000;
             display: none;
             animation: calculiqMobileBounce 2s infinite;
@@ -720,9 +819,8 @@ class CalculiQLeadIntegration {
             }
             
             #calculiqMobileExit:hover {
-                background: linear-gradient(135deg, #c0392b, #a93226);
                 transform: translateX(-50%) translateY(-2px);
-                box-shadow: 0 15px 35px rgba(231, 76, 60, 0.6);
+                box-shadow: 0 15px 35px rgba(123, 47, 247, 0.6);
             }
         </style>
         `;
@@ -824,7 +922,7 @@ class CalculiQLeadIntegration {
     closeExitIntent() {
         const modal = document.getElementById('calculiqExitModal');
         if (modal) {
-            modal.style.animation = 'calculiqFadeOut 0.3s ease-out';
+            modal.style.animation = 'fadeOutModal 0.3s ease-out';
             setTimeout(() => modal.remove(), 300);
         }
     }
@@ -996,7 +1094,7 @@ class CalculiQLeadIntegration {
     hideLeadCapture() {
         const container = document.getElementById('leadCaptureContainer');
         if (container) {
-            container.style.animation = 'calculiqFadeOut 0.5s ease-out';
+            container.style.animation = 'fadeOut 0.5s ease-out';
             setTimeout(() => {
                 container.style.display = 'none';
             }, 500);
@@ -1018,7 +1116,7 @@ class CalculiQLeadIntegration {
                 padding: 15px 20px;
                 border-radius: 8px;
                 z-index: 1000000;
-                animation: calculiqSlideIn 0.3s ease-out;
+                animation: slideInError 0.3s ease-out;
             `;
             document.body.appendChild(errorDiv);
         }
@@ -1037,12 +1135,13 @@ class CalculiQLeadIntegration {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #27ae60;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
             z-index: 1000000;
-            animation: calculiqSlideIn 0.3s ease-out;
+            animation: slideInError 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
         `;
         successDiv.textContent = message;
         document.body.appendChild(successDiv);
@@ -1116,12 +1215,12 @@ class CalculiQLeadIntegration {
 
     getUrgencyMessage(calculatorType, results) {
         const messages = {
-            mortgage: "🚨 Mortgage rates change daily - get your quotes now!",
-            investment: "⏰ Market conditions are optimal - connect with advisors!",
-            loan: "🔥 Best rates available this week - get pre-approved!",
-            insurance: "⚡ Premium quotes available - compare and save!"
+            mortgage: "🚨 Mortgage rates change daily - lock in your quote now!",
+            investment: "⏰ Market conditions are shifting - secure your strategy!",
+            loan: "🔥 Limited-time rates available - get pre-approved today!",
+            insurance: "⚡ Premium quotes expire soon - compare and save!"
         };
-        return messages[calculatorType] || "🎯 Limited time - connect with verified lenders!";
+        return messages[calculatorType] || "🎯 Exclusive rates available - connect with lenders now!";
     }
 
     getSocialProof(calculatorType) {
@@ -1226,6 +1325,26 @@ function closeExitIntent() {
         integration.closeExitIntent();
     }
 }
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    @keyframes fadeOutModal {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    @keyframes slideInError {
+        from { transform: translateX(100px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
 
 // ======================
 // AUTO-INITIALIZATION
