@@ -1076,7 +1076,6 @@ this.app.get('/api/blog-post/:slug', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-<script>
         const API_BASE = '';
         let allPosts = [];
         let currentEditSlug = '';
