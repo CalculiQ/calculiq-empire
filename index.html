@@ -56,11 +56,11 @@
         
         /* Update floating logo to be just text, bigger */
         .floating-logo {
-            position: fixed;
+            position: absolute;
             top: 40px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
+            z-index: 100;
             animation: fadeInDown 1s ease-out;
         }
         
@@ -82,7 +82,7 @@
         
         /* Update hero section padding since no header */
         .hero {
-            padding: 120px 20px 100px;
+            padding: 140px 20px 100px;
             text-align: center;
             position: relative;
             background: radial-gradient(circle at 50% 50%, rgba(123, 47, 247, 0.1) 0%, transparent 50%);
