@@ -163,11 +163,30 @@
             border-radius: 25px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.3s;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .calculator-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .calculator-button:hover::before {
+            left: 100%;
         }
         
         .calculator-button:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
         
         /* Calculator Container */
@@ -224,7 +243,24 @@
             cursor: pointer;
             width: 100%;
             margin-top: 20px;
-            transition: transform 0.3s;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .calculate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s;
+        }
+        
+        .calculate-btn:hover::before {
+            left: 100%;
         }
         
         .calculate-btn:hover {
@@ -375,6 +411,31 @@
             font-size: 0.9rem;
         }
         
+        /* Auto-shimmer animation for calculator buttons */
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+        
+        .calculator-card:nth-child(1) .calculator-button::after,
+        .calculator-card:nth-child(2) .calculator-button::after,
+        .calculator-card:nth-child(3) .calculator-button::after,
+        .calculator-card:nth-child(4) .calculator-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        .calculator-card:nth-child(1) .calculator-button::after { animation-delay: 0s; }
+        .calculator-card:nth-child(2) .calculator-button::after { animation-delay: 0.5s; }
+        .calculator-card:nth-child(3) .calculator-button::after { animation-delay: 1s; }
+        .calculator-card:nth-child(4) .calculator-button::after { animation-delay: 1.5s; }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -406,7 +467,7 @@
             <a href="/" class="logo">📈 CalculiQ</a>
             <nav class="nav-links">
                 <a href="#calculators">Calculators</a>
-                <a href="/blog">Blog</a>
+                <!-- <a href="/blog">Blog</a> -->
                 <a href="#features">Features</a>
                 <a href="#newsletter">Newsletter</a>
             </nav>
@@ -605,7 +666,7 @@
             <a href="/terms">Terms of Service</a>
             <a href="/contact">Contact Us</a>
             <a href="/do-not-sell">Do Not Sell My Info</a>
-            <a href="/blog">Blog</a>
+            <!-- <a href="/blog">Blog</a> -->
         </div>
         <p class="footer-copyright">© 2024 CalculiQ. All rights reserved.</p>
     </footer>
