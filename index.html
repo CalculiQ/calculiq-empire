@@ -54,15 +54,25 @@
             100% { transform: translate(50px, 50px); }
         }
         
-        /* Update floating logo to be just text, bigger */
+/* Update floating logo to be just text, bigger */
         .floating-logo {
             position: absolute;
             top: 40px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
-	    opacity: 0;
-            animation: fadeInDown 1s ease-out forwards;
+            animation: logoFadeIn 1s ease-out;
+        }
+        
+        @keyframes logoFadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
         }
         
         .floating-logo-text {
