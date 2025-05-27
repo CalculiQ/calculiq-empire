@@ -1,11 +1,12 @@
 // dynamic-blog-generator.js
-// COMPREHENSIVE VERSION - Generates 1500+ word articles with single CTA
-// Fixed syntax errors
+// ENHANCED VERSION - Much more variety and permutations
+// Complete file with all enhancements
 
 const axios = require('axios');
 
 class DynamicBlogGenerator {
     constructor() {
+        // Expanded title patterns - now 30+ templates
         this.titlePatterns = [
             "How to Save $X on Your {type} in {year}",
             "The Smart Person's Guide to {type} in {year}",
@@ -18,11 +19,48 @@ class DynamicBlogGenerator {
             "Smart {type} Moves for Today's Market",
             "From Confusion to Clarity: Your {type} Guide",
             "The Ultimate {type} Playbook for {year}",
-            "Breaking Down {type}: A Step-by-Step Analysis"
+            "Breaking Down {type}: A Step-by-Step Analysis",
+            // New patterns added for variety
+            "Is This the Right Time for Your {type}?",
+            "{number} {type} Mistakes That Cost You Money",
+            "The Hidden Truth About {type} in {year}",
+            "Why Smart Buyers Choose {type} Differently",
+            "Your {month} {type} Action Plan",
+            "{type} Strategies the Experts Use",
+            "The Real Cost of {type} Mistakes",
+            "How {type} Changed in {year} (And What It Means)",
+            "Before You Commit to {type}: Read This",
+            "{number} Questions to Ask About {type}",
+            "The {type} Decision: A Data-Driven Guide",
+            "Maximizing Your {type} in a Changing Market",
+            "What's New in {type} for {month} {year}",
+            "The Beginner's Guide to {type} Success",
+            "{type} in {year}: Opportunities and Risks",
+            "Making Sense of {type} in Today's Economy",
+            "The {number}-Step {type} Checklist",
+            "Avoid These {number} {type} Pitfalls"
         ];
         
         this.currentYear = new Date().getFullYear();
         this.currentMonth = new Date().toLocaleDateString('en-US', { month: 'long' });
+        this.currentSeason = this.getCurrentSeason();
+        
+        // Content variation system
+        this.contentVariator = new ContentVariator();
+        
+        // Fact database for sprinkling throughout articles
+        this.factDatabase = new FactDatabase();
+        
+        // Track used combinations to ensure variety
+        this.usedCombinations = new Set();
+    }
+
+    getCurrentSeason() {
+        const month = new Date().getMonth();
+        if (month < 3) return 'winter';
+        if (month < 6) return 'spring';
+        if (month < 9) return 'summer';
+        return 'fall';
     }
 
     async generateArticle(calculatorType) {
@@ -61,15 +99,25 @@ class DynamicBlogGenerator {
     }
 
     generateDynamicTitle(calculatorType) {
-        const pattern = this.titlePatterns[Math.floor(Math.random() * this.titlePatterns.length)];
-        const numbers = ['5', '7', '10', '12', '15'];
-        const savingsAmounts = ['5,000', '10,000', '25,000', '50,000'];
+        // Use date/time to ensure variety
+        const dayIndex = new Date().getDate();
+        const hourIndex = new Date().getHours();
+        const varietyIndex = (dayIndex * 24 + hourIndex) % this.titlePatterns.length;
+        
+        const pattern = this.titlePatterns[varietyIndex];
+        const numbers = ['5', '7', '10', '12', '15', '3', '8', '6'];
+        const savingsAmounts = ['5,000', '10,000', '25,000', '50,000', '15,000', '30,000', '75,000'];
+        
+        // Select different values based on time
+        const numberIndex = (dayIndex + hourIndex) % numbers.length;
+        const amountIndex = (dayIndex + hourIndex + 1) % savingsAmounts.length;
         
         return pattern
             .replace('{type}', this.getTypeDisplayName(calculatorType))
             .replace('{year}', this.currentYear.toString())
-            .replace('{number}', numbers[Math.floor(Math.random() * numbers.length)])
-            .replace('$X', '$' + savingsAmounts[Math.floor(Math.random() * savingsAmounts.length)]);
+            .replace('{month}', this.currentMonth)
+            .replace('{number}', numbers[numberIndex])
+            .replace('$X', '$' + savingsAmounts[amountIndex]);
     }
 
     getTypeDisplayName(calculatorType) {
@@ -83,69 +131,293 @@ class DynamicBlogGenerator {
     }
 
     async generateComprehensiveContent(calculatorType, marketData) {
-        const sections = [
-            this.generateExtendedIntroduction(calculatorType, marketData),
-            this.generateMarketAnalysis(calculatorType, marketData),
-            this.generateDetailedCalculationBreakdown(calculatorType, marketData),
-            this.generateStepByStepGuide(calculatorType),
-            this.generateAdvancedStrategies(calculatorType, marketData),
-            this.generateCommonMistakesDetailed(calculatorType),
-            this.generateExpertTipsSection(calculatorType),
-            this.generateComprehensiveFAQ(calculatorType),
-            this.generateRegionalInsights(calculatorType, marketData),
-            this.generateSingleCallToAction(calculatorType)
+        // Mix up section order based on date/time
+        const dayOfWeek = new Date().getDay();
+        const hour = new Date().getHours();
+        
+        // Core sections
+        const coreSections = [
+            () => this.generateVariedIntroduction(calculatorType, marketData, dayOfWeek),
+            () => this.generateMarketAnalysis(calculatorType, marketData),
+            () => this.generateDetailedCalculationBreakdown(calculatorType, marketData),
+            () => this.generateStepByStepGuide(calculatorType),
+            () => this.generateAdvancedStrategies(calculatorType, marketData),
+            () => this.generateCommonMistakesDetailed(calculatorType),
+            () => this.generateExpertTipsSection(calculatorType),
+            () => this.generateComprehensiveFAQ(calculatorType)
         ];
-
-        return sections.join('\n\n');
+        
+        // Additional sections for variety
+        const additionalSections = [
+            () => this.generateRegionalInsights(calculatorType, marketData),
+            () => this.generateSeasonalContent(calculatorType, marketData),
+            () => this.generateCaseStudy(calculatorType, marketData),
+            () => this.generateIndustryTrends(calculatorType, marketData),
+            () => this.generateHistoricalPerspective(calculatorType, marketData)
+        ];
+        
+        // Always include core sections
+        let sections = [...coreSections];
+        
+        // Add 1-2 additional sections based on time
+        const additionalCount = 1 + (hour % 2);
+        const shuffled = this.shuffleArray(additionalSections);
+        sections.push(...shuffled.slice(0, additionalCount));
+        
+        // Always end with CTA
+        sections.push(() => this.generateSingleCallToAction(calculatorType));
+        
+        // Generate all sections
+        const contentParts = await Promise.all(sections.map(fn => fn()));
+        return contentParts.join('\n\n');
     }
 
-    generateExtendedIntroduction(calculatorType, marketData) {
-        const intros = {
-            mortgage: `<p>The mortgage market in ${this.currentYear} presents both unprecedented opportunities and significant challenges for homebuyers and refinancers alike. With mortgage rates currently sitting at ${marketData.rates.mortgage.thirtyYear}% for a 30-year fixed loan—a figure that represents real-time data from the Federal Reserve Economic Data (FRED) system—understanding your mortgage options has never been more critical for your financial future.</p>
+    // Enhanced introduction with multiple variations
+    generateVariedIntroduction(calculatorType, marketData, dayIndex) {
+        const introVariations = {
+            mortgage: [
+                // Original
+                `<p>The mortgage market in ${this.currentYear} presents both unprecedented opportunities and significant challenges for homebuyers and refinancers alike. With mortgage rates currently sitting at ${marketData.rates.mortgage.thirtyYear}% for a 30-year fixed loan—a figure that represents real-time data from the Federal Reserve Economic Data (FRED) system—understanding your mortgage options has never been more critical for your financial future.</p>`,
+                
+                // Variation 2 - Seasonal focus
+                `<p>As we navigate the ${this.currentSeason} housing market of ${this.currentYear}, prospective homebuyers face a unique landscape shaped by fluctuating interest rates and evolving economic conditions. Today's 30-year fixed mortgage rate of ${marketData.rates.mortgage.thirtyYear}% represents more than just a number—it's a gateway to homeownership that requires strategic planning and informed decision-making.</p>`,
+                
+                // Variation 3 - Statistical opening
+                `<p>Did you know that ${this.factDatabase.getRandomFact('mortgage')}? In today's market, with rates at ${marketData.rates.mortgage.thirtyYear}% for a conventional 30-year mortgage, this statistic takes on new significance. Whether you're among the millions considering homeownership or exploring refinancing options, understanding the current mortgage landscape is essential for making decisions that will impact your finances for decades to come.</p>`,
+                
+                // Variation 4 - Problem/solution
+                `<p>For many Americans, the dream of homeownership feels increasingly out of reach as housing prices continue their upward trajectory. However, with current mortgage rates at ${marketData.rates.mortgage.thirtyYear}%—data confirmed by the Federal Reserve's latest reports—strategic buyers are finding innovative ways to enter the market and build long-term wealth through real estate.</p>`,
+                
+                // Variation 5 - Comparison focus
+                `<p>Compare today's mortgage environment to just five years ago, and the differences are striking. While rates have shifted from historic lows to today's ${marketData.rates.mortgage.thirtyYear}% for a 30-year fixed loan, the fundamental opportunity to build wealth through homeownership remains strong—provided you approach the market with the right knowledge and strategies.</p>`
+            ],
+            
+            investment: [
+                // Add similar variations for investment
+                `<p>The investment landscape in ${this.currentYear} stands at a fascinating crossroads, where traditional investment wisdom meets unprecedented market conditions, technological disruption, and evolving global economic structures. For both novice investors taking their first steps toward building wealth and seasoned portfolio managers seeking to optimize their strategies, understanding the current environment is crucial for long-term financial success.</p>`,
+                
+                `<p>In the ${this.currentSeason} of ${this.currentYear}, investors face a market environment unlike any in recent history. ${this.factDatabase.getRandomFact('investment')} This reality underscores the importance of developing a robust investment strategy that can weather market volatility while capitalizing on long-term growth opportunities.</p>`,
+                
+                `<p>Picture this: Two investors, both starting with $10,000 in ${this.currentYear - 20}. One follows a disciplined investment strategy, while the other tries to time the market. Today, their portfolios tell vastly different stories—a reminder that in the current investment climate, strategy trumps speculation every time.</p>`
+            ],
+            
+            loan: [
+                // Add loan variations
+                `<p>The personal loan market in ${this.currentYear} has evolved into a sophisticated financial ecosystem that offers both unprecedented opportunities and potential pitfalls for borrowers. With lending technology advancing rapidly and competition intensifying among traditional banks, credit unions, and online lenders, consumers now have access to more loan options than ever before—but navigating this landscape requires careful analysis and strategic thinking.</p>`,
+                
+                `<p>Consider this: ${this.factDatabase.getRandomFact('loan')} In today's lending environment, where personal loan rates vary dramatically based on creditworthiness and lender type, understanding your options can mean the difference between manageable monthly payments and a debt burden that constrains your financial future.</p>`
+            ],
+            
+            insurance: [
+                // Add insurance variations
+                `<p>Life insurance represents one of the most important yet frequently misunderstood financial decisions you'll make, with implications that extend far beyond your own lifetime to directly impact the financial security and well-being of those you care about most. In ${this.currentYear}'s evolving insurance landscape, understanding the nuances of coverage options, cost factors, and strategic considerations has become increasingly complex yet more crucial than ever.</p>`,
+                
+                `<p>Every day, families across America face the devastating financial impact of losing a primary income earner. ${this.factDatabase.getRandomFact('insurance')} Yet in ${this.currentYear}, with innovative insurance products and competitive pricing, protecting your family's financial future has never been more accessible—if you know how to navigate the options.</p>`
+            ]
+        };
+        
+        // Select variation based on day
+        const variations = introVariations[calculatorType] || [introVariations.mortgage[0]];
+        const selectedIntro = variations[dayIndex % variations.length];
+        
+        // Add rest of introduction content
+        const additionalIntro = this.generateIntroductionBody(calculatorType, marketData);
+        
+        return selectedIntro + '\n' + additionalIntro;
+    }
 
-<p>Whether you're a first-time homebuyer navigating the complex world of down payments, PMI, and closing costs, or a seasoned homeowner considering a refinance to capitalize on potential savings, the decisions you make in today's market will ripple through your finances for the next three decades. The difference between securing a rate of ${marketData.rates.mortgage.thirtyYear}% versus ${(parseFloat(marketData.rates.mortgage.thirtyYear) + 0.5).toFixed(2)}% on a $400,000 mortgage translates to approximately $${this.calculateMonthlySavings(400000, 0.5).toLocaleString()} in monthly savings and over $${this.calculateLifetimeSavings(400000, 0.5, 30).toLocaleString()} in total interest savings over the life of the loan.</p>
+    generateIntroductionBody(calculatorType, marketData) {
+        // Varied paragraph structures based on calculator type
+        const bodies = {
+            mortgage: `
+<p>${this.contentVariator.spin("Whether you're a {first-time homebuyer|new buyer|prospective homeowner} navigating the {complex world|intricacies|challenges} of down payments, PMI, and closing costs, or a {seasoned homeowner|current owner|experienced buyer} considering a refinance to capitalize on potential savings, the decisions you make in today's market will {ripple through|impact|affect} your finances for the next three decades.")} The difference between securing a rate of ${marketData.rates.mortgage.thirtyYear}% versus ${(parseFloat(marketData.rates.mortgage.thirtyYear) + 0.5).toFixed(2)}% on a $400,000 mortgage translates to approximately $${this.calculateMonthlySavings(400000, 0.5).toLocaleString()} in monthly savings and over $${this.calculateLifetimeSavings(400000, 0.5, 30).toLocaleString()} in total interest savings over the life of the loan.</p>
 
-<p>The current economic landscape—shaped by Federal Reserve policy decisions, inflation concerns, and post-pandemic market dynamics—has created a unique environment where traditional mortgage wisdom may not apply. Historical patterns suggest that rates fluctuate in cycles, but today's borrowers face a convergence of factors including supply chain disruptions affecting home construction, evolving work-from-home preferences impacting housing demand, and monetary policy adjustments that directly influence lending rates.</p>
+<p>The current economic landscape—shaped by Federal Reserve policy decisions, inflation concerns, and ${this.contentVariator.spin("{post-pandemic|ongoing|evolving}")} market dynamics—has created a unique environment where traditional mortgage wisdom may not apply. ${this.contentVariator.spin("{Historical patterns suggest|Past trends indicate|Market history shows}")} that rates fluctuate in cycles, but today's borrowers face a convergence of factors including supply chain disruptions affecting home construction, evolving work-from-home preferences impacting housing demand, and monetary policy adjustments that directly influence lending rates.</p>
 
-<p>In this comprehensive analysis, we'll dissect every aspect of today's mortgage market, from the mechanics of rate calculations to advanced strategies for securing the most favorable terms. We'll examine real scenarios using current market data, explore regional variations that could affect your specific situation, and provide actionable insights that go far beyond generic advice. Our goal is to equip you with the knowledge and tools necessary to navigate today's mortgage landscape with confidence and secure the financing that aligns with your long-term financial objectives.</p>`,
+<p>In this comprehensive analysis, we'll ${this.contentVariator.spin("{dissect|examine|explore|analyze}")} every aspect of today's mortgage market, from the mechanics of rate calculations to advanced strategies for securing the most favorable terms. We'll examine real scenarios using current market data, explore regional variations that could affect your specific situation, and provide actionable insights that go far beyond generic advice. Our goal is to equip you with the knowledge and tools necessary to navigate today's mortgage landscape with confidence and secure the financing that aligns with your long-term financial objectives.</p>`,
 
-            investment: `<p>The investment landscape in ${this.currentYear} stands at a fascinating crossroads, where traditional investment wisdom meets unprecedented market conditions, technological disruption, and evolving global economic structures. For both novice investors taking their first steps toward building wealth and seasoned portfolio managers seeking to optimize their strategies, understanding the current environment is crucial for long-term financial success.</p>
+            investment: `
+<p>Today's markets reflect a complex interplay of factors: ${this.contentVariator.spin("{persistent|ongoing|continued}")} inflation concerns that have prompted Federal Reserve action, technological innovations that are ${this.contentVariator.spin("{reshaping|transforming|revolutionizing}")} entire industries, demographic shifts as baby boomers transition to retirement while millennials enter their peak earning years, and geopolitical tensions that create both risks and opportunities across global markets. These converging forces have created an investment environment where diversification strategies, risk management, and long-term thinking are more important than ever.</p>
 
-<p>Today's markets reflect a complex interplay of factors: persistent inflation concerns that have prompted Federal Reserve action, technological innovations that are reshaping entire industries, demographic shifts as baby boomers transition to retirement while millennials enter their peak earning years, and geopolitical tensions that create both risks and opportunities across global markets. These converging forces have created an investment environment where diversification strategies, risk management, and long-term thinking are more important than ever.</p>
+<p>Consider the mathematics of long-term investing: an investor who begins with $10,000 and contributes $500 monthly with an 8% annual return will accumulate approximately $1.3 million over 30 years. However, ${this.contentVariator.spin("{delaying|postponing|waiting to start}")} this investment strategy by just five years reduces the final amount to approximately $875,000—a difference of over $400,000 that illustrates the ${this.contentVariator.spin("{powerful|compelling|undeniable}")} concept of compound interest and the critical importance of starting early.</p>`,
 
-<p>Consider the mathematics of long-term investing: an investor who begins with $10,000 and contributes $500 monthly with an 8% annual return will accumulate approximately $1.3 million over 30 years. However, delaying this investment strategy by just five years reduces the final amount to approximately $875,000—a difference of over $400,000 that illustrates the powerful concept of compound interest and the critical importance of starting early.</p>
+            loan: `
+<p>Personal loans have emerged as a ${this.contentVariator.spin("{versatile|flexible|adaptable}")} financial tool that can serve multiple purposes: consolidating high-interest credit card debt, financing major purchases, covering unexpected expenses, or funding home improvements. The market has responded with increasingly ${this.contentVariator.spin("{flexible|competitive|attractive}")} terms, competitive rates for qualified borrowers, and streamlined application processes that can deliver funding within hours rather than days or weeks.</p>
 
-<p>The current market environment presents unique opportunities for investors willing to embrace proven principles while adapting to new realities. Low-cost index fund investing has democratized access to diversified portfolios, robo-advisors have made professional-grade portfolio management accessible to smaller investors, and tax-advantaged accounts like 401(k)s and IRAs offer powerful tools for tax-efficient wealth building. Yet these opportunities come with challenges: market volatility that tests investor discipline, information overload that can lead to decision paralysis, and behavioral biases that historically cause investors to buy high and sell low.</p>
+<p>However, the accessibility of personal loans also presents risks. With interest rates ranging from as low as 6% for borrowers with excellent credit to over 35% for those with challenged credit profiles, the difference in total borrowing costs can be ${this.contentVariator.spin("{substantial|significant|dramatic}")}. A $25,000 personal loan at 6% interest over five years results in monthly payments of approximately $483 and total interest of $2,965. The same loan at 18% interest increases monthly payments to $634 and total interest to $13,058—a difference of over $10,000 that underscores the critical importance of understanding your creditworthiness and shopping for the best available terms.</p>`,
 
-<p>This comprehensive guide will navigate you through the essential components of successful investing in today's environment, from fundamental concepts like asset allocation and diversification to advanced strategies for tax optimization and risk management. We'll examine real portfolio scenarios, analyze the impact of fees on long-term returns, and provide frameworks for making investment decisions that align with your personal financial goals and risk tolerance.</p>`,
+            insurance: `
+<p>The life insurance industry has undergone ${this.contentVariator.spin("{significant|remarkable|substantial}")} transformation in recent years, driven by technological advances in underwriting, changing demographics, and evolving consumer preferences. Today's applicants benefit from ${this.contentVariator.spin("{accelerated|streamlined|efficient}")} underwriting processes that can provide coverage decisions within days rather than weeks, competitive pricing driven by increased industry competition, and innovative product designs that offer greater flexibility and value than traditional policies.</p>
 
-            loan: `<p>The personal loan market in ${this.currentYear} has evolved into a sophisticated financial ecosystem that offers both unprecedented opportunities and potential pitfalls for borrowers. With lending technology advancing rapidly and competition intensifying among traditional banks, credit unions, and online lenders, consumers now have access to more loan options than ever before—but navigating this landscape requires careful analysis and strategic thinking.</p>
-
-<p>Personal loans have emerged as a versatile financial tool that can serve multiple purposes: consolidating high-interest credit card debt, financing major purchases, covering unexpected expenses, or funding home improvements. The market has responded with increasingly flexible terms, competitive rates for qualified borrowers, and streamlined application processes that can deliver funding within hours rather than days or weeks.</p>
-
-<p>However, the accessibility of personal loans also presents risks. With interest rates ranging from as low as 6% for borrowers with excellent credit to over 35% for those with challenged credit profiles, the difference in total borrowing costs can be substantial. A $25,000 personal loan at 6% interest over five years results in monthly payments of approximately $483 and total interest of $2,965. The same loan at 18% interest increases monthly payments to $634 and total interest to $13,058—a difference of over $10,000 that underscores the critical importance of understanding your creditworthiness and shopping for the best available terms.</p>
-
-<p>The current lending environment reflects broader economic trends: tightening credit standards as lenders become more selective, increased emphasis on debt-to-income ratios as inflation affects household budgets, and evolving underwriting models that incorporate alternative data sources beyond traditional credit scores. These changes create both challenges and opportunities for potential borrowers, making it essential to understand not just what loans are available, but how to position yourself for the most favorable terms.</p>
-
-<p>This detailed analysis will guide you through every aspect of personal lending in today's market, from understanding how lenders evaluate applications to strategies for improving your credit profile before applying. We'll examine real loan scenarios across different credit profiles, analyze the true cost of borrowing including often-overlooked fees, and provide frameworks for determining whether a personal loan is the right solution for your specific financial situation.</p>`,
-
-            insurance: `<p>Life insurance represents one of the most important yet frequently misunderstood financial decisions you'll make, with implications that extend far beyond your own lifetime to directly impact the financial security and well-being of those you care about most. In ${this.currentYear}'s evolving insurance landscape, understanding the nuances of coverage options, cost factors, and strategic considerations has become increasingly complex yet more crucial than ever.</p>
-
-<p>The life insurance industry has undergone significant transformation in recent years, driven by technological advances in underwriting, changing demographics, and evolving consumer preferences. Today's applicants benefit from accelerated underwriting processes that can provide coverage decisions within days rather than weeks, competitive pricing driven by increased industry competition, and innovative product designs that offer greater flexibility and value than traditional policies.</p>
-
-<p>Yet despite these improvements, the fundamental challenge remains: most Americans are significantly underinsured. Industry research consistently shows that the average American household has approximately $100,000 in life insurance coverage, while financial experts typically recommend coverage equal to 8-12 times annual income. For a household earning $75,000 annually, this represents a coverage gap of $500,000 or more—a shortfall that could leave surviving family members facing financial hardship at an already difficult time.</p>
-
-<p>The mathematics of life insurance highlight both the urgency and the opportunity: a healthy 30-year-old can secure $500,000 in term life insurance coverage for approximately $25-40 per month, while waiting until age 40 for the same coverage typically doubles the premium. This age-based pricing structure reflects actuarial reality but also creates a compelling case for securing coverage early when premiums are lowest and health issues are less likely to complicate the underwriting process.</p>
-
-<p>Understanding life insurance requires navigating complex decisions about coverage types (term versus permanent), coverage amounts, policy riders, and beneficiary designations. Each of these decisions carries long-term implications, and the costs of choosing incorrectly—whether through insufficient coverage, inappropriate policy types, or overlooked tax considerations—can be substantial.</p>
-
-<p>This comprehensive guide will demystify life insurance decision-making, providing practical frameworks for determining appropriate coverage levels, comparing policy types, and understanding the factors that influence premium costs. We'll examine real-world scenarios across different life stages and income levels, analyze the financial impact of various coverage decisions, and provide strategies for securing the most appropriate and cost-effective coverage for your specific situation.</p>`
+<p>Yet despite these improvements, the fundamental challenge remains: most Americans are significantly underinsured. Industry research consistently shows that the average American household has approximately $100,000 in life insurance coverage, while financial experts typically recommend coverage equal to 8-12 times annual income. For a household earning $75,000 annually, this represents a coverage gap of $500,000 or more—a shortfall that could leave surviving family members facing financial hardship at an already difficult time.</p>`
         };
 
-        return intros[calculatorType] || `<p>Understanding ${calculatorType} is crucial for your financial success in ${this.currentYear}.</p>`;
+        return bodies[calculatorType] || bodies.mortgage;
     }
 
+    // New section: Seasonal content
+    generateSeasonalContent(calculatorType, marketData) {
+        const seasonalContent = {
+            mortgage: {
+                spring: `<h2>Spring Homebuying Strategies</h2>
+<p>Spring traditionally marks the busiest season in real estate, with inventory typically peaking between April and June. In ${this.currentYear}, savvy buyers can leverage specific strategies to navigate the competitive spring market while current rates sit at ${marketData.rates.mortgage.thirtyYear}%.</p>
+<p>Key spring advantages include increased inventory selection, motivated sellers looking to close before summer, and optimal weather conditions for home inspections. However, competition intensifies during these months, making pre-approval and strategic offer positioning crucial for success.</p>`,
+                
+                summer: `<h2>Mid-Year Mortgage Opportunities</h2>
+<p>As we reach the midpoint of ${this.currentYear}, mortgage rates at ${marketData.rates.mortgage.thirtyYear}% present unique opportunities for both buyers and refinancers. Summer's traditionally slower market can work to your advantage, with sellers often more negotiable and lenders competing for business during this quieter period.</p>`,
+                
+                fall: `<h2>Year-End Mortgage Planning</h2>
+<p>The final quarter of ${this.currentYear} brings distinct advantages for mortgage seekers. With current rates at ${marketData.rates.mortgage.thirtyYear}%, fall buyers often find motivated sellers eager to close before year-end, potential tax advantages, and lenders working to meet annual quotas.</p>`,
+                
+                winter: `<h2>Winter Market Advantages</h2>
+<p>While winter traditionally sees fewer home sales, this season offers unique opportunities in ${this.currentYear}'s market. With rates at ${marketData.rates.mortgage.thirtyYear}% and less competition from other buyers, winter can be an ideal time for serious purchasers to negotiate favorable terms.</p>`
+            },
+            
+            investment: {
+                spring: `<h2>Spring Portfolio Rebalancing</h2>
+<p>Spring offers an ideal opportunity to reassess your investment strategy as companies report first-quarter earnings and economic trends for ${this.currentYear} become clearer. This seasonal checkpoint allows investors to rebalance portfolios and capture tax-loss harvesting opportunities from the previous year.</p>`,
+                
+                summer: `<h2>Mid-Year Investment Review</h2>
+<p>The midpoint of ${this.currentYear} provides a natural milestone for evaluating investment performance and adjusting strategies. With half the year's data available, investors can make informed decisions about rebalancing, tax planning, and year-end positioning.</p>`,
+                
+                fall: `<h2>Year-End Investment Strategies</h2>
+<p>As ${this.currentYear} enters its final quarter, investors should focus on tax-loss harvesting, required minimum distributions, and positioning for the coming year. Fall's market volatility often creates opportunities for strategic rebalancing.</p>`,
+                
+                winter: `<h2>New Year Investment Planning</h2>
+<p>Winter marks the perfect time to establish investment goals for the year ahead. With fresh contribution limits for retirement accounts and a full year of opportunity ahead, now is the time to optimize your investment strategy.</p>`
+            },
+            
+            loan: {
+                spring: `<h2>Spring Financial Fresh Start</h2>
+<p>Spring cleaning isn't just for closets—it's an ideal time to consolidate high-interest debts with a personal loan. As credit card balances from winter holidays come due, a strategic consolidation loan can provide relief and savings.</p>`,
+                
+                summer: `<h2>Summer Project Financing</h2>
+<p>Summer home improvement season drives personal loan demand as homeowners tackle major projects. Understanding loan options for these investments can help maximize home value while managing costs effectively.</p>`,
+                
+                fall: `<h2>Fall Financial Planning</h2>
+<p>As the year winds down, personal loans can play a strategic role in debt consolidation before the expensive holiday season. Fall applications often benefit from lenders looking to meet year-end targets.</p>`,
+                
+                winter: `<h2>New Year Debt Strategies</h2>
+<p>Winter brings opportunities to consolidate holiday debt and start the new year with a clean financial slate. Personal loans offer a structured approach to eliminating high-interest credit card balances.</p>`
+            },
+            
+            insurance: {
+                spring: `<h2>Spring Life Changes and Coverage</h2>
+<p>Spring often brings life changes—marriages, home purchases, and job transitions—that necessitate insurance reviews. This season is ideal for evaluating whether your current coverage aligns with your evolving needs.</p>`,
+                
+                summer: `<h2>Mid-Year Insurance Checkup</h2>
+<p>Summer provides an excellent opportunity for an insurance coverage review. With half the year complete, assess whether life changes require coverage adjustments and compare current rates in the market.</p>`,
+                
+                fall: `<h2>Year-End Insurance Planning</h2>
+<p>Fall open enrollment seasons make this an ideal time to coordinate life insurance with employer benefits. Understanding how group and individual policies work together optimizes overall coverage.</p>`,
+                
+                winter: `<h2>New Year Coverage Goals</h2>
+<p>Start the new year with adequate life insurance protection. Winter's focus on financial planning makes it an ideal time to secure coverage before another year of age impacts premiums.</p>`
+            }
+        };
+        
+        return seasonalContent[calculatorType]?.[this.currentSeason] || '';
+    }
+
+    // New section: Case studies
+    generateCaseStudy(calculatorType, marketData) {
+        const hour = new Date().getHours();
+        const caseIndex = hour % 3; // Rotate between 3 different cases
+        
+        const caseStudies = {
+            mortgage: [
+                `<h2>Case Study: First-Time Buyer Success Story</h2>
+<p>Sarah and Mike, a young couple in their early 30s, successfully navigated the ${this.currentYear} housing market despite initial concerns about affordability. With a combined income of $95,000 and student loans totaling $45,000, they wondered if homeownership was possible.</p>
+<p>By improving their credit scores from 680 to 740 over six months, they qualified for a rate of ${marketData.rates.mortgage.thirtyYear}% instead of ${(parseFloat(marketData.rates.mortgage.thirtyYear) + 0.75).toFixed(2)}%. This difference saved them $186 monthly on their $350,000 home purchase—enough to maintain their emergency fund while building equity.</p>
+<p>Key strategies that made the difference: paying down credit card balances to below 10% utilization, shopping with five different lenders, and using a first-time buyer program allowing 3% down while avoiding PMI through a lender-paid option.</p>`,
+                
+                `<h2>Case Study: Strategic Refinancing Win</h2>
+<p>The Johnson family capitalized on a brief rate dip in ${this.currentYear} to refinance their $425,000 mortgage. Originally at 7.5% from 2019, they seized the opportunity when rates touched ${marketData.rates.mortgage.thirtyYear}%.</p>
+<p>Despite $6,500 in closing costs, their monthly payment dropped by $420, achieving break-even in just 15 months. More importantly, they switched from a 30-year to a 20-year term without increasing their payment, saving over $180,000 in total interest.</p>`,
+                
+                `<h2>Case Study: Investment Property Strategy</h2>
+<p>Real estate investor David leveraged current market conditions to expand his portfolio in ${this.currentYear}. By using a cash-out refinance on his primary residence at ${marketData.rates.mortgage.thirtyYear}%, he accessed $75,000 in equity to purchase a rental property.</p>
+<p>The rental income of $2,200 monthly covers both the increased primary mortgage payment and the investment property loan, while building equity in two properties simultaneously. This strategic use of leverage demonstrates how current rates can enable wealth-building opportunities.</p>`
+            ],
+            
+            investment: [
+                `<h2>Case Study: Young Professional's Portfolio Journey</h2>
+<p>At 28, software engineer Lisa started investing with just $5,000 and a commitment to invest $750 monthly. Using a target-date fund for simplicity and automatic rebalancing, she's projected to accumulate $1.8 million by age 60.</p>
+<p>Her strategy focuses on maximizing employer 401(k) matching, contributing to a Roth IRA, and maintaining a 90/10 stock/bond allocation appropriate for her age. By starting early, she gains 32 years of compound growth—a advantage worth hundreds of thousands at retirement.</p>`,
+                
+                `<h2>Case Study: Mid-Career Course Correction</h2>
+<p>At 45, marketing executive Robert realized his investment approach needed adjustment. With only $125,000 saved for retirement, he implemented an aggressive catch-up strategy combining 401(k) maximization, backdoor Roth conversions, and a taxable investment account.</p>
+<p>By increasing his savings rate from 8% to 22% and optimizing asset location for tax efficiency, projections show he can still achieve a comfortable retirement by 65 with over $1.2 million in assets.</p>`,
+                
+                `<h2>Case Study: Risk Management Success</h2>
+<p>The Chen family's diversified portfolio weathered recent market volatility exceptionally well. With 60% stocks, 30% bonds, and 10% alternatives, their balanced approach limited losses during downturns while capturing upside during recoveries.</p>
+<p>Their systematic rebalancing strategy—selling bonds to buy stocks during market dips—added an estimated 1.5% annual return over a buy-and-hold approach, demonstrating the value of disciplined portfolio management.</p>`
+            ]
+        };
+        
+        const selectedCases = caseStudies[calculatorType] || caseStudies.mortgage;
+        return selectedCases[caseIndex] || selectedCases[0];
+    }
+
+    // New section: Industry trends
+    generateIndustryTrends(calculatorType, marketData) {
+        const trends = {
+            mortgage: `<h2>Emerging Mortgage Industry Trends</h2>
+<p>The mortgage industry in ${this.currentYear} is experiencing technological transformation that benefits borrowers through improved efficiency and transparency. Digital mortgage applications now account for over 30% of all applications, reducing processing time from weeks to days.</p>
+<p>Artificial intelligence in underwriting is expanding access to credit by considering alternative data points beyond traditional credit scores. This trend particularly benefits self-employed borrowers and those with limited credit history who previously faced approval challenges.</p>
+<p>Green mortgages offering rate discounts for energy-efficient homes are gaining traction, with some lenders offering 0.25% rate reductions for homes meeting specific sustainability criteria. As environmental consciousness grows, these programs are expected to expand significantly.</p>`,
+            
+            investment: `<h2>Investment Industry Evolution</h2>
+<p>The democratization of investing continues to accelerate in ${this.currentYear}, with commission-free trading now standard and fractional shares making expensive stocks accessible to all investors. This accessibility has increased market participation among younger demographics significantly.</p>
+<p>Environmental, Social, and Governance (ESG) investing has moved from niche to mainstream, with sustainable funds now managing trillions in assets. Performance data increasingly shows that ESG considerations can enhance rather than hinder returns.</p>
+<p>Artificial intelligence and robo-advisors continue to evolve, offering sophisticated portfolio management previously available only to high-net-worth individuals. These platforms now incorporate tax-loss harvesting, dynamic rebalancing, and personalized goal planning.</p>`,
+            
+            loan: `<h2>Personal Lending Innovation</h2>
+<p>The personal loan industry in ${this.currentYear} showcases rapid technological advancement, with AI-driven instant approvals becoming standard. Some lenders now offer approval decisions in under 60 seconds with funding the same day.</p>
+<p>Alternative data usage in underwriting—including cash flow analysis, education, and employment history—is expanding access to credit for traditionally underserved populations while maintaining responsible lending standards.</p>
+<p>Embedded lending at point-of-sale continues to grow, with personal loans increasingly integrated into e-commerce checkouts for major purchases, offering consumers immediate financing options with competitive terms.</p>`,
+            
+            insurance: `<h2>Life Insurance Industry Transformation</h2>
+<p>The life insurance sector in ${this.currentYear} embraces technological innovation with accelerated underwriting now available for policies up to $2 million. This dramatic increase from previous limits makes substantial coverage accessible without medical exams for qualified applicants.</p>
+<p>Wearable technology integration rewards healthy behaviors with premium discounts, creating a win-win for insurers and policyholders. Some carriers offer up to 25% discounts for meeting fitness and health goals.</p>
+<p>Hybrid products combining life insurance with long-term care benefits address multiple financial risks in a single policy, reflecting the industry's response to evolving consumer needs and longer life expectancies.</p>`
+        };
+        
+        return trends[calculatorType] || trends.mortgage;
+    }
+
+    // New section: Historical perspective
+    generateHistoricalPerspective(calculatorType, marketData) {
+        const perspectives = {
+            mortgage: `<h2>Historical Mortgage Rate Perspective</h2>
+<p>Today's rate of ${marketData.rates.mortgage.thirtyYear}% appears less daunting when viewed through historical context. In 1981, mortgage rates peaked at 18.63%, making homeownership virtually impossible for many Americans. Even in the early 2000s, rates of 6-8% were considered excellent.</p>
+<p>The unprecedented low rates of 2020-2021 (below 3%) were historical anomalies driven by pandemic response policies. Current rates actually align closely with the 50-year average, suggesting today's market represents a return to historical norms rather than an aberration.</p>
+<p>This perspective helps buyers understand that waiting for rates to return to pandemic lows may mean missing years of equity building and tax benefits. Historical data shows that homeownership timing matters more than perfect rate timing for long-term wealth building.</p>`,
+            
+            investment: `<h2>Investment Returns in Historical Context</h2>
+<p>The stock market's long-term average return of approximately 10% annually masks significant short-term volatility. Understanding this historical pattern helps investors maintain perspective during market turbulence.</p>
+<p>Major market events—from the 1987 crash to the 2008 financial crisis to the 2020 pandemic shock—all seemed catastrophic at the time. Yet investors who remained disciplined through these events were rewarded with subsequent recoveries and new highs.</p>
+<p>Historical analysis reveals that missing just the 10 best market days over 20 years can cut returns by more than half, reinforcing the importance of time in market over timing the market. This lesson from history remains relevant for today's investors facing uncertainty.</p>`,
+            
+            loan: `<h2>Personal Lending Evolution</h2>
+<p>The personal loan industry has transformed dramatically from its origins in the early 20th century when loans required collateral and character references from prominent community members. Today's streamlined online applications represent a revolutionary change in accessibility.</p>
+<p>Interest rate caps, introduced during the Great Depression, protected consumers from predatory lending. While some states maintain these protections, the federal landscape has evolved to allow more market-based pricing while maintaining disclosure requirements.</p>
+<p>The rise of fintech lenders since 2010 has increased competition and lowered rates for qualified borrowers. This technological disruption continues to benefit consumers through improved terms and faster access to capital.</p>`,
+            
+            insurance: `<h2>Life Insurance Through the Decades</h2>
+<p>Life insurance has evolved from its 18th-century origins as burial insurance to today's sophisticated financial planning tool. This evolution reflects changing societal needs and economic realities.</p>
+<p>The introduction of term life insurance in the 1960s democratized coverage by making substantial death benefits affordable for average families. This innovation remains the foundation of most family protection strategies today.</p>
+<p>Modern accelerated underwriting represents the latest evolution, using data analytics to streamline a process that once required extensive medical examinations. This technological advancement makes coverage more accessible while maintaining actuarial soundness.</p>`
+        };
+        
+        return perspectives[calculatorType] || perspectives.mortgage;
+    }
+
+    // Keep all existing methods below this line (generateMarketAnalysis, generateDetailedCalculationBreakdown, etc.)
+    // They remain the same as in your original file
+    
     generateMarketAnalysis(calculatorType, marketData) {
+        // Original implementation remains the same
         const analyses = {
             mortgage: `<h2>Comprehensive Mortgage Market Analysis for ${this.currentYear}</h2>
 
@@ -252,13 +524,16 @@ class DynamicBlogGenerator {
     }
 
     async generateDetailedCalculationBreakdown(calculatorType, marketData) {
+        // Expanded scenarios for more variety
         const conditions = {
             mortgage: {
                 scenarios: [
                     { homePrice: 400000, downPayment: 80000, rate: parseFloat(marketData.rates.mortgage.thirtyYear), term: 30 },
                     { homePrice: 350000, downPayment: 70000, rate: parseFloat(marketData.rates.mortgage.fifteenYear), term: 15 },
                     { homePrice: 500000, downPayment: 100000, rate: parseFloat(marketData.rates.mortgage.jumbo || marketData.rates.mortgage.thirtyYear), term: 30 },
-                    { homePrice: 300000, downPayment: 15000, rate: parseFloat(marketData.rates.mortgage.thirtyYear), term: 30 }
+                    { homePrice: 300000, downPayment: 15000, rate: parseFloat(marketData.rates.mortgage.thirtyYear), term: 30 },
+                    { homePrice: 450000, downPayment: 90000, rate: parseFloat(marketData.rates.mortgage.thirtyYear), term: 30 },
+                    { homePrice: 275000, downPayment: 55000, rate: parseFloat(marketData.rates.mortgage.fifteenYear), term: 15 }
                 ]
             },
             investment: {
@@ -266,7 +541,9 @@ class DynamicBlogGenerator {
                     { initial: 10000, monthly: 500, rate: 8, years: 20 },
                     { initial: 25000, monthly: 1000, rate: 10, years: 15 },
                     { initial: 5000, monthly: 250, rate: 6, years: 30 },
-                    { initial: 50000, monthly: 2000, rate: 9, years: 25 }
+                    { initial: 50000, monthly: 2000, rate: 9, years: 25 },
+                    { initial: 15000, monthly: 750, rate: 7, years: 20 },
+                    { initial: 0, monthly: 400, rate: 8.5, years: 35 }
                 ]
             },
             loan: {
@@ -274,7 +551,9 @@ class DynamicBlogGenerator {
                     { amount: 25000, rate: 12, term: 5 },
                     { amount: 15000, rate: 8.5, term: 3 },
                     { amount: 50000, rate: 15, term: 7 },
-                    { amount: 35000, rate: 10, term: 4 }
+                    { amount: 35000, rate: 10, term: 4 },
+                    { amount: 20000, rate: 11, term: 4 },
+                    { amount: 40000, rate: 13.5, term: 6 }
                 ]
             },
             insurance: {
@@ -282,15 +561,22 @@ class DynamicBlogGenerator {
                     { income: 75000, years: 20, debts: 250000 },
                     { income: 100000, years: 25, debts: 300000 },
                     { income: 50000, years: 15, debts: 150000 },
-                    { income: 125000, years: 30, debts: 400000 }
+                    { income: 125000, years: 30, debts: 400000 },
+                    { income: 85000, years: 20, debts: 275000 },
+                    { income: 65000, years: 25, debts: 200000 }
                 ]
             }
         };
 
-        const scenarios = conditions[calculatorType]?.scenarios || [];
+        // Select 4 scenarios based on current time
+        const hour = new Date().getHours();
+        const dayOfMonth = new Date().getDate();
+        const startIndex = (hour + dayOfMonth) % 3; // Rotate through different sets
+        
+        const scenarios = conditions[calculatorType]?.scenarios.slice(startIndex, startIndex + 4) || [];
         
         let breakdown = `<h2>Detailed ${calculatorType.charAt(0).toUpperCase() + calculatorType.slice(1)} Calculation Analysis</h2>
-        <p>Understanding the mathematics behind ${calculatorType} calculations empowers you to make informed decisions and identify opportunities for optimization. The following scenarios use current market conditions and real-world variables to illustrate how different factors impact your financial outcomes.</p>\n`;
+        <p>${this.contentVariator.spin("Understanding the {mathematics|calculations|numbers} behind " + calculatorType + " {calculations|decisions|planning} empowers you to make {informed|smart|strategic} decisions and identify opportunities for optimization. The following scenarios use current market conditions and real-world variables to illustrate how different factors impact your financial outcomes.")}</p>\n`;
 
         scenarios.forEach((scenario, index) => {
             breakdown += this.formatDetailedScenario(calculatorType, scenario, index + 1);
@@ -300,6 +586,7 @@ class DynamicBlogGenerator {
     }
 
     formatDetailedScenario(calculatorType, scenario, number) {
+        // Implementation remains the same as original
         switch (calculatorType) {
             case 'mortgage':
                 const loanAmount = scenario.homePrice - scenario.downPayment;
@@ -377,7 +664,7 @@ class DynamicBlogGenerator {
                         <li>Interest as % of Principal: ${((loanTotalInterest/scenario.amount)*100).toFixed(1)}%</li>
                     </ul>
                     
-                    <p><em>Key Insight: Improving your credit score by 50 points could potentially reduce your rate by 2-4%, saving approximately $${Math.round((this.calculateLoanPayment(scenario.amount, scenario.rate, scenario.term) - this.calculateLoanPayment(scenario.amount, scenario.rate - 3, scenario.term)) * scenario.term * 12).toLocaleString()} over the loan term.</em></p>
+                    <p><em>Key Insight: Improving your credit score by 50 points could potentially reduce your rate by 2-4%, saving approximately ${Math.round((this.calculateLoanPayment(scenario.amount, scenario.rate, scenario.term) - this.calculateLoanPayment(scenario.amount, scenario.rate - 3, scenario.term)) * scenario.term * 12).toLocaleString()} over the loan term.</em></p>
                 </div>\n`;
 
             case 'insurance':
@@ -385,25 +672,25 @@ class DynamicBlogGenerator {
                 const annualPremium = this.estimateInsurancePremium(coverage, 35); // Assuming age 35
                 
                 return `<div class="stats-grid">
-                    <h4>Scenario ${number}: $${scenario.income.toLocaleString()} Annual Income</h4>
+                    <h4>Scenario ${number}: ${scenario.income.toLocaleString()} Annual Income</h4>
                     <p><strong>Coverage Calculation:</strong></p>
                     <ul>
-                        <li>Annual Income: $${scenario.income.toLocaleString()}</li>
+                        <li>Annual Income: ${scenario.income.toLocaleString()}</li>
                         <li>Income Replacement Period: ${scenario.years} years</li>
-                        <li>Income Replacement Value: $${(scenario.income * scenario.years).toLocaleString()}</li>
-                        <li>Outstanding Debts: $${scenario.debts.toLocaleString()}</li>
+                        <li>Income Replacement Value: ${(scenario.income * scenario.years).toLocaleString()}</li>
+                        <li>Outstanding Debts: ${scenario.debts.toLocaleString()}</li>
                         <li>Final Expenses: $15,000</li>
                     </ul>
                     
                     <p><strong>Insurance Recommendation:</strong></p>
                     <ul>
-                        <li><strong>Recommended Coverage: $${coverage.toLocaleString()}</strong></li>
-                        <li>Estimated Annual Premium: $${annualPremium.toLocaleString()} (term life)</li>
-                        <li>Monthly Premium: $${Math.round(annualPremium/12).toLocaleString()}</li>
+                        <li><strong>Recommended Coverage: ${coverage.toLocaleString()}</strong></li>
+                        <li>Estimated Annual Premium: ${annualPremium.toLocaleString()} (term life)</li>
+                        <li>Monthly Premium: ${Math.round(annualPremium/12).toLocaleString()}</li>
                         <li>Premium as % of Income: ${((annualPremium/scenario.income)*100).toFixed(2)}%</li>
                     </ul>
                     
-                    <p><em>Key Insight: Purchasing this coverage at age 30 instead of age 40 would save approximately $${Math.round(annualPremium * 0.4).toLocaleString()} annually in premiums, totaling over $${Math.round(annualPremium * 0.4 * 20).toLocaleString()} in savings over 20 years.</em></p>
+                    <p><em>Key Insight: Purchasing this coverage at age 30 instead of age 40 would save approximately ${Math.round(annualPremium * 0.4).toLocaleString()} annually in premiums, totaling over ${Math.round(annualPremium * 0.4 * 20).toLocaleString()} in savings over 20 years.</em></p>
                 </div>\n`;
 
             default:
@@ -412,6 +699,7 @@ class DynamicBlogGenerator {
     }
 
     generateStepByStepGuide(calculatorType) {
+        // Implementation remains the same as original
         const guides = {
             mortgage: `<h2>Step-by-Step Mortgage Application Process</h2>
 
@@ -570,6 +858,7 @@ Carefully review your policy documents, confirm beneficiary designations are cor
     }
 
     generateAdvancedStrategies(calculatorType, marketData) {
+        // Implementation remains the same as original
         const strategies = {
             mortgage: `<h2>Advanced Mortgage Optimization Strategies</h2>
 
@@ -711,7 +1000,9 @@ Carefully review your policy documents, confirm beneficiary designations are cor
 
         return strategies[calculatorType] || `<h2>Advanced Strategies</h2><p>Strategic approaches for ${calculatorType} optimization.</p>`;
     }
-generateCommonMistakesDetailed(calculatorType) {
+
+    generateCommonMistakesDetailed(calculatorType) {
+        // Implementation remains the same as original
         const mistakes = {
             mortgage: `<h2>Common Mortgage Mistakes to Avoid</h2>
 <p>Understanding common pitfalls helps you navigate the mortgage process more successfully. Here are the most critical mistakes borrowers make and how to avoid them.</p>
@@ -766,6 +1057,7 @@ generateCommonMistakesDetailed(calculatorType) {
     }
 
     generateExpertTipsSection(calculatorType) {
+        // Implementation remains the same as original
         const tips = {
             mortgage: `<h2>Expert Tips for Mortgage Success</h2>
 <p>Industry professionals share insights that can save you thousands and streamline your mortgage experience.</p>
@@ -820,6 +1112,7 @@ generateCommonMistakesDetailed(calculatorType) {
     }
 
     generateComprehensiveFAQ(calculatorType) {
+        // Implementation remains the same as original
         const faqs = {
             mortgage: `<h2>Frequently Asked Mortgage Questions</h2>
 
@@ -894,6 +1187,7 @@ generateCommonMistakesDetailed(calculatorType) {
     }
 
     generateRegionalInsights(calculatorType, marketData) {
+        // Implementation remains the same as original
         const insights = {
             mortgage: `<h2>Regional Market Variations</h2>
 <p>Mortgage markets vary significantly by region, with local economic conditions, regulations, and supply-demand dynamics creating distinct opportunities and challenges across different areas.</p>
@@ -1103,6 +1397,122 @@ Launch ${this.getTypeDisplayName(calculatorType)} Calculator →
         const baseRate = 0.15; // $0.15 per $1000 of coverage per year at age 30
         const ageMultiplier = 1 + ((age - 30) * 0.08); // 8% increase per year over 30
         return Math.round(coverage / 1000 * baseRate * ageMultiplier * 12);
+    }
+
+    // Utility methods
+    shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+    }
+}
+
+// Helper class for content variation
+class ContentVariator {
+    constructor() {
+        this.synonyms = {
+            'first-time homebuyer': ['new buyer', 'prospective homeowner', 'first-time buyer'],
+            'complex world': ['intricacies', 'challenges', 'complexities'],
+            'seasoned homeowner': ['current owner', 'experienced buyer', 'existing homeowner'],
+            'ripple through': ['impact', 'affect', 'influence'],
+            'post-pandemic': ['ongoing', 'evolving', 'current'],
+            'Historical patterns suggest': ['Past trends indicate', 'Market history shows', 'Previous data reveals'],
+            'dissect': ['examine', 'explore', 'analyze', 'investigate'],
+            'persistent': ['ongoing', 'continued', 'sustained'],
+            'reshaping': ['transforming', 'revolutionizing', 'changing'],
+            'delaying': ['postponing', 'waiting to start', 'putting off'],
+            'powerful': ['compelling', 'undeniable', 'significant'],
+            'versatile': ['flexible', 'adaptable', 'multipurpose'],
+            'flexible': ['competitive', 'attractive', 'favorable'],
+            'substantial': ['significant', 'dramatic', 'considerable'],
+            'significant': ['remarkable', 'substantial', 'notable'],
+            'accelerated': ['streamlined', 'efficient', 'rapid'],
+            'mathematics': ['calculations', 'numbers', 'formulas'],
+            'informed': ['smart', 'strategic', 'educated'],
+            'calculations': ['decisions', 'planning', 'analysis']
+        };
+    }
+
+    spin(text) {
+        // Replace {option1|option2|option3} patterns with random selection
+        return text.replace(/\{([^}]+)\}/g, (match, options) => {
+            const choices = options.split('|');
+            return choices[Math.floor(Math.random() * choices.length)];
+        });
+    }
+}
+
+// Helper class for fact database
+class FactDatabase {
+    constructor() {
+        this.facts = {
+            mortgage: [
+                "The average American moves 11 times in their lifetime",
+                "97% of buyers finance their home purchase",
+                "The 30-year mortgage was created during the Great Depression",
+                "First-time buyers make up 33% of all home purchases",
+                "The average down payment for first-time buyers is just 7%",
+                "More than 60% of Americans have a mortgage",
+                "The mortgage industry contributes $1.15 trillion to the U.S. economy annually",
+                "FHA loans account for 12% of all mortgages",
+                "The average mortgage approval takes 47 days",
+                "Refinancing can save homeowners an average of $2,800 per year"
+            ],
+            investment: [
+                "Only 52% of Americans own stocks",
+                "The average 401(k) balance is $129,000",
+                "Index funds outperform 90% of actively managed funds over 15 years",
+                "The S&P 500 has averaged 10.5% annual returns since 1957",
+                "Millennials start investing at age 23 on average",
+                "Women tend to outperform men in investing by 0.4% annually",
+                "The average investor underperforms the market by 3.5% annually",
+                "Dollar-cost averaging beats timing the market 75% of the time",
+                "Only 1 in 3 Americans has a written financial plan",
+                "Compound interest can turn $100/month into $1 million over 40 years"
+            ],
+            loan: [
+                "The average American has $6,194 in credit card debt",
+                "Personal loans have grown 18% annually since 2015",
+                "The average personal loan size is $15,000",
+                "60% of personal loans are used for debt consolidation",
+                "Online lenders approve 40% more applicants than traditional banks",
+                "The personal loan market is worth $156 billion",
+                "Average personal loan interest rates range from 10-28%",
+                "Personal loans can improve credit scores when used for consolidation",
+                "Pre-qualification doesn't impact your credit score",
+                "Same-day funding is available from 23% of online lenders"
+            ],
+            insurance: [
+                "54% of Americans have life insurance coverage",
+                "The average life insurance coverage gap is $200,000",
+                "Term life insurance costs 10-15x less than whole life",
+                "Life insurance premiums increase 8-10% for each year of age",
+                "Smokers pay 2-3x more for life insurance",
+                "The life insurance industry pays out $290 million daily in benefits",
+                "Millennials overestimate life insurance costs by 213%",
+                "20% of life insurance applications are approved instantly",
+                "Group life insurance typically equals 1-2x annual salary",
+                "Life insurance death benefits are generally tax-free"
+            ]
+        };
+    }
+
+    getRandomFact(type) {
+        const facts = this.facts[type] || this.facts.mortgage;
+        return facts[Math.floor(Math.random() * facts.length)];
+    }
+
+    getRandomFacts(type, count = 3) {
+        const facts = [...(this.facts[type] || this.facts.mortgage)];
+        const selected = [];
+        for (let i = 0; i < count && facts.length > 0; i++) {
+            const index = Math.floor(Math.random() * facts.length);
+            selected.push(facts.splice(index, 1)[0]);
+        }
+        return selected;
     }
 }
 
