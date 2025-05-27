@@ -2521,7 +2521,18 @@ CRITICAL VARIETY REQUIREMENTS:
 }
 
 // Start the server
-const server = new CalculiQAutomationServer();
-server.start();
+async function startServer() {
+    const server = new CalculiQAutomationServer();
+    
+    // Wait for async initialization to complete
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    server.start();
+}
+
+startServer().catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+});
 
 module.exports = CalculiQAutomationServer;
