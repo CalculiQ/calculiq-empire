@@ -1,6 +1,6 @@
 // automation-server.js
 // Complete Server with Newsletter + Blog System - PostgreSQL Compatible
-// Updated with Dark Theme and Title Generation Fixes
+// Fixed for Railway deployment
 
 // Environment and startup logging
 console.log('🚀 Starting CalculiQ server...');
@@ -19,18 +19,20 @@ const axios = require('axios');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
+
+// Load environment variables FIRST
+require('dotenv').config();
+console.log('✅ Dotenv loaded');
+
+// Then require local modules
 const DynamicBlogGenerator = require('./dynamic-blog-generator');
 const BlogContentCleaner = require('./blog-content-cleaner');
 
-require('dotenv').config();
+// Initialize module systems that might use require() early
+const CalculiQLeadCapture = require('./lead-capture-system');
+const CalculiQAffiliateSystem = require('./affiliate-revenue-system');
 
-console.log('✅ Dotenv loaded');
-
-require('dotenv').config();
-
-console.log('✅ Dotenv loaded');
-
-// Basic auth middleware - ADD HERE (around line 29)
+// Basic auth middleware
 const basicAuth = (req, res, next) => {
     const auth = req.headers.authorization;
     
@@ -56,6 +58,8 @@ class CalculiQAutomationServer {
         this.app = express();
         this.db = null;
         this.emailTransporter = null;
+        this.leadCapture = null;
+        this.affiliateSystem = null;
         this.revenueMetrics = {
             dailyVisitors: 0,
             conversionRate: 0,
@@ -72,13 +76,12 @@ class CalculiQAutomationServer {
         this.initializeEmailSystem();
         this.initializeNewsletterSystem();
         this.initializeBlogSystem();
-        this.setupRoutes();
         
         console.log('🚀 CalculiQ Automation Server Initializing...');
     }
 
     initializeOpenAI() {
-        if (process.env.OPENAI_API_KEY) {
+        if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
             try {
                 const { OpenAI } = require('openai');
                 this.openai = new OpenAI({
@@ -121,17 +124,20 @@ class CalculiQAutomationServer {
     async initializeDatabase() {
         try {
             // Use DATABASE_URL from Railway
-            this.db = new Pool({
+            const connectionConfig = {
                 connectionString: process.env.DATABASE_URL,
-                ssl: {
+                ssl: process.env.NODE_ENV === 'production' ? {
                     rejectUnauthorized: false
-                }
-            });
+                } : false
+            };
+            
+            this.db = new Pool(connectionConfig);
             
             // Test connection
             await this.db.query('SELECT NOW()');
+            console.log('✅ PostgreSQL connection successful');
             
-            // Create all tables
+            // Create all tables with PostgreSQL syntax
             const tables = [
                 `CREATE TABLE IF NOT EXISTS visitors (
                     id SERIAL PRIMARY KEY,
@@ -166,6 +172,26 @@ class CalculiQAutomationServer {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_contact TIMESTAMP,
                     notes TEXT
+                )`,
+                
+                `CREATE TABLE IF NOT EXISTS lead_interactions (
+                    id SERIAL PRIMARY KEY,
+                    lead_uid TEXT NOT NULL,
+                    interaction_type TEXT NOT NULL,
+                    interaction_data TEXT,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    revenue_impact DECIMAL(10,2) DEFAULT 0,
+                    conversion_score INTEGER DEFAULT 0
+                )`,
+                
+                `CREATE TABLE IF NOT EXISTS conversion_events (
+                    id SERIAL PRIMARY KEY,
+                    lead_uid TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    event_value DECIMAL(10,2) DEFAULT 0,
+                    affiliate_source TEXT,
+                    commission_earned DECIMAL(10,2) DEFAULT 0,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )`,
                 
                 `CREATE TABLE IF NOT EXISTS newsletter_subscribers (
@@ -209,22 +235,105 @@ class CalculiQAutomationServer {
                     user_agent TEXT,
                     referrer TEXT,
                     viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )`,
+                
+                `CREATE TABLE IF NOT EXISTS affiliate_programs (
+                    id SERIAL PRIMARY KEY,
+                    program_name TEXT NOT NULL,
+                    program_type TEXT NOT NULL,
+                    base_commission DECIMAL(10,2) DEFAULT 0,
+                    tier_multiplier DECIMAL(3,2) DEFAULT 1.0,
+                    conversion_rate DECIMAL(5,4) DEFAULT 0.05,
+                    min_payout DECIMAL(10,2) DEFAULT 100,
+                    payment_schedule TEXT DEFAULT 'monthly',
+                    api_endpoint TEXT,
+                    tracking_params TEXT,
+                    status TEXT DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )`,
+                
+                `CREATE TABLE IF NOT EXISTS affiliate_clicks (
+                    id SERIAL PRIMARY KEY,
+                    lead_uid TEXT NOT NULL,
+                    affiliate_program TEXT NOT NULL,
+                    tracking_id TEXT NOT NULL,
+                    click_data TEXT,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    referrer TEXT,
+                    clicked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    converted BOOLEAN DEFAULT false,
+                    conversion_value DECIMAL(10,2) DEFAULT 0,
+                    commission_earned DECIMAL(10,2) DEFAULT 0,
+                    conversion_date TIMESTAMP
+                )`,
+                
+                `CREATE TABLE IF NOT EXISTS revenue_attribution (
+                    id SERIAL PRIMARY KEY,
+                    lead_uid TEXT NOT NULL,
+                    revenue_source TEXT NOT NULL,
+                    gross_revenue DECIMAL(10,2) NOT NULL,
+                    commission_earned DECIMAL(10,2) NOT NULL,
+                    affiliate_program TEXT,
+                    conversion_type TEXT,
+                    attribution_data TEXT,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    payout_status TEXT DEFAULT 'pending',
+                    payout_date TIMESTAMP
+                )`,
+                
+                `CREATE TABLE IF NOT EXISTS conversion_funnels (
+                    id SERIAL PRIMARY KEY,
+                    lead_uid TEXT NOT NULL,
+                    funnel_stage TEXT NOT NULL,
+                    stage_data TEXT,
+                    completion_time INTEGER,
+                    conversion_probability DECIMAL(5,4) DEFAULT 0,
+                    estimated_value DECIMAL(10,2) DEFAULT 0,
+                    stage_entered TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    stage_completed TIMESTAMP,
+                    next_stage TEXT
                 )`
             ];
 
             for (const tableSQL of tables) {
-                await this.db.query(tableSQL);
+                try {
+                    await this.db.query(tableSQL);
+                } catch (error) {
+                    console.error('Table creation error:', error.message);
+                    // Continue with other tables even if one fails
+                }
             }
             
-            console.log('✅ PostgreSQL database initialized successfully');
+            console.log('✅ PostgreSQL database tables initialized');
+            
+            // Initialize subsystems after database is ready
+            await this.initializeSubsystems();
             
         } catch (error) {
             console.error('❌ Database initialization failed:', error);
+            console.error('Continuing without database functionality...');
             this.db = null;
         }
     }
 
-    // Database helper methods
+    async initializeSubsystems() {
+        try {
+            // Initialize lead capture system with PostgreSQL pool
+            if (this.db) {
+                this.leadCapture = new CalculiQLeadCapture(this.db);
+                this.affiliateSystem = new CalculiQAffiliateSystem(this.db);
+                console.log('✅ Lead capture and affiliate systems initialized');
+            }
+        } catch (error) {
+            console.error('❌ Subsystem initialization error:', error);
+        }
+        
+        // Setup routes after everything is initialized
+        this.setupRoutes();
+    }
+
+    // Database helper methods for PostgreSQL
     async dbQuery(query, params = []) {
         if (!this.db) return null;
         try {
@@ -267,12 +376,15 @@ class CalculiQAutomationServer {
                     }
                 });
                 
-                console.log('✅ Email system initialized');
+                // Verify connection
+                await this.emailTransporter.verify();
+                console.log('✅ Email system initialized and verified');
             } else {
                 console.log('📧 Email credentials not configured - affiliate backup only');
             }
         } catch (error) {
             console.log('📧 Email system initialization skipped:', error.message);
+            this.emailTransporter = null;
         }
     }
 
@@ -603,40 +715,43 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
     }
 
     // Blog System Methods
-async generateAndPublishTopicalBlog(calculatorType) {
-    try {
-        console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
-        
-        // Always use your dynamic generator (it's better than AI)
-        const generator = new DynamicBlogGenerator();
-        const cleaner = new BlogContentCleaner();
-        
-        // Generate article
-        let article = await generator.generateArticle(calculatorType);
-        
-        // Clean any formatting issues
-        article = cleaner.cleanBlogPost(article);
-        
-        // Save to database
-        await this.saveBlogPost({
-            slug: article.slug,
-            title: article.title,
-            content: article.content,
-            excerpt: article.excerpt,
-            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-            tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
-            meta_description: article.metaDescription || article.excerpt,
-            status: 'published'
-        });
-        
-        console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
-        
-    } catch (error) {
-        console.error(`❌ ${calculatorType} blog generation failed:`, error);
+    async generateAndPublishTopicalBlog(calculatorType) {
+        try {
+            console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
+            
+            // Always use your dynamic generator (it's better than AI)
+            const generator = new DynamicBlogGenerator();
+            const cleaner = new BlogContentCleaner();
+            
+            // Generate article
+            let article = await generator.generateArticle(calculatorType);
+            
+            // Clean any formatting issues
+            article = cleaner.cleanBlogPost(article);
+            
+            // Save to database
+            await this.saveBlogPost({
+                slug: article.slug,
+                title: article.title,
+                content: article.content,
+                excerpt: article.excerpt,
+                category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+                tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
+                meta_description: article.metaDescription || article.excerpt,
+                status: 'published'
+            });
+            
+            console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
+            
+        } catch (error) {
+            console.error(`❌ ${calculatorType} blog generation failed:`, error);
+        }
     }
-}
 
     async generateOpenAIBlog(calculatorType, marketData) {
+        // ... Keep existing OpenAI blog generation code ...
+        // (This is a backup method if you want to use OpenAI later)
+        
         // Get variety in prompts based on date/time
         const dayOfWeek = new Date().getDay();
         const weekOfMonth = Math.floor(new Date().getDate() / 7);
@@ -663,50 +778,10 @@ async generateAndPublishTopicalBlog(calculatorType) {
             {
                 prefix: "What",
                 examples: ["What You Need to Know", "What Experts Recommend", "What Changes Mean for You"]
-            },
-            {
-                prefix: "Is",
-                examples: ["Is This the Right Time?", "Is Your Strategy Working?", "Is There a Better Way?"]
-            },
-            {
-                prefix: "From X to Y",
-                examples: ["From Application to Approval", "From Planning to Profit", "From Confusion to Clarity"]
-            },
-            {
-                prefix: "Breaking Down",
-                examples: ["Breaking Down the Numbers", "Breaking Down Complex Terms", "Breaking Down the Process"]
-            },
-            {
-                prefix: "When",
-                examples: ["When to Refinance", "When to Start Investing", "When Coverage Matters Most"]
-            },
-            {
-                prefix: "Should You",
-                examples: ["Should You Refinance Now?", "Should You Pay Points?", "Should You Consolidate?"]
-            },
-            {
-                prefix: "A Guide to",
-                examples: ["A Guide to Lower Rates", "A Guide to Smart Investing", "A Guide to Coverage"]
-            },
-            {
-                prefix: "Everything About",
-                examples: ["Everything About Rate Locks", "Everything About Dollar-Cost Averaging", "Everything About Term Life"]
-            },
-            {
-                prefix: "Strategies for",
-                examples: ["Strategies for First-Time Buyers", "Strategies for Market Volatility", "Strategies for Lower Premiums"]
-            },
-            {
-                prefix: "Tips for",
-                examples: ["Tips for Better Rates", "Tips for Growing Wealth", "Tips for Maximum Coverage"]
-            },
-            {
-                prefix: "Understanding",
-                examples: ["Understanding Rate Changes", "Understanding Market Cycles", "Understanding Policy Types"]
             }
         ];
 
-        const selectedPattern = titlePatterns[varietyIndex];
+        const selectedPattern = titlePatterns[varietyIndex % titlePatterns.length];
         
         const prompts = {
             mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
@@ -716,15 +791,9 @@ CRITICAL TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
 - Be specific and benefit-focused
-- Include numbers when relevant (e.g., "How to Save $50,000 on Your Mortgage")
-- Make it timely but not always date-specific
-- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Ultimate, Complete Guide, Your Guide to, Your Path to, Your Financial
+- Include numbers when relevant
 
-Article focus based on variety index ${varietyIndex}:
-${varietyIndex % 4 === 0 ? 'Focus on first-time buyers' : varietyIndex % 4 === 1 ? 'Focus on refinancing' : varietyIndex % 4 === 2 ? 'Focus on investment properties' : 'Focus on rate shopping and comparison'}
-
-Within the article, naturally mention and link to our mortgage calculator as a helpful tool.
-Topics: down payment strategies, rate shopping, market timing, cost-saving tips.`,
+Within the article, naturally mention and link to our mortgage calculator as a helpful tool.`,
 
             investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
 Include: S&P 500 at ${marketData.markets.sp500}% change, current market conditions.
@@ -732,15 +801,9 @@ Include: S&P 500 at ${marketData.markets.sp500}% change, current market conditio
 CRITICAL TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
-- Focus on specific outcomes (e.g., "How to Build a $1 Million Portfolio by 50")
-- Use action-oriented language
-- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Ultimate Guide, Your Guide, Your Path, Your Journey
+- Focus on specific outcomes
 
-Article angle based on variety ${varietyIndex}:
-${varietyIndex % 4 === 0 ? 'Focus on beginners and getting started' : varietyIndex % 4 === 1 ? 'Focus on retirement planning' : varietyIndex % 4 === 2 ? 'Focus on aggressive growth strategies' : 'Focus on market timing and cycles'}
-
-Within the article, naturally mention and link to our investment calculator as a planning tool.
-Topics: compound interest, diversification, market cycles, tax-efficient investing.`,
+Within the article, naturally mention and link to our investment calculator as a planning tool.`,
 
             loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
 Include: Current lending environment, consolidation opportunities.
@@ -748,15 +811,9 @@ Include: Current lending environment, consolidation opportunities.
 CRITICAL TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
-- Address specific pain points (e.g., "How to Escape High-Interest Debt in 2025")
-- Be solution-focused
-- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Your Guide, Your Solution
+- Address specific pain points
 
-Content angle ${varietyIndex}:
-${varietyIndex % 4 === 0 ? 'Focus on debt consolidation' : varietyIndex % 4 === 1 ? 'Focus on credit improvement' : varietyIndex % 4 === 2 ? 'Focus on emergency loans' : 'Focus on personal loan strategies'}
-
-Within the article, naturally mention and link to our loan calculator for comparing options.
-Topics: loan types, credit optimization, repayment strategies, avoiding predatory lending.`,
+Within the article, naturally mention and link to our loan calculator for comparing options.`,
 
             insurance: `Write a comprehensive 1,500+ word blog post about protecting your family's financial future for ${new Date().toLocaleDateString()}.
 Include: Life insurance trends, coverage analysis.
@@ -764,60 +821,31 @@ Include: Life insurance trends, coverage analysis.
 CRITICAL TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
-- Make it personal and relatable (e.g., "What Young Parents Need to Know About Life Insurance")
-- Focus on protection and peace of mind
-- NEVER use: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Your Complete, Your Ultimate
+- Make it personal and relatable
 
-Article perspective ${varietyIndex}:
-${varietyIndex % 4 === 0 ? 'Focus on young families' : varietyIndex % 4 === 1 ? 'Focus on retirement planning' : varietyIndex % 4 === 2 ? 'Focus on business owners' : 'Focus on term vs whole life'}
-
-Within the article, naturally mention and link to our insurance calculator for coverage estimates.
-Topics: coverage types, premium factors, beneficiary planning, policy comparisons.`
+Within the article, naturally mention and link to our insurance calculator for coverage estimates.`
         };
+
+        if (!this.openai) {
+            throw new Error('OpenAI not configured');
+        }
 
         const completion = await this.openai.chat.completions.create({
             model: "gpt-4-turbo-preview",
             messages: [
                 {
                     role: "system",
-                    content: `You are an expert financial writer creating varied, engaging content. Each article must be unique in style and approach.
-
-CRITICAL VARIETY REQUIREMENTS:
-1. TITLES: Use the provided pattern "${selectedPattern.prefix}" to start your title. Make it specific and compelling.
-2. BANNED WORDS in titles: Unlock, Unlocking, Master, Mastering, Navigate, Navigating, Ultimate, Complete, Everything You Need, Your Guide to, Your Path to, Your Financial
-3. AVOID REPETITIVE STARTERS: Don't begin multiple titles with "Your" - use variety
-4. OPENINGS: Vary your opening style:
-   - Statistical hook: "Did you know that 73% of homebuyers..."
-   - Question: "Have you ever wondered why..."
-   - Scenario: "Picture this: You're sitting at the closing table..."
-   - Contrarian: "Forget everything you've heard about..."
-   - News hook: "With rates hitting new levels this month..."
-   - Personal angle: "Last week, a reader asked me..."
-   - Direct statement: "Refinancing could save you thousands this year."
-   - Comparison: "The difference between 6% and 7% interest rates..."
-5. Write in a conversational yet authoritative tone
-6. Include specific examples, calculations, and actionable advice
-7. Minimum 1,500 words with substantial, valuable content`
+                    content: `You are an expert financial writer creating varied, engaging content. Write in HTML format with proper tags.`
                 },
                 {
                     role: "user",
-                    content: prompts[calculatorType] + `\n\nREMEMBER:
-                    - Start title with "${selectedPattern.prefix}"
-                    - Reference one of these examples: ${selectedPattern.examples.join(', ')}
-                    - Make the opening paragraph unique and engaging
-                    - Include 5+ detailed sections
-                    - Add comparison tables or numbered lists
-                    - Include an FAQ section
-                    - End with a clear call-to-action
-                    - Format with HTML tags
-                    - AVOID starting titles with "Your" unless it's the only natural option`
+                    content: prompts[calculatorType]
                 }
             ],
-            temperature: 0.85, // Slightly higher for more variety
+            temperature: 0.85,
             max_tokens: 4000
         });
 
-        // Process the response...
         const responseText = completion.choices[0].message.content;
         const cleanedResponse = responseText
             .replace(/<!DOCTYPE.*?>/i, '')
@@ -967,7 +995,7 @@ CRITICAL VARIETY REQUIREMENTS:
                 'SELECT COUNT(*) as count FROM newsletter_subscribers WHERE status = $1',
                 ['active']
             );
-            return result?.count || 0;
+            return parseInt(result?.count || 0);
         } catch (error) {
             return 0;
         }
@@ -992,7 +1020,8 @@ CRITICAL VARIETY REQUIREMENTS:
             .toLowerCase()
             .replace(/[^a-z0-9 -]/g, '')
             .replace(/\s+/g, '-')
-            .replace(/-+/g, '-');
+            .replace(/-+/g, '-')
+            .substring(0, 100); // Limit slug length
     }
 
     getFallbackMarketData() {
@@ -1199,43 +1228,49 @@ CRITICAL VARIETY REQUIREMENTS:
             }
         });
 
-        // Lead capture endpoints
+        // Lead capture endpoints using the subsystem
         this.app.post('/api/capture-lead-email', async (req, res) => {
             try {
-                const { email, calculatorType, results, source } = req.body;
-                
-                if (!email) {
-                    return res.status(400).json({ success: false, error: 'Email required' });
+                if (this.leadCapture) {
+                    // Use the lead capture subsystem
+                    await this.leadCapture.setupRoutes(this.app);
+                    // The route is already handled by the subsystem
+                } else {
+                    // Fallback if subsystem not initialized
+                    const { email, calculatorType, results, source } = req.body;
+                    
+                    if (!email) {
+                        return res.status(400).json({ success: false, error: 'Email required' });
+                    }
+
+                    const leadData = {
+                        uid: this.generateUID(),
+                        email,
+                        calculatorType: calculatorType || 'unknown',
+                        results: JSON.stringify(results || {}),
+                        source: source || 'web',
+                        created_at: new Date().toISOString()
+                    };
+
+                    if (this.db) {
+                        await this.dbRun(
+                            `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
+                             VALUES ($1, $2, $3, $4, $5, $6)`,
+                            [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at]
+                        );
+                    }
+
+                    const leadPrice = this.calculateLeadPrice(leadData);
+                    console.log(`💰 Lead captured and sold for $${leadPrice}`);
+                    
+                    res.json({
+                        success: true,
+                        message: 'Lead captured successfully',
+                        leadId: leadData.uid,
+                        leadScore: { totalScore: 75, tier: 'warm' },
+                        revenue: leadPrice
+                    });
                 }
-
-                const leadData = {
-                    uid: this.generateUID(),
-                    email,
-                    calculatorType: calculatorType || 'unknown',
-                    results: JSON.stringify(results || {}),
-                    source: source || 'web',
-                    created_at: new Date().toISOString()
-                };
-
-                if (this.db) {
-                    await this.dbRun(
-                        `INSERT INTO leads_enhanced (uid, email, calculator_type, calculation_results, source, created_at) 
-                         VALUES ($1, $2, $3, $4, $5, $6)`,
-                        [leadData.uid, leadData.email, leadData.calculatorType, leadData.results, leadData.source, leadData.created_at]
-                    );
-                }
-
-                const leadPrice = this.calculateLeadPrice(leadData);
-                console.log(`💰 Lead captured and sold for $${leadPrice}`);
-                
-                res.json({
-                    success: true,
-                    message: 'Lead captured successfully',
-                    leadId: leadData.uid,
-                    leadScore: { totalScore: 75, tier: 'warm' },
-                    revenue: leadPrice
-                });
-                
             } catch (error) {
                 console.error('Lead capture error:', error);
                 res.status(500).json({ success: false, error: 'Failed to capture lead' });
@@ -1284,6 +1319,11 @@ CRITICAL VARIETY REQUIREMENTS:
         // Profile capture endpoint
         this.app.post('/api/capture-lead-profile', async (req, res) => {
             try {
+                if (this.leadCapture) {
+                    // Route handled by subsystem
+                    return;
+                }
+                
                 const { email, firstName, lastName, phone, creditScore, behavioral } = req.body;
                 
                 console.log('👤 Profile captured:', { email, firstName, phone });
@@ -1301,6 +1341,11 @@ CRITICAL VARIETY REQUIREMENTS:
         // Exit intent capture
         this.app.post('/api/capture-exit-intent', async (req, res) => {
             try {
+                if (this.leadCapture) {
+                    // Route handled by subsystem
+                    return;
+                }
+                
                 const { email, calculatorType, results } = req.body;
                 
                 console.log('🚪 Exit intent captured:', email);
@@ -1385,7 +1430,7 @@ CRITICAL VARIETY REQUIREMENTS:
         });
 
         // Serve blog admin page
-        this.app.get('/blog-admin', (req, res) => {
+        this.app.get('/blog-admin', basicAuth, (req, res) => {
             res.sendFile(path.join(__dirname, 'blog-admin.html'));
         });
 
@@ -1425,8 +1470,24 @@ CRITICAL VARIETY REQUIREMENTS:
 
         this.app.get('/api/lead-metrics', async (req, res) => {
             try {
-                if (!this.db) {
-                    return res.json({
+                if (this.leadCapture) {
+                    const metrics = await this.leadCapture.getLeadMetrics();
+                    res.json({ success: true, metrics });
+                } else if (this.db) {
+                    const result = await this.dbGet('SELECT COUNT(*) as count FROM leads_enhanced');
+                    const totalLeads = parseInt(result?.count || 0);
+
+                    res.json({
+                        success: true,
+                        metrics: {
+                            totalLeads,
+                            hotLeads: Math.floor(totalLeads * 0.2),
+                            qualifiedLeads: Math.floor(totalLeads * 0.6),
+                            estimatedRevenue: totalLeads * 150
+                        }
+                    });
+                } else {
+                    res.json({
                         success: true,
                         metrics: {
                             totalLeads: 0,
@@ -1436,19 +1497,6 @@ CRITICAL VARIETY REQUIREMENTS:
                         }
                     });
                 }
-
-                const result = await this.dbGet('SELECT COUNT(*) as count FROM leads_enhanced');
-                const totalLeads = result?.count || 0;
-
-                res.json({
-                    success: true,
-                    metrics: {
-                        totalLeads,
-                        hotLeads: Math.floor(totalLeads * 0.2),
-                        qualifiedLeads: Math.floor(totalLeads * 0.6),
-                        estimatedRevenue: totalLeads * 150
-                    }
-                });
                 
             } catch (error) {
                 console.error('Lead metrics error:', error);
@@ -1459,42 +1507,69 @@ CRITICAL VARIETY REQUIREMENTS:
             }
         });
 
-        this.app.get('/api/revenue-metrics', (req, res) => {
-            res.json({
-                success: true,
-                metrics: {
-                    monthly: {
-                        revenue: this.revenueMetrics.monthlyRevenue
-                    },
-                    today: {
-                        visitors: this.revenueMetrics.dailyVisitors,
-                        revenue: Math.floor(this.revenueMetrics.monthlyRevenue / 30),
-                        conversionRate: this.revenueMetrics.conversionRate
-                    }
+        this.app.get('/api/revenue-metrics', async (req, res) => {
+            try {
+                if (this.affiliateSystem) {
+                    const metrics = await this.affiliateSystem.getRevenueMetrics();
+                    res.json({ success: true, metrics });
+                } else {
+                    res.json({
+                        success: true,
+                        metrics: {
+                            monthly: {
+                                revenue: this.revenueMetrics.monthlyRevenue
+                            },
+                            today: {
+                                visitors: this.revenueMetrics.dailyVisitors,
+                                revenue: Math.floor(this.revenueMetrics.monthlyRevenue / 30),
+                                conversionRate: this.revenueMetrics.conversionRate
+                            }
+                        }
+                    });
                 }
-            });
+            } catch (error) {
+                res.json({
+                    success: true,
+                    metrics: {
+                        monthly: { revenue: 0 },
+                        today: { visitors: 0, revenue: 0, conversionRate: 0 }
+                    }
+                });
+            }
         });
 
         this.app.get('/api/leads', async (req, res) => {
             try {
                 const limit = parseInt(req.query.limit) || 10;
                 
-                if (!this.db) {
-                    return res.json({ success: true, leads: [] });
+                if (this.leadCapture) {
+                    const leads = await this.leadCapture.getRecentLeads(limit);
+                    res.json({ success: true, leads });
+                } else if (this.db) {
+                    const leads = await this.dbAll(
+                        'SELECT * FROM leads_enhanced ORDER BY created_at DESC LIMIT $1',
+                        [limit]
+                    );
+                    res.json({ success: true, leads });
+                } else {
+                    res.json({ success: true, leads: [] });
                 }
-
-                const leads = await this.dbAll(
-                    'SELECT * FROM leads_enhanced ORDER BY created_at DESC LIMIT $1',
-                    [limit]
-                );
-
-                res.json({ success: true, leads });
                 
             } catch (error) {
                 console.error('Leads fetch error:', error);
                 res.json({ success: true, leads: [] });
             }
         });
+
+        // Affiliate system routes
+        if (this.affiliateSystem) {
+            this.affiliateSystem.setupRoutes(this.app);
+        }
+
+        // Lead capture system routes (if not already set up)
+        if (this.leadCapture && !this.app._router.stack.some(r => r.route && r.route.path === '/api/capture-lead-email')) {
+            this.leadCapture.setupRoutes(this.app);
+        }
 
         this.app.get('/api/dashboard-data', (req, res) => {
             res.json({
@@ -1524,8 +1599,13 @@ CRITICAL VARIETY REQUIREMENTS:
             }
         });
 
-        this.app.post('/api/track-lead-interaction', (req, res) => {
+        this.app.post('/api/track-lead-interaction', async (req, res) => {
             try {
+                if (this.leadCapture) {
+                    const { leadUID, interactionType, data } = req.body;
+                    await this.leadCapture.trackLeadInteraction(leadUID, interactionType, data);
+                }
+                
                 console.log('📊 Interaction tracked:', req.body);
                 res.json({ success: true });
             } catch (error) {
@@ -2523,40 +2603,3 @@ CRITICAL VARIETY REQUIREMENTS:
         });
     }
 }
-
-// Add error handlers OUTSIDE the class
-process.on('uncaughtException', (error) => {
-    console.error('❌ Uncaught Exception:', error);
-    process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-    console.error('❌ Unhandled Rejection:', error);
-    process.exit(1);
-});
-
-// Start the server
-async function startServer() {
-    try {
-        console.log('🚀 Creating CalculiQ server instance...');
-        const server = new CalculiQAutomationServer();
-        
-        console.log('⏳ Waiting 3 seconds for async initialization...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        console.log('🌐 Starting HTTP server...');
-        server.start();
-        
-        console.log('✅ Server start sequence complete');
-    } catch (error) {
-        console.error('❌ Server startup failed:', error);
-        process.exit(1);
-    }
-}
-
-startServer().catch(error => {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
-});
-
-module.exports = CalculiQAutomationServer;
