@@ -707,3 +707,175 @@ Carefully review your policy documents, confirm beneficiary designations are cor
 <li><strong>Charitable Giving:</strong> Use life insurance to replace wealth donated to charity</li>
 <li><strong>Generation-Skipping:</strong> Structure policies to benefit grandchildren while minimizing estate taxes</li>
 </ul>
+strategies = {
+                mortgage: `<h2>Advanced Mortgage Optimization Strategies</h2>
+                <p>Content here...</p>`,
+                investment: `<h2>Advanced Investment Strategies</h2>
+                <p>Content here...</p>`,
+                loan: `<h2>Advanced Loan Strategies</h2>
+                <p>Content here...</p>`,
+                insurance: `<h2>Advanced Insurance Strategies</h2>
+                <p>Content here...</p>`
+            };
+        }
+
+        return strategies[calculatorType] || `<h2>Advanced Strategies</h2><p>Advanced strategies for ${calculatorType}.</p>`;
+    }
+
+    generateCommonMistakesDetailed(calculatorType) {
+        const mistakes = {
+            mortgage: `<h2>Common Mortgage Mistakes to Avoid</h2>
+            <p>Understanding common pitfalls can save thousands of dollars and prevent frustration during the home buying process.</p>`,
+            investment: `<h2>Common Investment Mistakes to Avoid</h2>
+            <p>Avoiding these common investment errors can significantly improve your long-term returns.</p>`,
+            loan: `<h2>Common Personal Loan Mistakes to Avoid</h2>
+            <p>Learn from others' mistakes to secure better loan terms and avoid costly errors.</p>`,
+            insurance: `<h2>Common Life Insurance Mistakes to Avoid</h2>
+            <p>Avoid these pitfalls when purchasing life insurance to ensure adequate coverage at the best price.</p>`
+        };
+        return mistakes[calculatorType] || `<h2>Common Mistakes</h2><p>Avoid these common ${calculatorType} mistakes.</p>`;
+    }
+
+    generateExpertTipsSection(calculatorType) {
+        const tips = {
+            mortgage: `<h2>Expert Tips for Mortgage Success</h2>
+            <p>Industry professionals share their top strategies for securing the best mortgage terms.</p>`,
+            investment: `<h2>Expert Investment Tips</h2>
+            <p>Professional investors share strategies for building long-term wealth.</p>`,
+            loan: `<h2>Expert Loan Tips</h2>
+            <p>Financial advisors share their best advice for personal loan success.</p>`,
+            insurance: `<h2>Expert Insurance Tips</h2>
+            <p>Insurance professionals reveal strategies for optimal coverage.</p>`
+        };
+        return tips[calculatorType] || `<h2>Expert Tips</h2><p>Professional advice for ${calculatorType}.</p>`;
+    }
+
+    generateComprehensiveFAQ(calculatorType) {
+        const faqs = {
+            mortgage: `<h2>Frequently Asked Questions</h2>
+            <h3>Q: How much house can I afford?</h3>
+            <p>A: Generally, aim for a home price no more than 3-4 times your annual income, with monthly payments not exceeding 28% of gross income.</p>`,
+            investment: `<h2>Frequently Asked Questions</h2>
+            <h3>Q: How much should I invest each month?</h3>
+            <p>A: Aim to invest at least 10-15% of your income, but start with whatever you can afford and increase over time.</p>`,
+            loan: `<h2>Frequently Asked Questions</h2>
+            <h3>Q: What credit score do I need for a personal loan?</h3>
+            <p>A: Most lenders require at least 600-640, but scores above 700 get significantly better rates.</p>`,
+            insurance: `<h2>Frequently Asked Questions</h2>
+            <h3>Q: How much life insurance do I need?</h3>
+            <p>A: A common rule is 8-12 times your annual income, plus any outstanding debts.</p>`
+        };
+        return faqs[calculatorType] || `<h2>FAQ</h2><p>Common questions about ${calculatorType}.</p>`;
+    }
+
+    generateRegionalInsights(calculatorType, marketData) {
+        return `<h2>Regional Market Insights</h2>
+        <p>Market conditions vary significantly by region. Understanding your local market dynamics is crucial for making informed ${calculatorType} decisions.</p>`;
+    }
+
+    generateSingleCallToAction(calculatorType) {
+        return `<div class="cta-box">
+        <h3>Ready to Calculate Your ${this.getTypeDisplayName(calculatorType)} Strategy?</h3>
+        <p>Use our advanced ${calculatorType} calculator to get personalized insights and connect with verified lenders.</p>
+        <a href="/" class="cta-button">Try Our ${this.getTypeDisplayName(calculatorType)} Calculator</a>
+        </div>`;
+    }
+
+    generateExcerpt(content) {
+        const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
+        for (const sentence of sentences) {
+            if (sentence.trim().length > 50) {
+                return sentence.trim().length > 160 ? sentence.trim().substring(0, 157) + '...' : sentence.trim();
+            }
+        }
+        return text.substring(0, 157) + '...';
+    }
+
+    createSlug(title) {
+        return title.toLowerCase()
+            .replace(/[^a-z0-9 -]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .substring(0, 100);
+    }
+
+    async fetchCurrentMarketData() {
+        try {
+            const fredKey = process.env.FRED_API_KEY || 'a0e7018e6c8ef001490b9dcb2196ff3c';
+            const response = await axios.get(
+                `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+            );
+            const rate = parseFloat(response.data.observations[0].value);
+            return {
+                rates: {
+                    mortgage: {
+                        thirtyYear: rate.toFixed(2),
+                        fifteenYear: (rate - 0.5).toFixed(2),
+                        jumbo: (rate + 0.3).toFixed(2),
+                        lastUpdated: response.data.observations[0].date
+                    }
+                },
+                markets: { sp500: '0.5', nasdaq: '0.8', dow: '0.3' }
+            };
+        } catch (error) {
+            return {
+                rates: {
+                    mortgage: { thirtyYear: '7.0', fifteenYear: '6.5', jumbo: '7.3' }
+                },
+                markets: { sp500: '0.0', nasdaq: '0.0', dow: '0.0' }
+            };
+        }
+    }
+
+    calculateMortgagePayment(principal, rate, years) {
+        const monthlyRate = rate / 100 / 12;
+        const numPayments = years * 12;
+        return Math.round(principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                         (Math.pow(1 + monthlyRate, numPayments) - 1));
+    }
+
+    calculateTotalInterest(principal, rate, years) {
+        const payment = this.calculateMortgagePayment(principal, rate, years);
+        return Math.round(payment * years * 12 - principal);
+    }
+
+    calculateInvestmentGrowth(initial, monthly, rate, years) {
+        const monthlyRate = rate / 100 / 12;
+        const months = years * 12;
+        const futureValue = initial * Math.pow(1 + rate/100, years) + 
+                           monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+        return Math.round(futureValue);
+    }
+
+    calculateLoanPayment(amount, rate, years) {
+        const monthlyRate = rate / 100 / 12;
+        const numPayments = years * 12;
+        return Math.round(amount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                         (Math.pow(1 + monthlyRate, numPayments) - 1));
+    }
+
+    calculateMonthlySavings(loanAmount, rateDifference) {
+        const higherPayment = this.calculateMortgagePayment(loanAmount, 7.5, 30);
+        const lowerPayment = this.calculateMortgagePayment(loanAmount, 7.0, 30);
+        return higherPayment - lowerPayment;
+    }
+
+    calculateLifetimeSavings(loanAmount, rateDifference, years) {
+        return this.calculateMonthlySavings(loanAmount, rateDifference) * years * 12;
+    }
+
+    calculateDelayPenalty(initial, monthly, rate, delayYears) {
+        const withoutDelay = this.calculateInvestmentGrowth(initial, monthly, rate, 30);
+        const withDelay = this.calculateInvestmentGrowth(initial, monthly, rate, 30 - delayYears);
+        return withoutDelay - withDelay;
+    }
+
+    estimateInsurancePremium(coverage, age) {
+        const basePremium = coverage * 0.003;
+        const ageMultiplier = 1 + ((age - 30) * 0.05);
+        return Math.round(basePremium * ageMultiplier);
+    }
+}
+
+module.exports = DynamicBlogGenerator;
