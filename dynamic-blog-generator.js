@@ -408,7 +408,7 @@ class DynamicBlogGenerator {
                 const totalInterest = this.calculateTotalInterest(loanAmount, scenario.rate, scenario.term);
                 const totalPayment = monthlyPayment * scenario.term * 12;
                 
-                return `<div class="stats-grid">
+                return `<div class="stats-grid">;
                     <h4>Scenario ${number}: ${scenario.homePrice.toLocaleString()} Home Purchase</h4>
                     <p><strong>Loan Details:</strong></p>
                     <ul>
@@ -435,7 +435,7 @@ class DynamicBlogGenerator {
                 const totalContributions = scenario.initial + (scenario.monthly * scenario.years * 12);
                 const totalGrowth = futureValue - totalContributions;
                 
-                return `<div class="stats-grid">
+                return `<div class="stats-grid">;
                     <h4>Scenario ${number}: ${scenario.years}-Year Investment Strategy</h4>
                     <p><strong>Investment Parameters:</strong></p>
                     <ul>
@@ -460,7 +460,7 @@ case 'loan':
     const loanPayment = this.calculateLoanPayment(scenario.amount, scenario.rate, scenario.term);
     const loanTotalInterest = (loanPayment * scenario.term * 12) - scenario.amount;
     
-    return `<div class="stats-grid">
+    return `<div class="stats-grid">;
         <h4>Scenario ${number}: ${scenario.amount.toLocaleString()} Personal Loan</h4>
         <p><strong>Loan Terms:</strong></p>
         <ul>
@@ -485,7 +485,7 @@ case 'insurance':
     const coverage = scenario.income * scenario.years + scenario.debts + 15000;
     const monthlyPremium = this.estimateInsurancePremium(coverage, 35);
     
-    return `<div class="stats-grid">
+    return `<div class="stats-grid">;
         <h4>Scenario ${number}: Life Insurance Needs Analysis</h4>
         <p><strong>Coverage Calculation:</strong></p>
         <ul>
