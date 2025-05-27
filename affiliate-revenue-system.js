@@ -1,6 +1,6 @@
 // affiliate-revenue-system.js
-// Complete Affiliate Revenue System for CalculiQ Empire
-// Drop this file in your AutomatedRevenueEmpire folder
+// Complete Affiliate Revenue System for CalculiQ Empire - PostgreSQL Compatible
+// Fixed for Railway deployment
 
 const crypto = require('crypto');
 
@@ -18,7 +18,7 @@ class CalculiQAffiliateSystem {
     async initializeAffiliateTables() {
         const tables = [
             `CREATE TABLE IF NOT EXISTS affiliate_programs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 program_name TEXT NOT NULL,
                 program_type TEXT NOT NULL,
                 base_commission DECIMAL(10,2) DEFAULT 0,
@@ -29,11 +29,11 @@ class CalculiQAffiliateSystem {
                 api_endpoint TEXT,
                 tracking_params TEXT,
                 status TEXT DEFAULT 'active',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`,
             
             `CREATE TABLE IF NOT EXISTS affiliate_clicks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 lead_uid TEXT NOT NULL,
                 affiliate_program TEXT NOT NULL,
                 tracking_id TEXT NOT NULL,
@@ -41,15 +41,15 @@ class CalculiQAffiliateSystem {
                 ip_address TEXT,
                 user_agent TEXT,
                 referrer TEXT,
-                clicked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                converted BOOLEAN DEFAULT FALSE,
+                clicked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                converted BOOLEAN DEFAULT false,
                 conversion_value DECIMAL(10,2) DEFAULT 0,
                 commission_earned DECIMAL(10,2) DEFAULT 0,
-                conversion_date DATETIME
+                conversion_date TIMESTAMP
             )`,
             
             `CREATE TABLE IF NOT EXISTS revenue_attribution (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 lead_uid TEXT NOT NULL,
                 revenue_source TEXT NOT NULL,
                 gross_revenue DECIMAL(10,2) NOT NULL,
@@ -57,36 +57,32 @@ class CalculiQAffiliateSystem {
                 affiliate_program TEXT,
                 conversion_type TEXT,
                 attribution_data TEXT,
-                recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 payout_status TEXT DEFAULT 'pending',
-                payout_date DATETIME
+                payout_date TIMESTAMP
             )`,
             
             `CREATE TABLE IF NOT EXISTS conversion_funnels (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 lead_uid TEXT NOT NULL,
                 funnel_stage TEXT NOT NULL,
                 stage_data TEXT,
                 completion_time INTEGER,
                 conversion_probability DECIMAL(5,4) DEFAULT 0,
                 estimated_value DECIMAL(10,2) DEFAULT 0,
-                stage_entered DATETIME DEFAULT CURRENT_TIMESTAMP,
-                stage_completed DATETIME,
+                stage_entered TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                stage_completed TIMESTAMP,
                 next_stage TEXT
             )`
         ];
 
         for (const tableSQL of tables) {
-            await new Promise((resolve, reject) => {
-                this.db.run(tableSQL, (err) => {
-                    if (err) {
-                        console.error('Affiliate table creation error:', err);
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            });
+            try {
+                await this.db.query(tableSQL);
+            } catch (error) {
+                console.error('Affiliate table creation error:', error.message);
+                // Continue with other tables even if one fails
+            }
         }
         
         console.log('✅ Affiliate revenue system tables initialized');
@@ -207,46 +203,44 @@ class CalculiQAffiliateSystem {
             priority: 1
         });
 
+        // NEW: Add the 3 insurance programs  
+        this.affiliatePartners.set('policygenius', {
+            name: 'Policygenius Insurance',
+            type: 'insurance', 
+            commission: {
+                base: 75,
+                quoted: 150,
+                sold: 300
+            },
+            conversionRate: 0.15,
+            avgPremium: 3000,
+            trackingUrl: 'https://www.policygenius.com/life-insurance?utm_source=calculiq&lead_id={{LEAD_ID}}&ref=partner',
+            requirements: {
+                minAge: 18,
+                maxAge: 80
+            },
+            priority: 2
+        });
+
+        this.affiliatePartners.set('geico', {
+            name: 'GEICO Auto Insurance',
+            type: 'insurance',
+            commission: {
+                base: 30,
+                quoted: 75,
+                sold: 150
+            },
+            conversionRate: 0.25,
+            avgPremium: 1800,
+            trackingUrl: 'https://www.geico.com/auto-insurance/?utm_source=calculiq&lead_id={{LEAD_ID}}&partner_id=calculiq',
+            requirements: {
+                minAge: 16,
+                maxAge: 99
+            },
+            priority: 3
+        });
+
         console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`);
-
-// NEW: Add the 3 insurance programs  
-this.affiliatePartners.set('policygenius', {
-    name: 'Policygenius Insurance',
-    type: 'insurance', 
-    commission: {
-        base: 75,
-        quoted: 150,
-        sold: 300
-    },
-    conversionRate: 0.15,
-    avgPremium: 3000,
-    trackingUrl: 'https://www.policygenius.com/life-insurance?utm_source=calculiq&lead_id={{LEAD_ID}}&ref=partner',
-    requirements: {
-        minAge: 18,
-        maxAge: 80
-    },
-    priority: 2
-});
-
-this.affiliatePartners.set('geico', {
-    name: 'GEICO Auto Insurance',
-    type: 'insurance',
-    commission: {
-        base: 30,
-        quoted: 75,
-        sold: 150
-    },
-    conversionRate: 0.25,
-    avgPremium: 1800,
-    trackingUrl: 'https://www.geico.com/auto-insurance/?utm_source=calculiq&lead_id={{LEAD_ID}}&partner_id=calculiq',
-    requirements: {
-        minAge: 16,
-        maxAge: 99
-    },
-    priority: 3
-});
-
-console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`);
     }
 
     // ======================
@@ -463,24 +457,21 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
 
     async trackAffiliateClick(leadUid, partnerId, trackingId, clickData = {}) {
         try {
-            await new Promise((resolve, reject) => {
-                this.db.run(
-                    `INSERT INTO affiliate_clicks (
-                        lead_uid, affiliate_program, tracking_id, click_data,
-                        ip_address, user_agent, referrer
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        leadUid,
-                        partnerId,
-                        trackingId,
-                        JSON.stringify(clickData),
-                        clickData.ip || null,
-                        clickData.userAgent || null,
-                        clickData.referrer || null
-                    ],
-                    (err) => err ? reject(err) : resolve()
-                );
-            });
+            await this.db.query(
+                `INSERT INTO affiliate_clicks (
+                    lead_uid, affiliate_program, tracking_id, click_data,
+                    ip_address, user_agent, referrer
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [
+                    leadUid,
+                    partnerId,
+                    trackingId,
+                    JSON.stringify(clickData),
+                    clickData.ip || null,
+                    clickData.userAgent || null,
+                    clickData.referrer || null
+                ]
+            );
 
             console.log(`🔗 Affiliate click tracked: ${partnerId} for lead ${leadUid}`);
             return { success: true, trackingId };
@@ -497,18 +488,15 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
             const partner = this.affiliatePartners.get(conversionData.partnerId);
             const commission = this.calculateActualCommission(partner, conversionData);
 
-            await new Promise((resolve, reject) => {
-                this.db.run(
-                    `UPDATE affiliate_clicks SET 
-                        converted = TRUE,
-                        conversion_value = ?,
-                        commission_earned = ?,
-                        conversion_date = CURRENT_TIMESTAMP
-                    WHERE tracking_id = ?`,
-                    [conversionValue, commission, trackingId],
-                    (err) => err ? reject(err) : resolve()
-                );
-            });
+            await this.db.query(
+                `UPDATE affiliate_clicks SET 
+                    converted = TRUE,
+                    conversion_value = $1,
+                    commission_earned = $2,
+                    conversion_date = CURRENT_TIMESTAMP
+                WHERE tracking_id = $3`,
+                [conversionValue, commission, trackingId]
+            );
 
             // Record revenue attribution
             await this.recordRevenueAttribution(trackingId, conversionData, commission);
@@ -524,33 +512,29 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
 
     async recordRevenueAttribution(trackingId, conversionData, commission) {
         // Get lead info from click tracking
-        const clickData = await new Promise((resolve, reject) => {
-            this.db.get(
-                'SELECT lead_uid, affiliate_program FROM affiliate_clicks WHERE tracking_id = ?',
-                [trackingId],
-                (err, row) => err ? reject(err) : resolve(row)
-            );
-        });
+        const result = await this.db.query(
+            'SELECT lead_uid, affiliate_program FROM affiliate_clicks WHERE tracking_id = $1',
+            [trackingId]
+        );
+        
+        const clickData = result.rows[0];
 
         if (clickData) {
-            await new Promise((resolve, reject) => {
-                this.db.run(
-                    `INSERT INTO revenue_attribution (
-                        lead_uid, revenue_source, gross_revenue, commission_earned,
-                        affiliate_program, conversion_type, attribution_data
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        clickData.lead_uid,
-                        'affiliate_commission',
-                        conversionData.value || 0,
-                        commission,
-                        clickData.affiliate_program,
-                        conversionData.type || 'unknown',
-                        JSON.stringify(conversionData)
-                    ],
-                    (err) => err ? reject(err) : resolve()
-                );
-            });
+            await this.db.query(
+                `INSERT INTO revenue_attribution (
+                    lead_uid, revenue_source, gross_revenue, commission_earned,
+                    affiliate_program, conversion_type, attribution_data
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [
+                    clickData.lead_uid,
+                    'affiliate_commission',
+                    conversionData.value || 0,
+                    commission,
+                    clickData.affiliate_program,
+                    conversionData.type || 'unknown',
+                    JSON.stringify(conversionData)
+                ]
+            );
         }
     }
 
@@ -569,32 +553,26 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
         try {
             const dateFilter = this.getDateFilter(timeframe);
             
-            const totalCommissions = await new Promise((resolve, reject) => {
-                this.db.get(
-                    `SELECT SUM(commission_earned) as total 
-                     FROM revenue_attribution 
-                     WHERE recorded_at ${dateFilter}`,
-                    (err, row) => err ? reject(err) : resolve(row?.total || 0)
-                );
-            });
+            const totalCommissionsResult = await this.db.query(
+                `SELECT SUM(commission_earned) as total 
+                 FROM revenue_attribution 
+                 WHERE recorded_at ${dateFilter}`
+            );
+            const totalCommissions = totalCommissionsResult.rows[0]?.total || 0;
 
-            const conversionCount = await new Promise((resolve, reject) => {
-                this.db.get(
-                    `SELECT COUNT(*) as count 
-                     FROM affiliate_clicks 
-                     WHERE converted = TRUE AND conversion_date ${dateFilter}`,
-                    (err, row) => err ? reject(err) : resolve(row?.count || 0)
-                );
-            });
+            const conversionCountResult = await this.db.query(
+                `SELECT COUNT(*) as count 
+                 FROM affiliate_clicks 
+                 WHERE converted = TRUE AND conversion_date ${dateFilter}`
+            );
+            const conversionCount = parseInt(conversionCountResult.rows[0]?.count || 0);
 
-            const clickCount = await new Promise((resolve, reject) => {
-                this.db.get(
-                    `SELECT COUNT(*) as count 
-                     FROM affiliate_clicks 
-                     WHERE clicked_at ${dateFilter}`,
-                    (err, row) => err ? reject(err) : resolve(row?.count || 0)
-                );
-            });
+            const clickCountResult = await this.db.query(
+                `SELECT COUNT(*) as count 
+                 FROM affiliate_clicks 
+                 WHERE clicked_at ${dateFilter}`
+            );
+            const clickCount = parseInt(clickCountResult.rows[0]?.count || 0);
 
             const conversionRate = clickCount > 0 ? (conversionCount / clickCount) : 0;
             const avgCommission = conversionCount > 0 ? (totalCommissions / conversionCount) : 0;
@@ -623,23 +601,22 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
 
     async getTopPerformingAffiliates(limit = 10) {
         try {
-            const affiliates = await new Promise((resolve, reject) => {
-                this.db.all(
-                    `SELECT 
-                        ac.affiliate_program,
-                        COUNT(ac.id) as total_clicks,
-                        COUNT(CASE WHEN ac.converted THEN 1 END) as conversions,
-                        SUM(ac.commission_earned) as total_commission,
-                        AVG(ac.commission_earned) as avg_commission,
-                        (COUNT(CASE WHEN ac.converted THEN 1 END) * 100.0 / COUNT(ac.id)) as conversion_rate
-                     FROM affiliate_clicks ac
-                     GROUP BY ac.affiliate_program
-                     ORDER BY total_commission DESC
-                     LIMIT ?`,
-                    [limit],
-                    (err, rows) => err ? reject(err) : resolve(rows || [])
-                );
-            });
+            const result = await this.db.query(
+                `SELECT 
+                    ac.affiliate_program,
+                    COUNT(ac.id) as total_clicks,
+                    COUNT(CASE WHEN ac.converted THEN 1 END) as conversions,
+                    SUM(ac.commission_earned) as total_commission,
+                    AVG(ac.commission_earned) as avg_commission,
+                    (COUNT(CASE WHEN ac.converted THEN 1 END) * 100.0 / COUNT(ac.id)) as conversion_rate
+                 FROM affiliate_clicks ac
+                 GROUP BY ac.affiliate_program
+                 ORDER BY total_commission DESC
+                 LIMIT $1`,
+                [limit]
+            );
+
+            const affiliates = result.rows || [];
 
             return affiliates.map(affiliate => ({
                 ...affiliate,
@@ -655,11 +632,11 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
 
     getDateFilter(timeframe) {
         const filters = {
-            'today': ">= date('now')",
-            'week': ">= date('now', '-7 days')",
-            'month': ">= date('now', '-30 days')",
-            'quarter': ">= date('now', '-90 days')",
-            'year': ">= date('now', '-365 days')"
+            'today': ">= CURRENT_DATE",
+            'week': ">= CURRENT_DATE - INTERVAL '7 days'",
+            'month': ">= CURRENT_DATE - INTERVAL '30 days'",
+            'quarter': ">= CURRENT_DATE - INTERVAL '90 days'",
+            'year': ">= CURRENT_DATE - INTERVAL '365 days'"
         };
         
         return filters[timeframe] || filters.month;
