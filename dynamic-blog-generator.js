@@ -456,99 +456,59 @@ class DynamicBlogGenerator {
                     <p><em>Key Insight: Starting this investment strategy 5 years earlier would result in an additional ${this.calculateDelayPenalty(scenario.initial, scenario.monthly, scenario.rate, 5).toLocaleString()} due to compound interest, demonstrating the critical importance of starting early.</em></p>
                 </div>\n`;
 
-            case 'loan':
-                const loanPayment = this.calculateLoanPayment(scenario.amount, scenario.rate, scenario.term);
-                const loanTotalInterest = (loanPayment * scenario.term * 12) - scenario.amount;
-                
-                return `<div class="stats-grid">
-                    <h4>Scenario ${number}: ${scenario.amount.toLocaleString()} Personal Loan</h4>
-                    <p><strong>Loan Terms:</strong></p>
-                    <ul>
-                        <li>Loan Amount: ${scenario.amount.toLocaleString()}</li>
-                        <li>Interest Rate: ${scenario.rate}%</li>
-                        <li>Term: ${scenario.term} years</li>
-                        <li>Total Payments: ${scenario.term * 12} monthly payments</li>
-                    </ul>
-                    
-                    <p><strong>Cost Analysis:</strong></p>
-                    <ul>
-                        <li><strong>Monthly Payment: ${loanPayment.toLocaleString()}</strong></li>
-                        <li>Total Interest: ${loanTotalInterest.toLocaleString()}</li>
-                // dynamic-blog-generator.js
-// COMPLETE ENHANCED VERSION - Merged with all original functionality
-// Full implementation with structural variety + all original methods
+case 'loan':
+    const loanPayment = this.calculateLoanPayment(scenario.amount, scenario.rate, scenario.term);
+    const loanTotalInterest = (loanPayment * scenario.term * 12) - scenario.amount;
+    
+    return `<div class="stats-grid">
+        <h4>Scenario ${number}: ${scenario.amount.toLocaleString()} Personal Loan</h4>
+        <p><strong>Loan Terms:</strong></p>
+        <ul>
+            <li>Loan Amount: ${scenario.amount.toLocaleString()}</li>
+            <li>Interest Rate: ${scenario.rate}%</li>
+            <li>Term: ${scenario.term} years</li>
+            <li>Total Payments: ${scenario.term * 12} monthly payments</li>
+        </ul>
+        
+        <p><strong>Cost Analysis:</strong></p>
+        <ul>
+            <li><strong>Monthly Payment: ${loanPayment.toLocaleString()}</strong></li>
+            <li>Total Interest: ${loanTotalInterest.toLocaleString()}</li>
+            <li>Total to Repay: ${((loanPayment * scenario.term * 12)).toLocaleString()}</li>
+            <li>Cost of Borrowing: ${((loanTotalInterest/scenario.amount)*100).toFixed(1)}%</li>
+        </ul>
+        
+        <p><em>Key Insight: Paying an extra ${Math.round(loanPayment * 0.1)}/month would save ${Math.round(loanTotalInterest * 0.15).toLocaleString()} in interest and pay off the loan ${Math.round(scenario.term * 0.2)} years early.</em></p>
+    </div>\n`;
 
-const axios = require('axios');
+case 'insurance':
+    const coverage = scenario.income * scenario.years + scenario.debts + 15000;
+    const monthlyPremium = this.estimateInsurancePremium(coverage, 35);
+    
+    return `<div class="stats-grid">
+        <h4>Scenario ${number}: Life Insurance Needs Analysis</h4>
+        <p><strong>Coverage Calculation:</strong></p>
+        <ul>
+            <li>Annual Income: ${scenario.income.toLocaleString()}</li>
+            <li>Years to Replace: ${scenario.years}</li>
+            <li>Outstanding Debts: ${scenario.debts.toLocaleString()}</li>
+            <li>Final Expenses: $15,000</li>
+        </ul>
+        
+        <p><strong>Coverage Recommendation:</strong></p>
+        <ul>
+            <li><strong>Total Coverage Needed: ${coverage.toLocaleString()}</strong></li>
+            <li>Estimated Monthly Premium: ${monthlyPremium}</li>
+            <li>Annual Cost: ${(monthlyPremium * 12).toLocaleString()}</li>
+            <li>Cost as % of Income: ${((monthlyPremium * 12 / scenario.income) * 100).toFixed(1)}%</li>
+        </ul>
+        
+        <p><em>Key Insight: This coverage would ensure your family maintains their standard of living for ${scenario.years} years while paying off all debts. Consider a ${scenario.years}-year term policy for optimal cost-effectiveness.</em></p>
+    </div>\n`;
 
-class DynamicBlogGenerator {
-    constructor() {
-        // Expanded title patterns - now 30+ templates
-        this.titlePatterns = [
-            "How to Save $X on Your {type} in {year}",
-            "The Smart Person's Guide to {type} in {year}",
-            "{number} Ways to Get Better {type} Results",
-            "Why {year} is the Perfect Time for {type}",
-            "The Complete {type} Strategy for {year}",
-            "What You Need to Know About {type} Right Now",
-            "{type} Secrets That Could Save You Thousands",
-            "The {year} {type} Landscape: What's Changed",
-            "Smart {type} Moves for Today's Market",
-            "From Confusion to Clarity: Your {type} Guide",
-            "The Ultimate {type} Playbook for {year}",
-            "Breaking Down {type}: A Step-by-Step Analysis",
-            // New patterns added for variety
-            "Is This the Right Time for Your {type}?",
-            "{number} {type} Mistakes That Cost You Money",
-            "The Hidden Truth About {type} in {year}",
-            "Why Smart Buyers Choose {type} Differently",
-            "Your {month} {type} Action Plan",
-            "{type} Strategies the Experts Use",
-            "The Real Cost of {type} Mistakes",
-            "How {type} Changed in {year} (And What It Means)",
-            "Before You Commit to {type}: Read This",
-            "{number} Questions to Ask About {type}",
-            "The {type} Decision: A Data-Driven Guide",
-            "Maximizing Your {type} in a Changing Market",
-            "What's New in {type} for {month} {year}",
-            "The Beginner's Guide to {type} Success",
-            "{type} in {year}: Opportunities and Risks",
-            "Making Sense of {type} in Today's Economy",
-            "The {number}-Step {type} Checklist",
-            "Avoid These {number} {type} Pitfalls"
-        ];
-        
-        this.currentYear = new Date().getFullYear();
-        this.currentMonth = new Date().toLocaleDateString('en-US', { month: 'long' });
-        this.currentSeason = this.getCurrentSeason();
-        
-        // Content variation system
-        this.contentVariator = new ContentVariator();
-        
-        // Fact database for sprinkling throughout articles
-        this.factDatabase = new FactDatabase();
-        
-        // Track used combinations to ensure variety
-        this.recentTitles = new Set();
-        
-        // Article format templates
-        this.articleFormats = {
-            comprehensive: { minSections: 8, maxSections: 12, style: 'detailed' },
-            listicle: { minSections: 5, maxSections: 7, style: 'numbered' },
-            story: { minSections: 6, maxSections: 8, style: 'narrative' },
-            quickGuide: { minSections: 4, maxSections: 6, style: 'concise' },
-            comparison: { minSections: 5, maxSections: 7, style: 'analytical' },
-            dataFocused: { minSections: 6, maxSections: 9, style: 'statistical' }
-        };
-    }
-
-    getCurrentSeason() {
-        const month = new Date().getMonth();
-        if (month < 3) return 'winter';
-        if (month < 6) return 'spring';
-        if (month < 9) return 'summer';
-        return 'fall';
-    }
-
+default:
+    return '';
+}
     async generateArticle(calculatorType) {
         try {
             console.log(`Generating comprehensive ${calculatorType} blog (1500+ words)...`);
@@ -1992,6 +1952,617 @@ A: Healthy 35-year-old: ~$30-40/month for $500k coverage. Less than your coffee 
 <li>Market comparison heat maps</li>
 </ul>
 <p>These visualizations help you understand complex relationships between variables and make data-driven decisions for your ${calculatorType} strategy.</p>`;
+    }
+
+// Add these before the closing brace of the DynamicBlogGenerator class
+
+generateRegionalInsights(calculatorType, marketData) {
+    const insights = {
+        mortgage: `<h2>Regional Market Variations</h2>
+<p>Mortgage markets vary significantly by region, creating opportunities for informed buyers who understand local dynamics.</p>
+
+<h3>High-Cost Markets (CA, NY, MA)</h3>
+<p>In markets where median home prices exceed $700,000, jumbo loans are standard. Current jumbo rates at ${marketData.rates.mortgage.jumbo || (parseFloat(marketData.rates.mortgage.thirtyYear) + 0.5).toFixed(2)}% require different strategies than conventional loans. Consider ARM products more seriously in these markets, as even small rate differences translate to significant monthly savings.</p>
+
+<h3>Emerging Markets (TX, FL, NC)</h3>
+<p>Population growth drives these markets, creating both opportunities and competition. New construction offers negotiation leverage, while established neighborhoods see rapid appreciation. First-time buyer programs are often more generous here, with some offering down payment assistance up to $15,000.</p>
+
+<h3>Midwest Stability (OH, MI, IN)</h3>
+<p>Lower price points mean conventional loans dominate. A $200,000 home with 5% down results in payments under $1,500/month at current rates. These markets offer cash flow opportunities for investors, with rent-to-price ratios often exceeding 1%.</p>
+
+<h3>Your Local Advantage</h3>
+<p>Connect with local lenders who understand your market's unique characteristics. They often offer better rates than national lenders and can navigate local regulations more efficiently.</p>`,
+
+        investment: `<h2>Regional Investment Considerations</h2>
+<p>Investment opportunities and strategies vary significantly by region, influenced by local economies, regulations, and demographics.</p>
+
+<h3>Tech Hubs (San Francisco, Seattle, Austin)</h3>
+<p>High earners in these markets often face unique challenges: excellent income but extreme housing costs. Strategies include maximizing pre-tax retirement contributions to reduce taxable income, utilizing backdoor Roth conversions, and considering real estate investment trusts (REITs) instead of direct property ownership.</p>
+
+<h3>Financial Centers (NYC, Chicago, Charlotte)</h3>
+<p>Access to sophisticated financial services creates opportunities for alternative investments. However, high state and local taxes make tax-efficient investing crucial. Municipal bonds may offer tax-free income for high earners, while 529 plans provide state tax deductions.</p>
+
+<h3>Retirement Destinations (Florida, Arizona, Nevada)</h3>
+<p>No state income tax creates planning opportunities. Retirees relocating to these states should consider Roth conversions before moving, establishing residency properly for tax purposes, and understanding how their investment income will be taxed in their new state.</p>
+
+<h3>Midwest & South</h3>
+<p>Lower costs of living allow for higher savings rates. A 20% savings rate goes much further when housing costs are reasonable. Focus on maximizing tax-advantaged accounts before taxable investing, as the tax savings compound significantly over time.</p>`,
+
+        loan: `<h2>Regional Lending Landscapes</h2>
+<p>Personal loan markets vary dramatically by region, influenced by state regulations, local competition, and economic conditions.</p>
+
+<h3>Heavily Regulated States (NY, CA, CT)</h3>
+<p>Interest rate caps protect consumers but may limit options. New York caps rates at 16% for most personal loans, while California limits charges based on loan size. This means fewer lenders operate here, but those that do often offer better terms. Credit unions particularly shine in these markets.</p>
+
+<h3>Competitive Markets (TX, FL, GA)</h3>
+<p>Less regulation means more lenders and wider rate ranges. You might find rates from 5.99% to 35.99% for the same loan amount. This makes comparison shopping essential. Online lenders often offer the best rates, but local banks may negotiate to win business.</p>
+
+<h3>Rural Considerations</h3>
+<p>Limited branch access pushes borrowers online, where they often find better rates anyway. However, relationship banking still matters in small communities. Your local bank may offer better terms than advertised if you have multiple accounts or a long history.</p>
+
+<h3>State-Specific Programs</h3>
+<p>Some states offer special loan programs for residents. Vermont and Rhode Island have state-backed loan programs for energy efficiency improvements. Illinois offers small business microloans that can be used for personal business expenses. Research your state's unique offerings.</p>`,
+
+        insurance: `<h2>Regional Insurance Considerations</h2>
+<p>Life insurance costs and availability vary by state due to regulations, demographics, and market competition.</p>
+
+<h3>High-Cost States (NY, FL, LA)</h3>
+<p>Stricter regulations in New York mean fewer carriers but stronger consumer protections. Florida's elderly population drives competitive term life pricing for younger applicants. Louisiana's health statistics result in higher average premiums, making healthy lifestyle documentation more valuable for securing better rates.</p>
+
+<h3>Competitive Markets (OH, PA, IL)</h3>
+<p>Multiple major insurers headquartered in these states create competitive pricing. Ohio's favorable regulatory environment means more product options. Pennsylvania offers some of the lowest term life rates nationally. Illinois residents benefit from strong competition among mutual insurance companies.</p>
+
+<h3>Western States Advantages</h3>
+<p>Colorado and Utah residents often qualify for preferred rates due to active lifestyle statistics. California's large market means extensive options but also complexity in choosing. Nevada and Arizona's retiree populations have driven innovation in final expense and guaranteed issue products.</p>
+
+<h3>Special Considerations</h3>
+<p>Some states have unique requirements: California requires insurers to offer coverage to medical marijuana users at standard rates if otherwise healthy. New York limits contestability periods more strictly than other states. Massachusetts offers state-sponsored life insurance for low-income residents.</p>`
+    };
+
+    return insights[calculatorType] || insights.mortgage;
+}
+
+generateComprehensiveFAQ(calculatorType) {
+    const faqs = {
+        mortgage: `<h2>Comprehensive Mortgage FAQ</h2>
+<div class="faq-section">
+<h3>Q: How much house can I really afford?</h3>
+<p>The 28/36 rule suggests spending no more than 28% of gross income on housing and 36% on total debt. However, consider your complete financial picture: emergency funds, retirement savings, and lifestyle goals. A mortgage calculator provides numbers, but only you know your comfort level. Many financially successful people spend less than banks approve them for.</p>
+
+<h3>Q: Should I wait for rates to drop?</h3>
+<p>Timing the market rarely works. If rates drop 1% but home prices rise 10%, you're worse off. Focus on your personal readiness: stable income, adequate savings, and finding the right home. Historical data shows that time in the market beats timing the market for real estate just like stocks.</p>
+
+<h3>Q: Fixed vs. ARM - which is better?</h3>
+<p>Fixed rates provide payment certainty, ideal if you're staying long-term or want predictability. ARMs offer lower initial rates, perfect if you'll move within 5-7 years or expect income growth. Current spread between fixed and ARM rates makes ARMs worth considering for many borrowers.</p>
+
+<h3>Q: How do I get the best rate?</h3>
+<p>Credit score is king - even 20 points can affect your rate. Shop at least 5 lenders within a 45-day window. Consider mortgage brokers who access wholesale rates. Don't focus solely on rate; factor in fees, points, and lender reputation. The lowest rate with high fees often costs more.</p>
+
+<h3>Q: Is 20% down really necessary?</h3>
+<p>No. Conventional loans allow 3% down, FHA requires 3.5%, VA and USDA offer 0% down. However, less than 20% means PMI, adding $100-300/month typically. Calculate whether waiting to save 20% costs more in rising prices and rent than paying PMI.</p>
+
+<h3>Q: What mistakes do first-time buyers make?</h3>
+<p>Shopping for homes before pre-approval, not budgeting for maintenance, choosing lenders based on rate alone, making large purchases before closing, and not getting inspections. The biggest mistake? Letting emotions override logic - falling in love with a house you can't afford.</p>
+</div>`,
+
+        investment: `<h2>Investment Strategy FAQ</h2>
+<div class="faq-section">
+<h3>Q: How much do I need to start investing?</h3>
+<p>You can start with literally $1 through apps offering fractional shares. The key isn't the amount but the habit. Starting with $50/month is better than waiting until you have $5,000. Most millionaire investors started small and stayed consistent. Time and compound interest do the heavy lifting.</p>
+
+<h3>Q: Index funds vs. individual stocks?</h3>
+<p>Index funds should form your core holdings - instant diversification, low fees, and market returns. Individual stocks can supplement if you enjoy research and accept higher risk. Studies show 90% of professional managers can't beat index funds long-term. Start with indexes, add stocks later if desired.</p>
+
+<h3>Q: What about crypto/NFTs/meme stocks?</h3>
+<p>Speculation isn't investing. These can be fun with money you can afford to lose - think 5% of portfolio maximum. Build wealth with boring, proven strategies: diversified index funds, consistent contributions, and decades of patience. Exciting investments make good stories but poor retirement plans.</p>
+
+<h3>Q: Roth vs. Traditional - which is better?</h3>
+<p>Roth: Pay taxes now, withdraw tax-free later. Best for young workers expecting higher future income. Traditional: Tax deduction now, pay taxes in retirement. Better for high earners who'll have lower retirement income. Many benefit from both - tax diversification provides flexibility.</p>
+
+<h3>Q: How do I know if I'm on track?</h3>
+<p>Age 30: 1x annual income saved. Age 40: 3x income. Age 50: 6x income. Age 60: 8x income. Age 67: 10x income. Behind? Don't panic - increase contributions gradually. Ahead? Don't coast - compound interest rewards those who keep pushing.</p>
+
+<h3>Q: What about market crashes?</h3>
+<p>They're features, not bugs. Markets crash every 4-6 years on average, providing buying opportunities. Your 30-year investment timeline will include 5-7 crashes. Those who keep investing through crashes build the most wealth. Emotional investors who panic-sell lock in losses.</p>
+</div>`,
+
+        loan: `<h2>Personal Loan Complete FAQ</h2>
+<div class="faq-section">
+<h3>Q: When do personal loans make sense?</h3>
+<p>Personal loans work for debt consolidation (replacing 22% credit cards with 12% loans), necessary home repairs, medical expenses, or one-time opportunities. They don't make sense for wants vs. needs, ongoing expenses, or investments. The key: having a clear payoff plan before borrowing.</p>
+
+<h3>Q: How much can I borrow?</h3>
+<p>Typically $1,000 to $100,000, but most fall between $5,000-$40,000. Lenders consider income, credit score, and debt-to-income ratio. Rule of thumb: don't borrow more than 20% of annual income unless consolidating existing debt. What you can borrow often exceeds what you should borrow.</p>
+
+<h3>Q: Credit union vs. bank vs. online lender?</h3>
+<p>Credit unions often offer the best rates for members but may have slower processes. Banks provide relationship benefits and in-person service. Online lenders offer speed and convenience, often with competitive rates. Compare all three - the differences can save thousands.</p>
+
+<h3>Q: Will shopping for loans hurt my credit?</h3>
+<p>Multiple inquiries within 14-45 days count as one for scoring purposes. Get all your rate shopping done within two weeks. Pre-qualification uses soft pulls that don't affect credit. Only formal applications trigger hard pulls. Smart shopping improves your finances without damaging credit.</p>
+
+<h3>Q: Fixed vs. variable rate?</h3>
+<p>Fixed rates provide payment certainty - crucial for budgeting. Variable rates start lower but can increase. In rising rate environments, fixed is safer. For loans under 3 years, variable might save money. Most personal loans are fixed, protecting borrowers from rate surprises.</p>
+
+<h3>Q: How fast can I pay it off?</h3>
+<p>Most personal loans allow early payoff without penalties - always verify. Extra payments go directly to principal, saving significant interest. Paying 20% extra monthly often cuts loan terms by 30-40%. Set up bi-weekly payments to make an extra month's payment annually without feeling it.</p>
+</div>`,
+
+        insurance: `<h2>Life Insurance In-Depth FAQ</h2>
+<div class="faq-section">
+<h3>Q: How much life insurance do I really need?</h3>
+<p>Start with 10x annual income, then adjust: add outstanding debts, future education costs, and final expenses. Subtract existing savings and current life insurance. A 35-year-old earning $75,000 with a $300,000 mortgage and two kids might need $1 million. Online calculators help, but consider meeting with a financial advisor for complex situations.</p>
+
+<h3>Q: Term vs. whole life - what's the real difference?</h3>
+<p>Term: Pure insurance protection for specific period (10-30 years). Costs 10-20x less than whole life. Perfect for temporary needs like mortgages or raising children. Whole life: Permanent coverage with cash value component. Much more expensive, complex, and rarely the best choice for average families. Buy term and invest the difference.</p>
+
+<h3>Q: What if I have health issues?</h3>
+<p>Don't assume you're uninsurable. Many conditions that once meant declines now qualify for coverage. Diabetes, depression, and even some cancers can get coverage. Work with an independent broker who knows which carriers are lenient with specific conditions. Guaranteed issue policies exist as last resorts.</p>
+
+<h3>Q: Should I get insurance through work?</h3>
+<p>Group coverage is a nice benefit but insufficient for most. It's typically 1-2x salary, not portable if you leave, and may cost more than individual term for young, healthy people. Use it as supplemental coverage but secure your own policy for true protection.</p>
+
+<h3>Q: When should I buy coverage?</h3>
+<p>The best time is when you're young and healthy - rates lock in. Need arises with dependents, mortgages, or business obligations. Don't wait for perfect timing; rates increase 8-10% each year you delay. A healthy 25-year-old pays half what a healthy 35-year-old pays for identical coverage.</p>
+
+<h3>Q: What about insurance as an investment?</h3>
+<p>Insurance is insurance, investments are investments - mixing them rarely benefits consumers. Whole life returns average 2-4% with high fees and surrender charges. Term insurance plus index fund investing historically provides better protection AND returns. Keep insurance simple and investments separate.</p>
+</div>`
+    };
+
+    return faqs[calculatorType] || faqs.mortgage;
+}
+
+generateSingleCallToAction(calculatorType) {
+    const hour = new Date().getHours();
+    const timeBasedUrgency = hour < 12 ? "Start your day with smart financial planning" : 
+                            hour < 17 ? "Take action this afternoon" : 
+                            "End your day with a powerful financial move";
+    
+    const ctas = {
+        mortgage: `<div class="cta-section" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 60px 40px; border-radius: 20px; text-align: center; margin: 40px 0;">
+<h2 style="font-size: 2.5rem; margin-bottom: 20px; color: #1a1f3a;">Ready to Save Thousands on Your Mortgage?</h2>
+<p style="font-size: 1.2rem; margin-bottom: 30px; color: #4a5568;">With rates at ${this.currentYear}'s levels, every day matters. Our calculator shows your exact savings potential in under 60 seconds.</p>
+<div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: 0 auto 30px;">
+    <p style="font-size: 2rem; font-weight: bold; color: #667eea; margin: 0;">Save an average of</p>
+    <p style="font-size: 3rem; font-weight: 900; color: #1a1f3a; margin: 10px 0;">$127,000</p>
+    <p style="color: #4a5568;">in total interest with the right mortgage strategy</p>
+</div>
+<a href="/#calculators" class="cta-button" style="background: #667eea; color: white; padding: 20px 50px; border-radius: 30px; text-decoration: none; font-size: 1.2rem; font-weight: 600; display: inline-block; transition: all 0.3s;">
+    Calculate My Mortgage Savings →
+</a>
+<p style="margin-top: 20px; font-size: 0.9rem; color: #718096;">${timeBasedUrgency} • No email required to start</p>
+</div>`,
+
+        investment: `<div class="cta-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 40px; border-radius: 20px; text-align: center; margin: 40px 0; color: white;">
+<h2 style="font-size: 2.5rem; margin-bottom: 20px;">Your Future Self Will Thank You</h2>
+<p style="font-size: 1.2rem; margin-bottom: 30px; opacity: 0.95;">See how today's investment decisions compound into tomorrow's wealth. Every month you wait costs thousands in lost growth.</p>
+<div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 30px; border-radius: 15px; max-width: 500px; margin: 0 auto 30px;">
+    <p style="font-size: 1.1rem; margin-bottom: 20px;">Starting with $500/month at age 30:</p>
+    <p style="font-size: 3rem; font-weight: 900; margin: 10px 0;">$1.7 Million</p>
+    <p>by retirement (assuming 8% returns)</p>
+</div>
+<a href="/#calculators" class="cta-button" style="background: white; color: #667eea; padding: 20px 50px; border-radius: 30px; text-decoration: none; font-size: 1.2rem; font-weight: 600; display: inline-block; transition: all 0.3s;">
+    Calculate My Investment Growth →
+</a>
+<p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">${timeBasedUrgency} • Free instant calculations</p>
+</div>`,
+
+        loan: `<div class="cta-section" style="background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%); padding: 60px 40px; border-radius: 20px; text-align: center; margin: 40px 0; color: white;">
+<h2 style="font-size: 2.5rem; margin-bottom: 20px;">Stop Overpaying on Your Loans</h2>
+<p style="font-size: 1.2rem; margin-bottom: 30px; opacity: 0.95;">Compare your options instantly. The right loan structure saves thousands in unnecessary interest.</p>
+<div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 30px; border-radius: 15px; max-width: 500px; margin: 0 auto 30px;">
+    <p style="font-size: 1.1rem; margin-bottom: 10px;">Consolidating $30,000 in credit cards:</p>
+    <p style="font-size: 2.5rem; font-weight: 900; margin: 10px 0;">Save $18,000+</p>
+    <p>in interest with the right personal loan</p>
+</div>
+<a href="/#calculators" class="cta-button" style="background: white; color: #fc466b; padding: 20px 50px; border-radius: 30px; text-decoration: none; font-size: 1.2rem; font-weight: 600; display: inline-block; transition: all 0.3s;">
+    Calculate My Loan Savings →
+</a>
+<p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">${timeBasedUrgency} • Compare multiple scenarios</p>
+</div>`,
+
+        insurance: `<div class="cta-section" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding: 60px 40px; border-radius: 20px; text-align: center; margin: 40px 0; color: white;">
+<h2 style="font-size: 2.5rem; margin-bottom: 20px;">Protect What Matters Most</h2>
+<p style="font-size: 1.2rem; margin-bottom: 30px;">Life insurance isn't about you—it's about them. Calculate the exact coverage your family needs.</p>
+<div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 30px; border-radius: 15px; max-width: 500px; margin: 0 auto 30px;">
+    <p style="font-size: 1.1rem; margin-bottom: 10px;">Average family needs:</p>
+    <p style="font-size: 3rem; font-weight: 900; margin: 10px 0;">$750,000</p>
+    <p>But has only $150,000 in coverage</p>
+</div>
+<a href="/#calculators" class="cta-button" style="background: white; color: #11998e; padding: 20px 50px; border-radius: 30px; text-decoration: none; font-size: 1.2rem; font-weight: 600; display: inline-block; transition: all 0.3s;">
+    Calculate My Coverage Needs →
+</a>
+<p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.9;">${timeBasedUrgency} • Know your gap in 60 seconds</p>
+</div>`
+    };
+
+    return ctas[calculatorType] || ctas.mortgage;
+}
+
+generateAdvancedStrategies(calculatorType, marketData) {
+    const strategies = {
+        mortgage: `<h2>Advanced Mortgage Strategies for Sophisticated Borrowers</h2>
+
+<h3>The Rate Buydown Arbitrage</h3>
+<p>With current rates at ${marketData.rates.mortgage.thirtyYear}%, consider this advanced strategy: If you have cash reserves, buying down your rate by 0.5% might cost $10,000 on a $400,000 loan. But if that cash is earning only 2% in savings while saving you 6.5% in mortgage interest, the arbitrage is clear. Calculate your break-even: typically 4-5 years for most scenarios.</p>
+
+<h3>The Recast Strategy</h3>
+<p>Unknown to many: you can "recast" your mortgage by making a lump-sum payment to principal (usually $5,000 minimum), then having your lender recalculate your monthly payment based on the lower balance. This keeps your rate and term but lowers payments without refinancing. Perfect when you receive bonuses, inheritance, or sell investments.</p>
+
+<h3>Asset Depletion Qualification</h3>
+<p>High-asset, low-income borrowers can qualify using asset depletion. Lenders divide your assets by 360 (months in 30-year loan) and count that as monthly income. With $1 million in assets, that's $2,777/month in qualifying income. Particularly useful for retirees or those between jobs with significant savings.</p>
+
+<h3>The 5/5 ARM Strategy</h3>
+<p>While 5/1 ARMs adjust annually after five years, 5/5 ARMs adjust every five years. This provides more stability while capturing initial rate savings. If you're moderately confident about moving within 10 years, this structure offers protection against rapid rate increases while saving significantly over fixed rates.</p>
+
+<h3>Cross-Collateralization Techniques</h3>
+<p>Own other properties? Some portfolio lenders allow cross-collateralization, using equity in multiple properties to secure better rates or avoid down payments. This advanced strategy requires careful structuring but can unlock significant capital for investment while maintaining tax advantages of mortgage debt.</p>`,
+
+        investment: `<h2>Institutional-Grade Investment Strategies for Individual Investors</h2>
+
+<h3>Tax Loss Harvesting Plus</h3>
+<p>Beyond basic tax-loss harvesting, sophisticated investors use the "harvest and hold" strategy. Sell losing positions to offset gains, immediately buy similar (but not "substantially identical") investments to maintain exposure. Example: Sell S&P 500 ETF at a loss, buy total market index. After 31 days, switch back if desired. This can add 0.5-1% annual after-tax returns.</p>
+
+<h3>Factor-Based Portfolio Construction</h3>
+<p>Move beyond simple market-cap weighting. Allocate based on factors proven to drive returns: value (cheap stocks), momentum (recent winners), quality (profitable companies), and low volatility. A multi-factor approach historically adds 1-2% annual returns while reducing risk. Implementation: 40% market-cap index, 15% each to value, momentum, quality, and small-cap value factors.</p>
+
+<h3>Options Overlay Strategies</h3>
+<p>For portfolios over $100,000, selling covered calls on index positions generates additional income. Selling 30-45 day calls 5% out-of-the-money on SPY holdings can add 6-12% annual income. Risk: capping upside in strong rallies. Mitigation: only cover 25-50% of position, focusing on tax-advantaged accounts to avoid short-term gain complications.</p>
+
+<h3>Roth Conversion Laddering</h3>
+<p>Strategic Roth conversions during low-income years create tax-free income streams. Convert amounts filling up lower tax brackets annually. Combined with 0% capital gains harvesting (selling appreciated assets while in 12% bracket), this creates substantial tax alpha. Model shows $50,000 annual conversions over 10 years can save $200,000+ in retirement taxes.</p>
+
+<h3>Alternative Risk Premia</h3>
+<p>Beyond stocks and bonds, harvest returns from other risk factors: merger arbitrage (buying acquisition targets), trend following (momentum across asset classes), and carry trades (high-yield currencies/bonds). Allocating 10-20% to liquid alternatives reduces correlation while maintaining returns. Implementation through liquid alternative mutual funds or ETFs.</p>`,
+
+        loan: `<h2>Strategic Debt Optimization for Financial Leverage</h2>
+
+<h3>The Debt Avalanche Plus</h3>
+<p>Traditional avalanche pays highest-rate debt first. Advanced version considers tax deductibility and opportunity cost. Example: 6% student loans might take priority over 8% mortgage due to mortgage tax deductions and inflation benefits. Model each debt's after-tax, inflation-adjusted cost. Often reveals surprising optimal payment orders.</p>
+
+<h3>Rate Arbitrage Strategies</h3>
+<p>With excellent credit, you can borrow at rates below investment returns. Strategy: Take a 7% personal loan to max out 401(k) contributions earning employer match (instant 50-100% return) plus market returns. Key: ironclad discipline to invest, not spend. Works only with guaranteed investment vehicles like employer matches.</p>
+
+<h3>Credit Utilization Optimization</h3>
+<p>Advanced credit scoring hack: Utilization calculated both per-card and overall. Strategy: Spread balances to keep all cards below 10% rather than one at 30%. Pay down to 1-2% before statement closes for maximum score boost. Can improve scores 40+ points in one billing cycle. Time applications for post-optimization.</p>
+
+<h3>Promotional Rate Cascading</h3>
+<p>Strategic use of 0% promotional rates creates free leverage. Open new card with 18-month 0% offer, transfer balances, invest payment savings. Before promotion ends, cascade to new 0% offer. Requires excellent credit and discipline. Mathematical edge: borrowing at 0% while money earns 5% in high-yield savings = risk-free profit.</p>
+
+<h3>Business Credit Separation</h3>
+<p>Side hustlers can optimize by properly separating business credit. Form LLC, get EIN, establish business credit profile. Business loans often have better terms and don't impact personal credit utilization. Particularly powerful for real estate investors or consultants with variable income seeking to smooth cash flow.</p>`,
+
+        insurance: `<h2>Advanced Life Insurance Optimization Strategies</h2>
+
+<h3>Laddered Term Strategy</h3>
+<p>Instead of one large policy, layer multiple smaller terms matching decreasing needs. Example: $500K 30-year + $300K 20-year + $200K 10-year term. As obligations decrease (mortgage paid, kids independent), coverage naturally steps down. Saves 20-30% versus single large policy while providing identical protection when needed most.</p>
+
+<h3>Premium Financing for HNW Individuals</h3>
+<p>High-net-worth strategy: Borrow to pay large premiums, deduct loan interest (if structured properly), and preserve capital for higher-return investments. Works when borrowing costs are below investment returns and estate tax savings justify complexity. Requires specialized attorneys and $5M+ net worth typically.</p>
+
+<h3>Charitable Premium Recycling</h3>
+<p>Donate unwanted permanent policies to charity for tax deduction while eliminating future premiums. Or use dividends from overfunded policies to buy additional paid-up coverage, creating exponential growth. Advanced version: Use charity as beneficiary for portion equal to estate tax savings, maximizing family benefit.</p>
+
+<h3>Split-Dollar Arrangements</h3>
+<p>Business owners can share premium costs with their company, creating tax-advantaged coverage. Company pays premiums, owns cash value equal to premiums paid. Employee owns death benefit excess. At retirement, company recovers investment, employee keeps coverage. Requires careful structuring to avoid tax pitfalls.</p>
+
+<h3>Modified Endowment Contract (MEC) Optimization</h3>
+<p>Deliberately creating a MEC for tax-free loans in retirement. Overfund permanent policy to MEC limits, accept loss of tax-free withdrawal status, but maintain tax-free loan provisions. Creates pension-like income stream immune to market volatility. Works best for those maxing all other retirement vehicles.</p>`
+    };
+
+    return strategies[calculatorType] || strategies.mortgage;
+}
+
+generateStepByStepGuide(calculatorType) {
+    const guides = {
+        mortgage: `<h2>Complete Step-by-Step Mortgage Guide</h2>
+
+<h3>Phase 1: Preparation (3-6 months before)</h3>
+<div class="step-guide">
+<p><strong>Step 1: Credit Optimization</strong><br>
+Pull all three credit reports from annualcreditreport.com. Dispute any errors immediately - this alone can boost scores 20-50 points. Pay down credit cards to below 10% utilization. Don't close old cards; age helps your score.</p>
+
+<p><strong>Step 2: Financial Documentation</strong><br>
+Gather two years of tax returns, W-2s, and 1099s. Collect three months of bank statements for all accounts. Document any large deposits. Self-employed? Prepare profit/loss statements and business tax returns.</p>
+
+<p><strong>Step 3: Down Payment Strategy</strong><br>
+Calculate your target: 3% minimum for conventional, 3.5% for FHA, 20% to avoid PMI. Don't forget closing costs (2-5% of purchase price). Consider gift funds from family - they'll need to document the source.</p>
+</div>
+
+<h3>Phase 2: Shopping (1-2 months before)</h3>
+<div class="step-guide">
+<p><strong>Step 4: Pre-Approval Process</strong><br>
+Apply with at least 5 lenders within a 45-day window. Compare Loan Estimates line by line. Negotiate fees - many are flexible. Lock your rate when comfortable, understanding lock terms.</p>
+
+<p><strong>Step 5: House Hunting</strong><br>
+Stay below pre-approval amount by 10% for comfort. Consider total monthly payment including taxes, insurance, HOA. Make offers contingent on inspection and appraisal. Be prepared for multiple offers in competitive markets.</p>
+</div>
+
+<h3>Phase 3: Closing (1 month)</h3>
+<div class="step-guide">
+<p><strong>Step 6: Underwriting Navigation</strong><br>
+Respond to requests within 24 hours. Don't make major purchases or job changes. Keep all documentation organized. Prepare for additional requests - they're normal.</p>
+
+<p><strong>Step 7: Final Steps</strong><br>
+Review Closing Disclosure against Loan Estimate. Verify no last-minute changes. Complete final walk-through. Bring certified check for closing costs. Celebrate responsibly!</p>
+</div>`,
+
+        investment: `<h2>Building Wealth: Complete Investment Implementation Guide</h2>
+
+<h3>Week 1: Foundation Building</h3>
+<div class="step-guide">
+<p><strong>Step 1: Emergency Fund First</strong><br>
+Before investing, secure 3-6 months expenses in high-yield savings. Calculate: monthly expenses × 6 = target. Automate $X weekly until reached. This prevents selling investments during emergencies.</p>
+
+<p><strong>Step 2: Employer Plan Optimization</strong><br>
+Enroll in 401(k) immediately if not already. Contribute minimum for full match - it's free money. Choose target-date fund for simplicity or build portfolio from available options. Set annual increase of 1%.</p>
+
+<p><strong>Step 3: Account Opening</strong><br>
+Open Roth IRA at Vanguard, Fidelity, or Schwab. Link bank account for transfers. If income too high for Roth, open traditional IRA for backdoor conversion. Consider taxable account for goals beyond retirement.</p>
+</div>
+
+<h3>Week 2: Portfolio Construction</h3>
+<div class="step-guide">
+<p><strong>Step 4: Asset Allocation Decision</strong><br>
+Age-based formula: 120 minus age = stock percentage. Aggressive investors add 10%, conservative subtract 10%. Split stocks between US (70%) and international (30%). Use bond index for stable portion.</p>
+
+<p><strong>Step 5: Fund Selection</strong><br>
+Core holdings: Total Stock Market Index (60%), International Stock Index (20%), Bond Index (20% or age-based). Optional additions: Small-cap value (5-10%), REITs (5%), Emerging markets (5%). Keep total funds under 6.</p>
+
+<p><strong>Step 6: Automation Setup</strong><br>
+Schedule automatic transfers day after paycheck. Set investment elections to auto-invest. Enable dividend reinvestment. Schedule quarterly rebalancing reminders. Remove decision-making from emotions.</p>
+</div>
+
+<h3>Month 2+: Optimization</h3>
+<div class="step-guide">
+<p><strong>Step 7: Tax Strategy</strong><br>
+Place tax-inefficient investments (bonds, REITs) in IRA. Keep tax-efficient funds (total market index) in taxable. Harvest losses in December. Never sell just to rebalance in taxable accounts.</p>
+
+<p><strong>Step 8: Ongoing Management</strong><br>
+Review quarterly, rebalance annually. Increase contributions with raises. Ignore market noise. Stay the course through volatility. Read one investment book quarterly to stay educated.</p>
+</div>`,
+
+        loan: `<h2>Master Guide: Personal Loan Success Strategy</h2>
+
+<h3>Pre-Application Phase (2 weeks)</h3>
+<div class="step-guide">
+<p><strong>Step 1: True Cost Analysis</strong><br>
+Calculate exact need - don't borrow extra "just in case." Factor all costs: origination fees (0-8%), prepayment penalties (rare but check), opportunity cost of monthly payments. Use loan calculators to see total interest cost.</p>
+
+<p><strong>Step 2: Credit Score Maximization</strong><br>
+Check scores from all three bureaus. Pay down credit cards to sub-10% utilization. Don't close cards or open new credit. Dispute any errors immediately. Even 20-point improvement can mean 2-3% lower rate.</p>
+
+<p><strong>Step 3: Income Documentation</strong><br>
+Gather last two pay stubs, previous year's tax return, bank statements showing direct deposits. Self-employed need two years returns plus current P&L. Side income counts if documented consistently.</p>
+</div>
+
+<h3>Shopping Phase (1 week)</h3>
+<div class="step-guide">
+<p><strong>Step 4: Strategic Pre-Qualification</strong><br>
+Apply with 5+ lenders in rapid succession: your bank/credit union, 2-3 online lenders (SoFi, Marcus, LightStream), 1-2 marketplace lenders. All inquiries within 14 days count as one for credit scoring.</p>
+
+<p><strong>Step 5: Offer Comparison Matrix</strong><br>
+Create spreadsheet comparing: APR (not just rate), monthly payment, total interest cost, fees, prepayment terms, funding speed. Negotiate using competing offers. Ask about rate discounts for autopay, existing customers.</p>
+</div>
+
+<h3>Post-Approval Phase</h3>
+<div class="step-guide">
+<p><strong>Step 6: Optimization Strategy</strong><br>
+Set up autopay for rate discount and payment protection. Pay bi-weekly instead of monthly (26 half-payments = 13 full payments annually). Round up payments to accelerate payoff.</p>
+
+<p><strong>Step 7: Payoff Acceleration</strong><br>
+Apply windfalls (tax refunds, bonuses) to principal. Make extra principal payments early when they have most impact. Track progress monthly. Celebrate milestones to maintain motivation.</p>
+</div>`,
+
+        insurance: `<h2>Comprehensive Life Insurance Acquisition Guide</h2>
+
+<h3>Phase 1: Needs Analysis (Week 1)</h3>
+<div class="step-guide">
+<p><strong>Step 1: Coverage Calculation</strong><br>
+Calculate income replacement: Annual income × years until retirement. Add all debts including mortgage. Add education fund needs ($100K+ per child for private college). Add final expenses ($15-25K). Subtract liquid assets. This is your coverage need.</p>
+
+<p><strong>Step 2: Policy Type Decision</strong><br>
+Term life for 95% of people - it's pure protection at lowest cost. Choose term length matching longest obligation (usually mortgage or youngest child's dependency). Consider convertibility option for flexibility. Avoid whole life unless ultra-high net worth with estate tax concerns.</p>
+
+<p><strong>Step 3: Health Optimization</strong><br>
+Schedule morning exam (better vitals). Fast properly beforehand. Hydrate well week prior. Avoid alcohol 72 hours before. List all medications accurately - hiding conditions leads to claim denials. Recent weight loss? Wait to stabilize.</p>
+</div>
+
+<h3>Phase 2: Shopping Process (Week 2)</h3>
+<div class="step-guide">
+<p><strong>Step 4: Multi-Carrier Comparison</strong><br>
+Work with independent broker accessing 20+ carriers. Each insurer has different underwriting sweet spots. Compare: premium, financial strength ratings (A+ minimum), conversion options, living benefit riders. Get formal quotes from top 3-5 options.</p>
+
+<p><strong>Step 5: Application Strategy</strong><br>
+Apply to top choice first. Be 100% honest - investigations find everything. Explain any health issues proactively with doctor letters if helpful. Prefer morning paramedical exams. Review phone interview questions beforehand.</p>
+</div>
+
+<h3>Phase 3: Underwriting & Beyond (Weeks 3-6)</h3>
+<div class="step-guide">
+<p><strong>Step 6: Underwriting Navigation</strong><br>
+Respond to requests quickly. Provide complete medical records if asked. Consider informal inquiry if concerned about approval. Understand rating classes - preferred plus saves thousands over standard. Appeal adverse decisions with additional documentation.</p>
+
+<p><strong>Step 7: Policy Management</strong><br>
+Set annual review reminder. Update beneficiaries after life changes. Consider decreasing coverage as obligations reduce. Never cancel old policy before new one is fully approved and in force. Keep policy info accessible to beneficiaries.</p>
+</div>`
+    };
+
+    return guides[calculatorType] || guides.mortgage;
+}
+
+generateCommonMistakesDetailed(calculatorType) {
+    const mistakes = {
+        mortgage: `<h2>The 10 Most Expensive Mortgage Mistakes (And How to Avoid Them)</h2>
+
+<h3>1. Shopping Rate Instead of APR</h3>
+<p><strong>The Mistake:</strong> Comparing advertised rates without including fees. A 6.5% rate with $8,000 in fees costs more than 6.75% with no fees on most loans.</p>
+<p><strong>The Fix:</strong> Always compare Annual Percentage Rate (APR), which includes fees. Better yet, calculate total cost over your expected ownership period. Use Loan Estimates for apples-to-apples comparison.</p>
+
+<h3>2. Forgetting About Prepayment</h3>
+<p><strong>The Mistake:</strong> Choosing 30-year terms without considering prepayment. Most people move or refinance within 7 years, never benefiting from lower 15-year rates.</p>
+<p><strong>The Fix:</strong> If you'll prepay aggressively, get the 30-year for flexibility but pay like it's a 15-year. If you want forced discipline, choose the 15-year for better rates.</p>
+
+<h3>3. Ignoring ARM Options</h3>
+<p><strong>The Mistake:</strong> Automatically choosing fixed rates from fear. If you'll move in 5-7 years, paying extra for 30-year rate protection wastes money.</p>
+<p><strong>The Fix:</strong> Calculate break-even between ARM and fixed based on realistic ownership timeline. A 7/1 ARM often saves $200+/month with minimal risk for medium-term owners.</p>
+
+<h3>4. Draining All Savings for Down Payment</h3>
+<p><strong>The Mistake:</strong> Putting every penny into down payment, leaving no emergency fund. First repair need becomes a credit card debt spiral.</p>
+<p><strong>The Fix:</strong> Keep 3-6 months expenses liquid after closing. Better to pay PMI temporarily than face foreclosure from inability to handle emergencies.</p>
+
+<h3>5. Making Big Purchases Before Closing</h3>
+<p><strong>The Mistake:</strong> Buying furniture or a car between approval and closing. Lenders re-check credit; new debt can kill your loan.</p>
+<p><strong>The Fix:</strong> Freeze all major purchases until after closing. Even credit inquiries can cause problems. That new bedroom set can wait 30 days.</p>
+
+<h3>6. Not Reading the Fine Print</h3>
+<p><strong>The Mistake:</strong> Ignoring prepayment penalties, balloon payments, or adjustable rate terms. Surprises cost thousands.</p>
+<p><strong>The Fix:</strong> Read every page of your Loan Estimate and Closing Disclosure. Question anything unclear. Hire a real estate attorney if complex.</p>
+
+<h3>7. Choosing Lender Based on Pre-Qualification</h3>
+<p><strong>The Mistake:</strong> Going with whoever pre-qualifies you for the most. Pre-qualification means nothing; pre-approval is what matters.</p>
+<p><strong>The Fix:</strong> Get full pre-approvals from multiple lenders. Compare actual terms, not hypothetical maximums. Choose based on rates, fees, and service.</p>
+
+<h3>8. Waiving Inspections to Win Bidding Wars</h3>
+<p><strong>The Mistake:</strong> Skipping inspections in competitive markets. That dream home becomes a nightmare with $50K in hidden repairs.</p>
+<p><strong>The Fix:</strong> Always inspect. In hot markets, get pre-inspection before offering or include inspection for "major issues only." Never go fully blind.</p>
+
+<h3>9. Focusing Only on Monthly Payment</h3>
+<p><strong>The Mistake:</strong> Choosing loans based solely on payment amount. Lower payments often mean paying hundreds of thousands more in interest.</p>
+<p><strong>The Fix:</strong> Calculate total interest paid over expected ownership period. Sometimes higher payments save massive money long-term.</p>
+
+<h3>10. Not Considering Total Housing Costs</h3>
+<p><strong>The Mistake:</strong> Budgeting for principal and interest only. Property taxes, insurance, HOA, and maintenance can double your housing cost.</p>
+<p><strong>The Fix:</strong> Use 1.5-2x the mortgage payment for true housing budget. Research specific property taxes and HOA fees. Budget 1-2% of home value annually for maintenance.</p>`,
+
+        investment: `<h2>The 12 Investment Mistakes That Destroy Wealth</h2>
+
+<h3>1. Waiting for the "Perfect" Time</h3>
+<p><strong>The Mistake:</strong> Delaying investment until markets "calm down" or you have "more money." Time in market beats timing the market every time.</p>
+<p><strong>The Fix:</strong> Start immediately with whatever amount possible. $100 invested monthly from age 25 becomes $350,000+ by retirement. Waiting until 35 cuts that in half.</p>
+
+<h3>2. Chasing Last Year's Winners</h3>
+<p><strong>The Mistake:</strong> Buying whatever did best recently. Last year's top fund is often next year's dog. Performance chasing reduces returns by 2-3% annually.</p>
+<p><strong>The Fix:</strong> Stick to broad market indexes. Rebalance by selling winners and buying losers. Boring investing produces exciting results.</p>
+
+<h3>3. Paying High Fees for Low Value</h3>
+<p><strong>The Mistake:</strong> Accepting 1-2% expense ratios as normal. Over 30 years, 1% extra in fees consumes 25% of your returns.</p>
+<p><strong>The Fix:</strong> Use index funds under 0.20% expenses. Every 0.10% saved equals thousands more in retirement. Fees compound negatively just like returns compound positively.</p>
+
+<h3>4. Over-Diversification (Diworsification)</h3>
+<p><strong>The Mistake:</strong> Owning 20+ funds thinking more is better. You're paying multiple fees to own the same stocks repeatedly.</p>
+<p><strong>The Fix:</strong> 3-5 total market index funds provide complete diversification. US stocks, international stocks, bonds. Maybe add small-cap value and REITs. Done.</p>
+
+<h3>5. Emotional Trading</h3>
+<p><strong>The Mistake:</strong> Selling during crashes, buying during euphoria. The average investor earns 4% while markets return 10% due to poor timing.</p>
+<p><strong>The Fix:</strong> Automate everything. Set allocation, automate contributions and rebalancing. Remove emotions entirely. Your discipline beats "expertise."</p>
+
+<h3>6. Ignoring Tax Efficiency</h3>
+<p><strong>The Mistake:</strong> Putting tax-inefficient investments in taxable accounts. Paying unnecessary taxes annually instead of deferring.</p>
+<p><strong>The Fix:</strong> Bonds and REITs in IRA (tax-inefficient). Stock indexes in taxable (tax-efficient). Harvest losses annually. Never create unnecessary taxable events.</p>
+
+<h3>7. Home Country Bias</h3>
+<p><strong>The Mistake:</strong> Investing 90%+ in US stocks when US represents 55% of global markets. Missing international opportunities and diversification.</p>
+<p><strong>The Fix:</strong> Hold 20-40% in international stocks. Use total international index for simplicity. Currency risk decreases over long periods.</p>
+
+<h3>8. Trying to Beat the Market</h3>
+<p><strong>The Mistake:</strong> Believing you'll succeed where 90% of professionals fail. Active trading enriches brokers, not traders.</p>
+<p><strong>The Fix:</strong> Accept market returns through indexing. Focus on what you control: savings rate, allocation, costs, and taxes. Not stock selection.</p>
+
+<h3>9. Neglecting Inflation</h3>
+<p><strong>The Mistake:</strong> Keeping long-term money in "safe" cash/CDs. Inflation destroys purchasing power—$100K becomes $55K over 30 years at 2% inflation.</p>
+<p><strong>The Fix:</strong> Only short-term funds in cash. Long-term money needs growth assets. Even conservative investors need 30%+ in stocks.</p>
+
+<h3>10. Following the Herd</h3>
+<p><strong>The Mistake:</strong> Buying crypto/meme stocks because everyone else is. FOMO investing usually ends in tears.</p>
+<p><strong>The Fix:</strong> Stick to your plan regardless of headlines. If you must speculate, limit to 5% of portfolio. Protect your serious money.</p>
+
+<h3>11. Analysis Paralysis</h3>
+<p><strong>The Mistake:</strong> Researching endlessly without acting. Perfect portfolios exist only in hindsight.</p>
+<p><strong>The Fix:</strong> Start simple with target-date fund or 60/40 portfolio. Optimize later as you learn. Good enough today beats perfect tomorrow.</p>
+
+<h3>12. Forgetting About Inflation</h3>
+<p><strong>The Mistake:</strong> Planning for nominal returns without considering inflation. That 7% return is really 4-5% after inflation.</p>
+<p><strong>The Fix:</strong> Always calculate real returns. Plan for purchasing power, not dollar amounts. Consider I Bonds and TIPS for inflation protection.</p>`,
+
+        loan: `<h2>Personal Loan Pitfalls That Cost Thousands</h2>
+
+<h3>1. Not Shopping Around</h3>
+<p><strong>The Mistake:</strong> Accepting the first offer or only checking with your bank. Rate differences of 10%+ are common for identical borrowers.</p>
+<p><strong>The Fix:</strong> Get quotes from 5+ lenders within 14 days. Include banks, credit unions, and online lenders. Use competing offers to negotiate better terms.</p>
+
+<h3>2. Ignoring the Real APR</h3>
+<p><strong>The Mistake:</strong> Comparing interest rates without including origination fees. A 10% rate with 5% origination fee equals 11.5% APR on a 5-year loan.</p>
+<p><strong>The Fix:</strong> Always compare APR, not interest rate. Calculate total repayment amount. Sometimes higher rates with no fees win.</p>
+
+<h3>3. Borrowing More Than Needed</h3>
+<p><strong>The Mistake:</strong> Taking extra "because you qualify" or "just in case." Every unnecessary $1,000 costs $200-400 in interest.</p>
+<p><strong>The Fix:</strong> Calculate exact needs. Resist temptation to pad. You can always apply for another loan if truly needed later.</p>
+
+<h3>4. Choosing Wrong Term Length</h3>
+<p><strong>The Mistake:</strong> Selecting longest term for lowest payment without considering total cost. 7-year terms can double interest vs 3-year.</p>
+<p><strong>The Fix:</strong> Choose shortest term you can afford. Use calculators to see total interest difference. Even $50 extra monthly saves thousands.</p>
+
+<h3>5. Not Reading Prepayment Terms</h3>
+<p><strong>The Mistake:</strong> Assuming you can pay off early without penalty. Some lenders charge prepayment fees or require minimum interest.</p>
+<p><strong>The Fix:</strong> Confirm no prepayment penalties. Understand if extra payments reduce term or payment. Get terms in writing before signing.</p>
+
+<h3>6. Consolidating Without Math</h3>
+<p><strong>The Mistake:</strong> Assuming consolidation always saves money. Rolling 3-year debts into 5-year loans increases total interest.</p>
+<p><strong>The Fix:</strong> Calculate total payoff amounts, not just monthly payments. Only consolidate if APR reduction exceeds term extension cost.</p>
+
+<h3>7. Using Loans for Wants vs Needs</h3>
+<p><strong>The Mistake:</strong> Financing vacations, weddings, or luxuries. Paying interest on consumption rather than investment.</p>
+<p><strong>The Fix:</strong> Reserve loans for appreciating assets or true emergencies. Save for wants. If you must finance, use shortest possible term.</p>
+
+<h3>8. Missing Payment Optimization</h3>
+<p><strong>The Mistake:</strong> Making minimum payments only. Not utilizing bi-weekly payments or rounding up.</p>
+<p><strong>The Fix:</strong> Pay bi-weekly (26 half-payments = 13 full annually). Round up to nearest $50-100. Apply windfalls to principal.</p>
+
+<h3>9. Co-signing Carelessly</h3>
+<p><strong>The Mistake:</strong> Co-signing without understanding you're fully liable. Their default becomes your problem.</p>
+<p><strong>The Fix:</strong> Only co-sign if willing and able to pay entire loan. Monitor payments. Consider gift instead of co-signing.</p>
+
+<h3>10. Not Improving Credit First</h3>
+<p><strong>The Mistake:</strong> Applying with fixable credit issues. Every 50-point improvement can mean 3-5% lower rates.</p>
+<p><strong>The Fix:</strong> Check credit 3 months before applying. Fix errors, pay down cards, let recent inquiries age. Then apply.</p>`,
+
+        insurance: `<h2>Life Insurance Mistakes That Leave Families Vulnerable</h2>
+
+<h3>1. Relying Only on Employer Coverage</h3>
+<p><strong>The Mistake:</strong> Thinking work-provided life insurance is enough. It's usually 1-2x salary and disappears when you leave/retire.</p>
+<p><strong>The Fix:</strong> Get personal term coverage for true needs (8-12x income). Use work coverage as supplement only. Your family's security shouldn't depend on your job.</p>
+
+<h3>2. Buying Whole Life as Investment</h3>
+<p><strong>The Mistake:</strong> Paying 10-20x more for permanent insurance thinking it's good investment. Returns average 2-4% with high fees.</p>
+<p><strong>The Fix:</strong> Buy term and invest difference. $300/month whole life premium = $50 term + $250 invested, growing to millions more over time.</p>
+
+<h3>3. Underestimating Coverage Needs</h3>
+<p><strong>The Mistake:</strong> Using rough rules like "5x income" without calculating actual needs. Most families need 8-12x income plus debts.</p>
+<p><strong>The Fix:</strong> Calculate exactly: income replacement through kids' independence + all debts + education funding + final expenses - existing assets.</p>
+
+<h3>4. Waiting Until "Later"</h3>
+<p><strong>The Mistake:</strong> Delaying purchase thinking you'll get it when older/married/have kids. Health changes make coverage expensive or impossible.</p>
+<p><strong>The Fix:</strong> Buy when young and healthy to lock low rates. 25-year-old pays half what 35-year-old pays for identical coverage.</p>
+
+<h3>5. Not Shopping Multiple Carriers</h3>
+<p><strong>The Mistake:</strong> Buying from first agent/website. Rates vary 50%+ between carriers for identical coverage.</p>
+<p><strong>The Fix:</strong> Use independent broker comparing 20+ carriers. Each insurer rates different conditions favorably. Find your best match.</p>
+
+<h3>6. Lying on Applications</h3>
+<p><strong>The Mistake:</strong> Hiding health issues thinking they won't find out. Investigations during claims find everything, leading to denials.</p>
+<p><strong>The Fix:</strong> Be 100% honest. Insurers already know your prescription history, MIB report, and often medical records. Work with broker to find accommodating carriers.</p>
+
+<h3>7. Choosing Too-Short Terms</h3>
+<p><strong>The Mistake:</strong> Buying 10-year terms to save money, then needing coverage later.</p>
+<p><strong>The Fix:</strong> Match term to longest financial obligation. Mortgage has 20 years left? Get 20-year term minimum. Add buffer for unexpected needs.</p>
+</div>`
+        };
+        
+        return mistakes[calculatorType] || mistakes.mortgage;
+    }
+
+    generateExpertTipsSection(calculatorType) {
+        return this.generateExpertOpinions(calculatorType);
     }
 
     // Utility methods for new sections
