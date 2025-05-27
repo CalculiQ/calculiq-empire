@@ -711,3 +711,399 @@ Carefully review your policy documents, confirm beneficiary designations are cor
 
         return strategies[calculatorType] || `<h2>Advanced Strategies</h2><p>Strategic approaches for ${calculatorType} optimization.</p>`;
     }
+generateCommonMistakesDetailed(calculatorType) {
+        const mistakes = {
+            mortgage: `<h2>Common Mortgage Mistakes to Avoid</h2>
+<p>Understanding common pitfalls helps you navigate the mortgage process more successfully. Here are the most critical mistakes borrowers make and how to avoid them.</p>
+
+<h3>1. Shopping Based on Rate Alone</h3>
+<p>While interest rates are important, focusing exclusively on rates can lead to costly oversights. Consider the total cost including origination fees, points, and closing costs. A loan with a 0.125% lower rate but $5,000 in additional fees may cost more over time.</p>
+
+<h3>2. Inadequate Down Payment Planning</h3>
+<p>Rushing to buy with minimal down payment can result in PMI costs that add hundreds monthly. On a $400,000 home with 5% down, PMI can cost $200-400 monthly until you reach 20% equity.</p>
+
+<h3>3. Ignoring Credit Optimization</h3>
+<p>Applying for a mortgage without optimizing your credit score first can cost thousands. Even a 50-point credit score improvement can reduce your rate by 0.25-0.5%, saving substantial amounts over the loan term.</p>`,
+
+            investment: `<h2>Critical Investment Mistakes to Avoid</h2>
+<p>Investment success often depends more on avoiding mistakes than making brilliant decisions. Understanding these common errors helps protect your wealth-building efforts.</p>
+
+<h3>1. Emotional Decision Making</h3>
+<p>Buying high during market euphoria and selling low during panic is the most destructive investment behavior. Studies show the average investor underperforms the market by 3-4% annually due to poor timing decisions.</p>
+
+<h3>2. Insufficient Diversification</h3>
+<p>Concentrating investments in a single stock, sector, or asset class exposes you to unnecessary risk. Proper diversification across asset classes, geographies, and sectors reduces volatility without sacrificing returns.</p>
+
+<h3>3. Ignoring Fees and Expenses</h3>
+<p>A 1% difference in fees compounds dramatically over time. On a $100,000 portfolio over 30 years, paying 2% versus 1% in fees reduces your final balance by approximately $400,000.</p>`,
+
+            loan: `<h2>Personal Loan Pitfalls to Avoid</h2>
+<p>Personal loans can be valuable financial tools when used correctly, but common mistakes can turn them into expensive burdens. Awareness of these pitfalls helps ensure positive outcomes.</p>
+
+<h3>1. Borrowing Without a Clear Purpose</h3>
+<p>Taking loans for discretionary spending or to maintain an unsustainable lifestyle leads to debt spirals. Personal loans should address specific needs like debt consolidation or necessary expenses.</p>
+
+<h3>2. Ignoring the Total Cost</h3>
+<p>Focusing only on monthly payments without considering total interest costs leads to poor decisions. A longer term may reduce monthly payments but dramatically increase total costs.</p>
+
+<h3>3. Not Shopping Multiple Lenders</h3>
+<p>Accepting the first loan offer can cost thousands. Rate differences of 5-10% between lenders are common, making comparison shopping essential for optimal terms.</p>`,
+
+            insurance: `<h2>Life Insurance Mistakes That Cost Families</h2>
+<p>Life insurance errors can leave families financially vulnerable when protection is needed most. Understanding these mistakes helps ensure adequate coverage.</p>
+
+<h3>1. Underestimating Coverage Needs</h3>
+<p>Most families need 8-12 times annual income in coverage, yet the average American has only 3-4 times. This gap can force surviving spouses to drastically alter lifestyles or deplete retirement savings.</p>
+
+<h3>2. Relying Solely on Employer Coverage</h3>
+<p>Group life insurance through work typically provides only 1-2 times salary and isn't portable. Losing your job means losing coverage when you may be older and less healthy.</p>
+
+<h3>3. Delaying Purchase</h3>
+<p>Life insurance costs increase with age and health changes. A 30-year-old's premium might double by age 40, and health conditions can make coverage unaffordable or unavailable.</p>`
+        };
+
+        return mistakes[calculatorType] || `<h2>Common Mistakes</h2><p>Avoid these ${calculatorType} pitfalls.</p>`;
+    }
+
+    generateExpertTipsSection(calculatorType) {
+        const tips = {
+            mortgage: `<h2>Expert Tips for Mortgage Success</h2>
+<p>Industry professionals share insights that can save you thousands and streamline your mortgage experience.</p>
+
+<h3>Tip 1: Get Pre-Approved, Not Just Pre-Qualified</h3>
+<p>Pre-approval involves income verification and provides a firm commitment, making your offers more competitive. In hot markets, this can be the difference between securing your dream home and losing out.</p>
+
+<h3>Tip 2: Lock Your Rate Strategically</h3>
+<p>Monitor rate trends and lock when rates dip. Consider paying for extended locks if you need more time. A 60-day lock typically costs 0.125% more than a 30-day lock but provides valuable protection.</p>
+
+<h3>Tip 3: Maintain Financial Stability During Processing</h3>
+<p>Avoid major purchases, job changes, or new credit applications during the mortgage process. Lenders re-verify finances before closing, and changes can derail approvals.</p>`,
+
+            investment: `<h2>Professional Investment Insights</h2>
+<p>Successful investors share strategies that have proven effective across market cycles.</p>
+
+<h3>Tip 1: Focus on Time in Market, Not Timing the Market</h3>
+<p>Missing just the 10 best market days over 20 years can cut your returns in half. Consistent investing beats attempts to time market movements.</p>
+
+<h3>Tip 2: Rebalance Systematically</h3>
+<p>Set specific triggers for rebalancing, such as when any asset class deviates 5% from target. This forces you to sell high and buy low automatically.</p>
+
+<h3>Tip 3: Maximize Tax-Advantaged Space First</h3>
+<p>Prioritize 401(k) matches, then max out IRAs, then additional 401(k) contributions. This sequence optimizes your tax benefits and employer contributions.</p>`,
+
+            loan: `<h2>Insider Tips for Better Loan Terms</h2>
+<p>Lending professionals reveal strategies for securing optimal personal loan terms.</p>
+
+<h3>Tip 1: Apply at the Right Time</h3>
+<p>Apply early in the month when lenders have fresh budgets and may offer better terms to meet quotas. Avoid year-end when lending often tightens.</p>
+
+<h3>Tip 2: Negotiate Everything</h3>
+<p>Interest rates, origination fees, and prepayment penalties are often negotiable. Use competing offers as leverage for better terms.</p>
+
+<h3>Tip 3: Consider Secured Options</h3>
+<p>If you have assets, secured loans offer significantly lower rates than unsecured loans. A car-secured loan might offer 6-8% versus 12-15% unsecured.</p>`,
+
+            insurance: `<h2>Insurance Professional Insights</h2>
+<p>Insurance experts share strategies for optimal coverage at competitive rates.</p>
+
+<h3>Tip 1: Apply When Healthy</h3>
+<p>Don't wait for health scares to seek coverage. Even minor conditions can increase premiums 25-50% or result in exclusions or denials.</p>
+
+<h3>Tip 2: Layer Your Coverage</h3>
+<p>Use multiple smaller policies with different terms instead of one large policy. This provides flexibility to reduce coverage as needs decrease.</p>
+
+<h3>Tip 3: Review Beneficiaries Annually</h3>
+<p>Life changes require beneficiary updates. Divorce, marriage, and births should trigger immediate reviews to ensure proceeds go to intended recipients.</p>`
+        };
+
+        return tips[calculatorType] || `<h2>Expert Tips</h2><p>Professional advice for ${calculatorType} success.</p>`;
+    }
+
+    generateComprehensiveFAQ(calculatorType) {
+        const faqs = {
+            mortgage: `<h2>Frequently Asked Mortgage Questions</h2>
+
+<h3>Q: How much house can I afford?</h3>
+<p>Financial experts recommend keeping total housing costs below 28% of gross income. For a $75,000 annual income, this means approximately $1,750 monthly for mortgage, taxes, and insurance combined.</p>
+
+<h3>Q: Should I pay points to lower my rate?</h3>
+<p>Points make sense if you'll keep the loan long enough to recoup the cost. One point typically costs 1% of the loan amount and reduces your rate by 0.25%. Calculate your break-even period to decide.</p>
+
+<h3>Q: Is 20% down payment required?</h3>
+<p>No, many programs allow 3-5% down. However, less than 20% requires PMI, adding to monthly costs. FHA loans require 3.5% down, while some conventional loans accept 3% down.</p>
+
+<h3>Q: When should I refinance?</h3>
+<p>Consider refinancing when rates drop 0.75-1% below your current rate, you can eliminate PMI, or you need to change loan terms. Factor in closing costs and your timeline in the home.</p>
+
+<h3>Q: What credit score do I need?</h3>
+<p>Conventional loans typically require 620+, FHA loans accept 580+, and VA loans have no minimum. However, scores above 740 get the best rates, with significant improvements at 760+.</p>`,
+
+            investment: `<h2>Common Investment Questions Answered</h2>
+
+<h3>Q: How much should I invest?</h3>
+<p>Start with what you can afford after building a 3-6 month emergency fund. Aim for 10-15% of income initially, increasing with raises. Even $100 monthly makes a significant long-term difference.</p>
+
+<h3>Q: Index funds or individual stocks?</h3>
+<p>For most investors, low-cost index funds provide optimal diversification and returns. Individual stock picking requires significant time and expertise with no guarantee of outperformance.</p>
+
+<h3>Q: Traditional or Roth IRA?</h3>
+<p>Choose Roth if you expect higher tax rates in retirement or are young. Traditional works better for high earners expecting lower retirement tax rates. Consider splitting contributions between both.</p>
+
+<h3>Q: How often should I check my investments?</h3>
+<p>Review quarterly but avoid daily monitoring that encourages emotional decisions. Annual rebalancing is typically sufficient for long-term investors.</p>
+
+<h3>Q: What about market crashes?</h3>
+<p>Market corrections are normal and create buying opportunities for long-term investors. Historical data shows patient investors recover from all major crashes when properly diversified.</p>`,
+
+            loan: `<h2>Personal Loan FAQs</h2>
+
+<h3>Q: What's a good interest rate?</h3>
+<p>Rates vary by credit score. Excellent credit (750+) may qualify for 6-10%, good credit (700-749) typically sees 11-15%, while fair credit faces 16-20% or higher.</p>
+
+<h3>Q: How much can I borrow?</h3>
+<p>Most lenders offer $1,000-50,000, with some extending to $100,000. Approval amounts depend on income, credit score, and debt-to-income ratio, typically capped at 40% DTI.</p>
+
+<h3>Q: Should I use a personal loan for debt consolidation?</h3>
+<p>Yes, if the loan rate is lower than your current debts and you're committed to not accumulating new debt. Consolidating 18% credit cards with a 12% loan saves significant interest.</p>
+
+<h3>Q: How fast can I get funds?</h3>
+<p>Online lenders often fund within 1-2 business days after approval. Traditional banks may take 3-7 days. Some lenders offer same-day funding for existing customers.</p>
+
+<h3>Q: Will shopping for loans hurt my credit?</h3>
+<p>Multiple loan inquiries within 14-45 days typically count as one inquiry for scoring purposes. Get all quotes within this window to minimize impact.</p>`,
+
+            insurance: `<h2>Life Insurance Questions Answered</h2>
+
+<h3>Q: Term or whole life insurance?</h3>
+<p>Term insurance is best for most people, providing maximum coverage at minimum cost. Whole life combines insurance with investment but costs 10-20x more for the same coverage.</p>
+
+<h3>Q: How much coverage do I need?</h3>
+<p>Calculate 8-12x annual income plus outstanding debts and future obligations like college funding. A $75,000 earner with a mortgage might need $750,000-1,000,000 in coverage.</p>
+
+<h3>Q: When should I buy life insurance?</h3>
+<p>Buy when others depend on your income or you have significant debts. Young parents and new homeowners have the greatest need. Starting young locks in lower rates.</p>
+
+<h3>Q: What affects my premiums?</h3>
+<p>Age, health, lifestyle, coverage amount, and term length determine rates. Smoking can double premiums. Weight, medical conditions, and dangerous hobbies also increase costs.</p>
+
+<h3>Q: Can I change my coverage later?</h3>
+<p>Many term policies offer conversion options to permanent insurance without medical exams. You can also reduce coverage amounts but increasing requires new underwriting.</p>`
+        };
+
+        return faqs[calculatorType] || `<h2>FAQs</h2><p>Common questions about ${calculatorType}.</p>`;
+    }
+
+    generateRegionalInsights(calculatorType, marketData) {
+        const insights = {
+            mortgage: `<h2>Regional Market Variations</h2>
+<p>Mortgage markets vary significantly by region, with local economic conditions, regulations, and supply-demand dynamics creating distinct opportunities and challenges across different areas.</p>
+
+<h3>High-Cost Coastal Markets</h3>
+<p>Markets like San Francisco, New York, and Seattle face unique challenges with median home prices exceeding $800,000. Jumbo loans are common, requiring larger down payments and featuring rates approximately 0.25-0.5% higher than conforming loans. Consider ARMs more seriously in these markets as buyers often relocate before rate adjustments.</p>
+
+<h3>Emerging Growth Markets</h3>
+<p>Cities like Austin, Phoenix, and Raleigh offer better affordability but face rapid appreciation. These markets may offer opportunities for building equity quickly but require careful timing and competitive offer strategies. First-time buyer programs are often more generous in these areas.</p>
+
+<h3>Rural and Small Town Markets</h3>
+<p>USDA loans offer 100% financing in eligible rural areas, providing unique opportunities for buyers. These markets typically feature lower prices but may have limited inventory and slower appreciation. Local banks and credit unions often provide the most competitive terms.</p>`,
+
+            investment: `<h2>Geographic Investment Considerations</h2>
+<p>Investment opportunities and strategies vary by region, influenced by local economic conditions, tax structures, and demographic trends.</p>
+
+<h3>State Tax Implications</h3>
+<p>High-tax states like California and New York make tax-advantaged accounts even more valuable. Consider municipal bonds for high earners in these states. States with no income tax like Texas and Florida offer different optimization strategies.</p>
+
+<h3>Regional Economic Factors</h3>
+<p>Tech-heavy regions may benefit from growth stock strategies, while energy-dependent areas might favor dividend-focused approaches. Diversify beyond your local economy to reduce concentration risk from regional downturns.</p>
+
+<h3>International Considerations</h3>
+<p>Expatriates and international workers face unique challenges including currency risk, tax treaty implications, and restricted investment account access. Consider specialized advisors familiar with cross-border financial planning.</p>`,
+
+            loan: `<h2>Regional Lending Variations</h2>
+<p>Personal loan availability and terms vary by state regulations and local market conditions, creating different opportunities across regions.</p>
+
+<h3>State Interest Rate Caps</h3>
+<p>Some states cap interest rates, protecting borrowers but potentially limiting options. States like New York cap rates at 16% while others have no limits. Understand your state's regulations before shopping.</p>
+
+<h3>Credit Union Advantages</h3>
+<p>Regional credit unions often offer better rates than national lenders, particularly in states with strong credit union presence like Washington and Oregon. Membership requirements vary but often include geographic eligibility.</p>
+
+<h3>Online vs Local Lenders</h3>
+<p>Urban areas typically have more competitive online lending options, while rural areas may find better service and terms with community banks that understand local conditions.</p>`,
+
+            insurance: `<h2>Regional Insurance Market Differences</h2>
+<p>Life insurance costs and availability vary by state regulations, regional health trends, and local market competition.</p>
+
+<h3>State Regulations Impact</h3>
+<p>States like New York have strict insurance regulations that limit product options but provide strong consumer protections. Other states offer more product variety but require careful provider evaluation.</p>
+
+<h3>Regional Health Factors</h3>
+<p>Areas with higher obesity rates, smoking prevalence, or dangerous occupations may face higher average premiums. Healthy individuals in these areas can benefit more from shopping multiple carriers.</p>
+
+<h3>Cost of Living Adjustments</h3>
+<p>Insurance needs vary dramatically between high and low cost areas. A $500,000 policy might be excessive in rural areas but insufficient in expensive coastal cities. Adjust coverage based on local replacement costs.</p>`
+        };
+
+        return insights[calculatorType] || `<h2>Regional Insights</h2><p>Geographic variations in ${calculatorType} markets.</p>`;
+    }
+
+    generateSingleCallToAction(calculatorType) {
+        return `<div class="cta-box">
+<h3>Ready to Make Informed ${this.getTypeDisplayName(calculatorType)} Decisions?</h3>
+<p>Use our advanced ${calculatorType} calculator to apply these insights to your specific situation. Get personalized recommendations and connect with verified lenders who can help you achieve your financial goals.</p>
+<p><strong>Our calculator helps you:</strong></p>
+<ul>
+<li>Calculate exact payments and total costs based on current market rates</li>
+<li>Compare multiple scenarios to find your optimal strategy</li>
+<li>Get matched with competitive lenders for your profile</li>
+<li>Save time and money with personalized recommendations</li>
+</ul>
+<p style="text-align: center; margin-top: 20px;">
+<a href="https://calculiq.com/#calculators" style="background: #646cff; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+Launch ${this.getTypeDisplayName(calculatorType)} Calculator →
+</a>
+</p>
+</div>`;
+    }
+
+    generateExcerpt(content) {
+        // Remove HTML tags
+        const textContent = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        // Find the first substantial sentence
+        const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [];
+        
+        for (const sentence of sentences) {
+            const cleaned = sentence.trim();
+            if (cleaned.length > 50 && !cleaned.includes(':')) {
+                return cleaned.length > 160 ? cleaned.substring(0, 157) + '...' : cleaned;
+            }
+        }
+        
+        // Fallback
+        return textContent.substring(0, 157) + '...';
+    }
+
+    async fetchCurrentMarketData() {
+        try {
+            const fredKey = process.env.FRED_API_KEY || 'a0e7018e6c8ef001490b9dcb2196ff3c';
+            
+            const mortgage30Response = await axios.get(
+                `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+            );
+            
+            const mortgage15Response = await axios.get(
+                `https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE15US&api_key=${fredKey}&file_type=json&limit=1&sort_order=desc`
+            );
+            
+            const mortgage30Rate = parseFloat(mortgage30Response.data.observations[0].value);
+            const mortgage15Rate = parseFloat(mortgage15Response.data.observations[0].value);
+            
+            return {
+                rates: {
+                    mortgage: {
+                        thirtyYear: mortgage30Rate.toFixed(2),
+                        fifteenYear: mortgage15Rate.toFixed(2),
+                        jumbo: (mortgage30Rate + 0.5).toFixed(2),
+                        lastUpdated: mortgage30Response.data.observations[0].date
+                    }
+                },
+                markets: {
+                    sp500: "0.5",
+                    nasdaq: "0.8",
+                    dow: "0.3"
+                }
+            };
+            
+        } catch (error) {
+            console.error('Market data fetch error:', error.message);
+            return this.getFallbackMarketData();
+        }
+    }
+
+    getFallbackMarketData() {
+        return {
+            rates: {
+                mortgage: {
+                    thirtyYear: "7.1",
+                    fifteenYear: "6.6",
+                    jumbo: "7.6",
+                    lastUpdated: new Date().toISOString()
+                }
+            },
+            markets: {
+                sp500: "0.0",
+                nasdaq: "0.0",
+                dow: "0.0"
+            }
+        };
+    }
+
+    createSlug(title) {
+        return title
+            .toLowerCase()
+            .replace(/[^a-z0-9 -]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .substring(0, 100);
+    }
+
+    // Calculation helper methods
+    calculateMortgagePayment(principal, rate, years) {
+        const monthlyRate = rate / 100 / 12;
+        const numPayments = years * 12;
+        if (monthlyRate === 0) return principal / numPayments;
+        return Math.round(principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1));
+    }
+
+    calculateTotalInterest(principal, rate, years) {
+        const payment = this.calculateMortgagePayment(principal, rate, years);
+        return Math.round(payment * years * 12 - principal);
+    }
+
+    calculateMonthlySavings(principal, rateDiff) {
+        const higherPayment = this.calculateMortgagePayment(principal, 7.5, 30);
+        const lowerPayment = this.calculateMortgagePayment(principal, 7.0, 30);
+        return Math.round(higherPayment - lowerPayment);
+    }
+
+    calculateLifetimeSavings(principal, rateDiff, years) {
+        return this.calculateMonthlySavings(principal, rateDiff) * years * 12;
+    }
+
+    calculateLoanPayment(amount, rate, years) {
+        const monthlyRate = rate / 100 / 12;
+        const numPayments = years * 12;
+        if (monthlyRate === 0) return amount / numPayments;
+        return Math.round(amount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1));
+    }
+
+    calculateInvestmentGrowth(initial, monthly, rate, years) {
+        const monthlyRate = rate / 100 / 12;
+        const months = years * 12;
+        
+        // Future value of initial investment
+        const fvInitial = initial * Math.pow(1 + rate/100, years);
+        
+        // Future value of monthly contributions
+        const fvMonthly = monthly * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+        
+        return Math.round(fvInitial + fvMonthly);
+    }
+
+    calculateDelayPenalty(initial, monthly, rate, delayYears) {
+        const totalYears = 30;
+        const earlyStart = this.calculateInvestmentGrowth(initial, monthly, rate, totalYears);
+        const lateStart = this.calculateInvestmentGrowth(initial, monthly, rate, totalYears - delayYears);
+        return earlyStart - lateStart;
+    }
+
+    estimateInsurancePremium(coverage, age) {
+        // Rough estimates for healthy non-smokers
+        const baseRate = 0.15; // $0.15 per $1000 of coverage per year at age 30
+        const ageMultiplier = 1 + ((age - 30) * 0.08); // 8% increase per year over 30
+        return Math.round(coverage / 1000 * baseRate * ageMultiplier * 12);
+    }
+}
+
+module.exports = DynamicBlogGenerator;
