@@ -503,12 +503,13 @@ case 'insurance':
             <li>Cost as % of Income: ${((monthlyPremium * 12 / scenario.income) * 100).toFixed(1)}%</li>
         </ul>
         
-        <p><em>Key Insight: This coverage would ensure your family maintains their standard of living for ${scenario.years} years while paying off all debts. Consider a ${scenario.years}-year term policy for optimal cost-effectiveness.</em></p>
+<p><em>Key Insight: This coverage would ensure your family maintains their standard of living for ${scenario.years} years while paying off all debts. Consider a ${scenario.years}-year term policy for optimal cost-effectiveness.</em></p>
     </div>\n`;
 
 default:
     return '';
 }
+    }
     async generateArticle(calculatorType) {
         try {
             console.log(`Generating comprehensive ${calculatorType} blog (1500+ words)...`);
