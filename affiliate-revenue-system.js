@@ -78,7 +78,7 @@ class CalculiQAffiliateSystem {
 
         for (const tableSQL of tables) {
             await new Promise((resolve, reject) => {
-                this.db.run(tableSQL, (err) => {
+                this.dbrun(tableSQL, (err) => {
                     if (err) {
                         console.error('Affiliate table creation error:', err);
                         reject(err);
@@ -464,7 +464,7 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
     async trackAffiliateClick(leadUid, partnerId, trackingId, clickData = {}) {
         try {
             await new Promise((resolve, reject) => {
-                this.db.run(
+                this.dbrun(
                     `INSERT INTO affiliate_clicks (
                         lead_uid, affiliate_program, tracking_id, click_data,
                         ip_address, user_agent, referrer
@@ -498,7 +498,7 @@ console.log(`✅ ${this.affiliatePartners.size} affiliate programs initialized`)
             const commission = this.calculateActualCommission(partner, conversionData);
 
             await new Promise((resolve, reject) => {
-                this.db.run(
+                this.dbrun(
                     `UPDATE affiliate_clicks SET 
                         converted = TRUE,
                         conversion_value = ?,
