@@ -706,4 +706,4 @@ Carefully review your policy documents, confirm beneficiary designations are cor
 <li><strong>Key Person Coverage:</strong> Protect business cash flow against loss of critical employees</li>
 <li><strong>Charitable Giving:</strong> Use life insurance to replace wealth donated to charity</li>
 <li><strong>Generation-Skipping:</strong> Structure policies to benefit grandchildren while minimizing estate taxes</li>
-</ul>`
+</ul>
