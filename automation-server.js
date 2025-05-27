@@ -121,22 +121,25 @@ class CalculiQAutomationServer {
         });
     }
 
-    async initializeDatabase() {
-        try {
-            // Use DATABASE_URL from Railway
-            const connectionConfig = {
-                connectionString: process.env.DATABASE_URL,
-                ssl: process.env.NODE_ENV === 'production' ? {
-                    rejectUnauthorized: false
-                } : false
-            };
-            
-            this.db = new Pool(connectionConfig);
-            
-            // Test connection
-            await this.db.query('SELECT NOW()');
-            console.log('✅ PostgreSQL connection successful');
-            
+async initializeDatabase() {
+    try {
+        if (!process.env.DATABASE_URL) {
+            console.log('⚠️ No DATABASE_URL found, running without database');
+            this.db = null;
+            return;
+        }
+        
+        this.db = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: {
+                rejectUnauthorized: false
+            },
+            connectionTimeoutMillis: 10000  // 10 second timeout
+        });
+        
+        // Test connection
+        await this.db.query('SELECT NOW()');
+        console.log('✅ PostgreSQL database connected');
             // Create all tables with PostgreSQL syntax
             const tables = [
                 `CREATE TABLE IF NOT EXISTS visitors (
@@ -310,13 +313,12 @@ class CalculiQAutomationServer {
             // Initialize subsystems after database is ready
             await this.initializeSubsystems();
             
-        } catch (error) {
-            console.error('❌ Database initialization failed:', error);
-            console.error('Continuing without database functionality...');
-            this.db = null;
-        }
+    } catch (error) {
+        console.error('⚠️ Database connection failed:', error.message);
+        console.log('📌 Server will continue without database functionality');
+        this.db = null;
     }
-
+}
     async initializeSubsystems() {
         try {
             // Initialize lead capture system with PostgreSQL pool
@@ -1091,19 +1093,20 @@ Within the article, naturally mention and link to our insurance calculator for c
             }
         });
 
-        this.app.get('/health', (req, res) => {
-            try {
-                res.json({ 
-                    status: 'OK', 
-                    uptime: process.uptime(),
-                    timestamp: Date.now(),
-                    message: 'CalculiQ server is running'
-                });
-            } catch (error) {
-                res.status(500).json({ status: 'ERROR', message: error.message });
-            }
-        });
+this.app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
 
+this.app.get('/api/automation-status', (req, res) => {
+    res.json({ 
+        success: true, 
+        status: {
+            serverRunning: true,
+            databaseConnected: this.db !== null,
+            timestamp: new Date().toISOString()
+        }
+    });
+});
         // Manual database initialization endpoint
         this.app.get('/api/init-tables', async (req, res) => {
             try {
@@ -2562,17 +2565,16 @@ Within the article, naturally mention and link to our insurance calculator for c
         `;
     }
 
-   // Start the server
-    start() {
-        console.log('📍 Start method called, preparing to listen...');
-        const port = process.env.PORT || 3001;
-        const host = process.env.HOST || '0.0.0.0';
-        
-        console.log(`📍 Will listen on ${host}:${port}`);
-        
-        this.app.listen(port, host, () => {
-            console.log(`✅ Server is now listening on ${host}:${port}`);
-            console.log(`
+// Start the server
+start() {
+    const port = process.env.PORT || 3001;  // Railway provides PORT
+    const host = '0.0.0.0';  // MUST be 0.0.0.0 for Railway
+    
+    console.log(`📍 Will listen on ${host}:${port}`);
+    
+    this.app.listen(port, host, () => {
+        console.log(`✅ Server is now listening on ${host}:${port}`);
+        console.log(`
 🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
 
 ✅ Host: ${host}:${port}
@@ -2590,16 +2592,21 @@ Within the article, naturally mention and link to our insurance calculator for c
 🎯 Lead capture system is ready
 
 ⚡ Your CalculiQ server is LIVE!
-            `);
-        });
+        `);
+    });
 
-        // Graceful shutdown
-        process.on('SIGTERM', () => {
-            console.log('SIGTERM signal received: closing HTTP server');
-            if (this.db) {
-                this.db.end();
-            }
-            process.exit(0);
-        });
-    }
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('SIGTERM signal received: closing HTTP server');
+        if (this.db) {
+            this.db.end();
+        }
+        process.exit(0);
+    });
 }
+
+}  // This closes the class
+
+// Initialize and start server
+const server = new CalculiQAutomationServer();
+server.start();
