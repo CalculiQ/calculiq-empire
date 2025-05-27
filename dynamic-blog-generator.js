@@ -1,5 +1,78 @@
-// ORIGINAL COMPREHENSIVE METHODS (Keep all existing functionality)
-    
+// dynamic-blog-generator.js
+// Complete Enhanced Blog Generator for CalculiQ
+// Fixed version with proper class structure
+
+const axios = require('axios');
+
+class DynamicBlogGenerator {
+    constructor() {
+        // Expanded title patterns - now 30+ templates
+        this.titlePatterns = [
+            "How to Save $X on Your {type} in {year}",
+            "The Smart Person's Guide to {type} in {year}",
+            "{number} Ways to Get Better {type} Results",
+            "Why {year} is the Perfect Time for {type}",
+            "The Complete {type} Strategy for {year}",
+            "What You Need to Know About {type} Right Now",
+            "{type} Secrets That Could Save You Thousands",
+            "The {year} {type} Landscape: What's Changed",
+            "Smart {type} Moves for Today's Market",
+            "From Confusion to Clarity: Your {type} Guide",
+            "The Ultimate {type} Playbook for {year}",
+            "Breaking Down {type}: A Step-by-Step Analysis",
+            // New patterns added for variety
+            "Is This the Right Time for Your {type}?",
+            "{number} {type} Mistakes That Cost You Money",
+            "The Hidden Truth About {type} in {year}",
+            "Why Smart Buyers Choose {type} Differently",
+            "Your {month} {type} Action Plan",
+            "{type} Strategies the Experts Use",
+            "The Real Cost of {type} Mistakes",
+            "How {type} Changed in {year} (And What It Means)",
+            "Before You Commit to {type}: Read This",
+            "{number} Questions to Ask About {type}",
+            "The {type} Decision: A Data-Driven Guide",
+            "Maximizing Your {type} in a Changing Market",
+            "What's New in {type} for {month} {year}",
+            "The Beginner's Guide to {type} Success",
+            "{type} in {year}: Opportunities and Risks",
+            "Making Sense of {type} in Today's Economy",
+            "The {number}-Step {type} Checklist",
+            "Avoid These {number} {type} Pitfalls"
+        ];
+        
+        this.currentYear = new Date().getFullYear();
+        this.currentMonth = new Date().toLocaleDateString('en-US', { month: 'long' });
+        this.currentSeason = this.getCurrentSeason();
+        
+        // Content variation system
+        this.contentVariator = new ContentVariator();
+        
+        // Fact database for sprinkling throughout articles
+        this.factDatabase = new FactDatabase();
+        
+        // Track used combinations to ensure variety
+        this.recentTitles = new Set();
+        
+        // Article format templates
+        this.articleFormats = {
+            comprehensive: { minSections: 8, maxSections: 12, style: 'detailed' },
+            listicle: { minSections: 5, maxSections: 7, style: 'numbered' },
+            story: { minSections: 6, maxSections: 8, style: 'narrative' },
+            quickGuide: { minSections: 4, maxSections: 6, style: 'concise' },
+            comparison: { minSections: 5, maxSections: 7, style: 'analytical' },
+            dataFocused: { minSections: 6, maxSections: 9, style: 'statistical' }
+        };
+    }
+
+    getCurrentSeason() {
+        const month = new Date().getMonth();
+        if (month < 3) return 'winter';
+        if (month < 6) return 'spring';
+        if (month < 9) return 'summer';
+        return 'fall';
+    }
+  
     // New section: Seasonal content
     generateSeasonalContent(calculatorType, marketData) {
         const seasonalContent = {
