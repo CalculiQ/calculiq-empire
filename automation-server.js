@@ -2482,12 +2482,16 @@ CRITICAL VARIETY REQUIREMENTS:
         `;
     }
 
-    // Start the server
+   // Start the server
     start() {
+        console.log('📍 Start method called, preparing to listen...');
         const port = process.env.PORT || 3001;
         const host = process.env.HOST || '0.0.0.0';
         
+        console.log(`📍 Will listen on ${host}:${port}`);
+        
         this.app.listen(port, host, () => {
+            console.log(`✅ Server is now listening on ${host}:${port}`);
             console.log(`
 🚀 CALCULIQ AUTOMATION SERVER RUNNING ON PORT ${port}
 
@@ -2520,18 +2524,38 @@ CRITICAL VARIETY REQUIREMENTS:
     }
 }
 
+// Add error handlers OUTSIDE the class
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('❌ Unhandled Rejection:', error);
+    process.exit(1);
+});
+
 // Start the server
 async function startServer() {
-    const server = new CalculiQAutomationServer();
-    
-    // Wait for async initialization to complete
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    server.start();
+    try {
+        console.log('🚀 Creating CalculiQ server instance...');
+        const server = new CalculiQAutomationServer();
+        
+        console.log('⏳ Waiting 3 seconds for async initialization...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        console.log('🌐 Starting HTTP server...');
+        server.start();
+        
+        console.log('✅ Server start sequence complete');
+    } catch (error) {
+        console.error('❌ Server startup failed:', error);
+        process.exit(1);
+    }
 }
 
 startServer().catch(error => {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
 });
 
