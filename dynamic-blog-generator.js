@@ -551,14 +551,14 @@ class DynamicBlogGenerator {
 
     async generateArticle(calculatorType) {
         try {
-            console.log(`📝 Generating comprehensive ${calculatorType} blog (1500+ words)...`);
+            console.log(`Generating comprehensive ${calculatorType} blog (1500+ words)...`);
             
             // Get real market data
             const marketData = await this.fetchCurrentMarketData();
             
             // Choose random article format
             const formatType = this.selectArticleFormat();
-            console.log(`📑 Using format: ${formatType}`);
+            console.log(`Using format: ${formatType}`);
             
             const title = this.generateDynamicTitle(calculatorType);
             const slug = this.createSlug(title);
@@ -566,7 +566,7 @@ class DynamicBlogGenerator {
             const excerpt = this.generateExcerpt(content);
             const metaDescription = excerpt.length > 160 ? excerpt.substring(0, 157) + '...' : excerpt;
 
-            console.log(`✅ Generated ${this.countWords(content)} words for ${calculatorType} article`);
+            console.log(`Generated ${this.countWords(content)} words for ${calculatorType} article`);
 
             return {
                 title,
