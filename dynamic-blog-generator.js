@@ -74,8 +74,35 @@ const completion = await openai.chat.completions.create({
         
         // Parse the response to extract title and content
         const lines = responseText.split('\n');
-	const title = lines[0].replace(/^#\s*/, '').replace(/^Title:\s*/i, '').trim();
-        const content = lines.slice(1).join('\n').trim();
+        const title = lines[0].replace(/^#\s*/, '').replace(/^Title:\s*/i, '').trim();
+        let content = lines.slice(1).join('\n').trim();
+        
+        // Check if content appears to be cut off
+        const lastLine = content.trim().split('\n').pop();
+        const appearsIncomplete = 
+            !lastLine.endsWith('.') && 
+            !lastLine.endsWith('!') && 
+            !lastLine.endsWith('?') &&
+            !lastLine.endsWith('*') &&
+            !content.includes('calculator');
+        
+        // Check if the article has a proper ending
+        const hasProperEnding = 
+            content.includes('Next 7 Days') || 
+            content.includes('Action Plan') ||
+            content.includes('calculator') ||
+            content.includes('Calculate Your') ||
+            content.includes('Get Started');
+        
+        if (appearsIncomplete || !hasProperEnding) {
+            // Add a transition if the content was cut off
+            if (appearsIncomplete) {
+                content += '\n\n## Take Action Today\n\nThe market won\'t wait, and neither should you.';
+            }
+            
+            // Add the calculator CTA
+            content += '\n\n' + this.generateCalculatorCTA(calculatorType);
+        }
         
         const slug = this.createSlug(title);
         
@@ -179,13 +206,14 @@ SEO REQUIREMENTS:
 CRITICAL LENGTH REQUIREMENT: This article MUST be at least 2,000 words. Short articles will be rejected.
 
 MANDATORY ARTICLE SECTIONS (MINIMUM word counts - aim for MORE):
+
 1. Today's Market Reality (300+ words)
    - Open with this week's most important development
    - Current ${calculatorType} rates and what changed  
    - Why this matters RIGHT NOW
    - Include specific examples and calculations
 
-2. Three Detailed Scenarios (800+ words)
+2. Three Detailed Scenarios (600+ words)  // Reduced from 800
    - DETAILED walkthrough of each scenario
    - Show full calculations and monthly/yearly impacts
    - Compare multiple options within each scenario
@@ -194,26 +222,28 @@ MANDATORY ARTICLE SECTIONS (MINIMUM word counts - aim for MORE):
    - Show how this week's rates affect each scenario
    - Include specific dollar amounts and timeframes
 
-3. Hidden Opportunities This Week (400 words)
+3. Hidden Opportunities This Week (300 words)  // Reduced from 400
    - What the rate ${context.marketData.trend} trend creates
    - Specific strategies that work in ${context.seasonalFactors}
    - Time-sensitive advantages
 
-4. Regional/Demographic Variations (300 words)
-   - How high-cost vs. low-cost areas differ
-   - Age-based strategy differences
-   - Income level considerations
-
-5. Common Mistakes in Current Market (300 words)
+4. Common Mistakes in Current Market (250 words)  // Reduced from 300
    - What worked 6 months ago but doesn't now
    - Misconceptions about current ${calculatorType} market
    - Real cost of waiting vs. acting
 
-6. Your Next 7 Days Action Plan (300 words)
+5. Your Next 7 Days Action Plan (250 words)  // Reduced from 300
    - Day 1-2: What to research/calculate
    - Day 3-4: Who to contact and what to ask
    - Day 5-7: Decisions to make
    - Include: "Use our ${calculatorType} calculator to run your scenarios"
+
+6. Calculator CTA (REQUIRED - 100 words)
+   - Direct link to use our ${calculatorType} calculator
+   - Specific benefit of using it RIGHT NOW
+   - Clear call-to-action
+
+Total: 1,800+ words of dense, valuable content  // Reduced from 2,000+
 
 Total: 2,000+ words of dense, valuable content
 
@@ -505,6 +535,74 @@ Begin with your analytical title and article:`;
             .replace(/\s+/g, '-')
             .replace(/-+/g, '-')
             .substring(0, 80) + '-' + dateSuffix;
+    }
+
+generateCalculatorCTA(calculatorType) {
+        // Try to get the current rate from the context if available
+        const currentRate = this.verifiedData?.marketData?.rates?.thirtyYear || '7.125%';
+        
+        const ctas = {
+            mortgage: `
+## Ready to See Your Numbers?
+
+Don't leave your biggest financial decision to guesswork. With mortgage rates at ${currentRate}, every calculation matters.
+
+**[Use our free mortgage calculator](/)** to:
+- See your exact monthly payment with today's rates
+- Compare 15-year vs 30-year options instantly  
+- Calculate how much home you can afford
+- Discover your total interest savings opportunities
+
+**[Calculate Your Mortgage Now →](/#calculators)**
+
+*Takes less than 60 seconds. No email required to start.*`,            
+            investment: `
+## Calculate Your Investment Growth
+
+Market conditions are changing daily. See exactly how your money could grow with current opportunities.
+
+**[Try our investment calculator](/)** to:
+- Project your portfolio growth over time
+- Compare different investment strategies
+- See the real impact of starting today vs waiting
+- Calculate your path to financial independence
+
+**[Start Your Calculation →](/#calculators)**
+
+*Free, instant results. No signup needed.*`,
+            
+            loan: `
+## Compare Your Loan Options
+
+With current lending rates, the difference between loans can be thousands of dollars.
+
+**[Use our loan calculator](/)** to:
+- Compare monthly payments across different terms
+- See total interest costs upfront
+- Find your break-even point for refinancing
+- Calculate debt consolidation savings
+
+**[Calculate Your Best Option →](/#calculators)**
+
+*Get clarity in under a minute.*`,
+            
+            insurance: `
+## Get Your Coverage Estimate
+
+Don't overpay or underinsure. Know exactly what coverage you need.
+
+**[Use our insurance calculator](/)** to:
+- Calculate your family's coverage needs
+- Compare term lengths and costs
+- See monthly premium estimates
+- Find your optimal coverage amount
+
+**[Calculate Your Coverage →](/#calculators)**
+
+*Fast, free, and no obligations.*`
+        };
+        
+        return ctas[calculatorType] || ctas.mortgage;
     }
 }
 
