@@ -67,61 +67,75 @@ const completion = await openai.chat.completions.create({
         }
     ],
     temperature: 0.8,
-    max_tokens: 4096  // Increased from 4000
+    max_tokens: 4096  // Maximum supported by gpt-4-turbo-preview
 });
 
-        const responseText = completion.choices[0].message.content;
-        
-        // Parse the response to extract title and content
-        const lines = responseText.split('\n');
-        const title = lines[0].replace(/^#\s*/, '').replace(/^Title:\s*/i, '').trim();
-        let content = lines.slice(1).join('\n').trim();
-        
-        // Check if content appears to be cut off
-        const lastLine = content.trim().split('\n').pop();
-        const appearsIncomplete = 
-            !lastLine.endsWith('.') && 
-            !lastLine.endsWith('!') && 
-            !lastLine.endsWith('?') &&
-            !lastLine.endsWith('*') &&
-            !content.includes('calculator');
-        
-        // Check if the article has a proper ending
-        const hasProperEnding = 
-            content.includes('Next 7 Days') || 
-            content.includes('Action Plan') ||
-            content.includes('calculator') ||
-            content.includes('Calculate Your') ||
-            content.includes('Get Started');
-        
-        if (appearsIncomplete || !hasProperEnding) {
-            // Add a transition if the content was cut off
-            if (appearsIncomplete) {
-                content += '\n\n## Take Action Today\n\nThe market won\'t wait, and neither should you.';
-            }
-            
-            // Add the calculator CTA
-            content += '\n\n' + this.generateCalculatorCTA(calculatorType);
-        }
-        
-        const slug = this.createSlug(title);
-        
-        // Extract first paragraph for excerpt
+const responseText = completion.choices[0].message.content;
+
+// Parse the response to extract title and content
+const lines = responseText.split('\n');
+const title = lines[0].replace(/^#\s*/, '').replace(/^Title:\s*/i, '').trim();
+let content = lines.slice(1).join('\n').trim();
+
+// Debug logging
+console.log(`📝 Generated content length: ${content.length} characters`);
+console.log(`📝 Last 200 chars: ...${content.slice(-200)}`);
+
+// Check if content appears to be cut off
+const lastLine = content.trim().split('\n').pop();
+const appearsIncomplete = 
+    !lastLine.endsWith('.') && 
+    !lastLine.endsWith('!') && 
+    !lastLine.endsWith('?') &&
+    !lastLine.endsWith('*') &&
+    !content.includes('calculator');
+
+// Check if the article has a proper ending - UPDATED CHECK
+const hasCalculatorCTA = 
+    content.includes('Calculate Your Mortgage Now') || 
+    content.includes('Start Your Calculation') ||
+    content.includes('Calculate Your Best Option') ||
+    content.includes('Calculate Your Coverage') ||
+    content.includes('Use our free mortgage calculator') ||
+    content.includes('Try our investment calculator') ||
+    content.includes('Use our loan calculator') ||
+    content.includes('Use our insurance calculator');
+
+console.log(`📝 Has calculator CTA: ${hasCalculatorCTA}`);
+console.log(`📝 Appears incomplete: ${appearsIncomplete}`);
+
+// ALWAYS add CTA if it's missing
+if (!hasCalculatorCTA) {
+    // Add a transition if the content was cut off
+    if (appearsIncomplete) {
+        content += '\n\n## Take Action Today\n\nThe market won\'t wait, and neither should you.';
+    }
+    
+    // Add the calculator CTA
+    console.log(`📝 Adding ${calculatorType} calculator CTA`);
+    content += '\n\n' + this.generateCalculatorCTA(calculatorType);
+}
+
+const slug = this.createSlug(title);
+
+// Extract first paragraph for excerpt
 const paragraphs = content.split('\n\n');
 const firstPara = paragraphs.find(p => p.trim().length > 50) || paragraphs[0] || '';
 const cleanFirstPara = firstPara.replace(/[*#_\[\]`]/g, '').trim();
 const excerpt = cleanFirstPara.length > 160 
     ? cleanFirstPara.substring(0, 157) + '...' 
     : (cleanFirstPara || 'Click to read more...');
-        
-        return {
-            title,
-            content,
-            excerpt,
-            slug,
-            calculatorType,
-            metaDescription: excerpt
-        };
+
+console.log(`✅ Article prepared: "${title}" with ${hasCalculatorCTA ? 'existing' : 'added'} CTA`);
+
+return {
+    title,
+    content,
+    excerpt,
+    slug,
+    calculatorType,
+    metaDescription: excerpt
+};
         
     } catch (error) {
         console.error(`Error generating ${calculatorType} article:`, error);
@@ -132,22 +146,25 @@ const excerpt = cleanFirstPara.length > 160
 async gatherVerifiedContext(calculatorType) {
     const context = {
         timestamp: new Date().toISOString(),
-            marketData: await this.fetchVerifiedMarketData(),
-            newsContext: await this.fetchVerifiedNews(calculatorType),
-            calculations: this.generateRealCalculations(calculatorType),
-            regulations: this.getCurrentRegulations(calculatorType),
-            seasonalFactors: this.getSeasonalFactors(),
-            seoKeywords: this.getSEOKeywords(calculatorType)
-        };
-        
-        this.verifiedData.sources = [
-            'Federal Reserve Economic Data (FRED)',
-            'Current market rates as of ' + context.timestamp,
-            'Calculations based on standard financial formulas'
-        ];
-        
-        return context;
-    }
+        marketData: await this.fetchVerifiedMarketData(),
+        newsContext: await this.fetchVerifiedNews(calculatorType),
+        calculations: this.generateRealCalculations(calculatorType),
+        regulations: this.getCurrentRegulations(calculatorType),
+        seasonalFactors: this.getSeasonalFactors(),
+        seoKeywords: this.getSEOKeywords(calculatorType)
+    };
+    
+    // Store the market data for use in CTA
+    this.verifiedData.marketData = context.marketData;
+    
+    this.verifiedData.sources = [
+        'Federal Reserve Economic Data (FRED)',
+        'Current market rates as of ' + context.timestamp,
+        'Calculations based on standard financial formulas'
+    ];
+    
+    return context;
+}
 
     createSafeCreativePrompt(calculatorType, context) {
         const forbiddenPatterns = Array.from(this.publishedPatterns).slice(0, 20);
@@ -203,7 +220,7 @@ SEO REQUIREMENTS:
 - Front-load the most important information in the first paragraph
 - Write a compelling meta description (155 characters) at the end
 
-CRITICAL LENGTH REQUIREMENT: This article MUST be at least 2,000 words. Short articles will be rejected.
+CRITICAL LENGTH REQUIREMENT: This article should be 1,500-1,800 words to ensure all sections are complete including the calculator CTA.
 
 MANDATORY ARTICLE SECTIONS (MINIMUM word counts - aim for MORE):
 
