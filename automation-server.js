@@ -1716,10 +1716,9 @@ this.app.post('/api/preview-prompt', async (req, res) => {
                     --accent-purple: #7b2ff7;
                     --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
                     --text-primary: #ffffff;
-                    --text-secondary: #94a3b8;
-                    --glass-bg: rgba(255, 255, 255, 0.05);
-                    --glass-border: rgba(255, 255, 255, 0.1);
-                }
+		    --text-secondary: #b8c5d6;
+		    --glass-bg: rgba(255, 255, 255, 0.08);
+		    --glass-border: rgba(255, 255, 255, 0.15);
                 
                 * {
                     margin: 0;
@@ -2049,9 +2048,9 @@ this.app.post('/api/preview-prompt', async (req, res) => {
                     --accent-purple: #7b2ff7;
                     --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
                     --text-primary: #ffffff;
-                    --text-secondary: #94a3b8;
-                    --glass-bg: rgba(255, 255, 255, 0.05);
-                    --glass-border: rgba(255, 255, 255, 0.1);
+		    --text-secondary: #b8c5d6;
+		    --glass-bg: rgba(255, 255, 255, 0.08);
+		    --glass-border: rgba(255, 255, 255, 0.15);
                 }
                 
                 * {
@@ -2362,14 +2361,8 @@ this.app.post('/api/preview-prompt', async (req, res) => {
                     <span class="post-category">${post.category || 'Finance'}</span>
                 </div>
                 
-                ${post.content}
-                
-                <div class="cta-box">
-                    <h3>Ready to Calculate Your ${post.category} Strategy?</h3>
-                    <p>Use our advanced ${post.category.toLowerCase()} calculator to get personalized insights and connect with verified lenders.</p>
-                    <a href="/" class="cta-button">Try Our ${post.category} Calculator</a>
-                </div>
-            </article>
+${post.content}
+</article>
             
             <div class="footer-nav">
                 <p>Published ${new Date(post.published_at).toLocaleDateString()}</p>
