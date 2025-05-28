@@ -730,7 +730,6 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
 let article = await generator.generateArticle(calculatorType);
 
 // Clean the article using the cleaner
-const cleaner = new BlogContentCleaner();
 const cleanedArticle = cleaner.cleanBlogPost(article);
 
 // Save to database
