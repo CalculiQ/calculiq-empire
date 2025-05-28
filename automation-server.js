@@ -728,9 +728,6 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             // Generate article
             let article = await generator.generateArticle(calculatorType);
             
-            // Clean any formatting issues
-            article = cleaner.cleanBlogPost(article);
-            
             // Save to database
             await this.saveBlogPost({
                 slug: article.slug,
