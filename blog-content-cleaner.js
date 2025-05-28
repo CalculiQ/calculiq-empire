@@ -90,26 +90,28 @@ class BlogContentCleaner {
         return cleaned;
     }
 
-    convertMarkdownToHTML(markdown) {
-        if (!markdown) return '';
-        
-        let html = markdown;
+convertMarkdownToHTML(markdown) {
+    if (!markdown) return '';
+    
+    let html = markdown;
 
-        // Convert headers (must be at start of line)
-        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-        
-        // Convert bold text FIRST (before other conversions)
-        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        
-        // Convert italic text
-        html = html.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    // Convert headers FIRST (must be at start of line)
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$2</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    
+    // Convert bold text (but not in URLs)
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert italic text
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // Convert links AFTER bold/italic
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
-// Convert lists (only at start of lines)
-html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
-html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    // Convert lists (only at start of lines)
+    html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
 
 // Wrap consecutive <li> elements in <ul>
 html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {

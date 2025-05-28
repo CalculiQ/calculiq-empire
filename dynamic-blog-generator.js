@@ -257,8 +257,6 @@ Total: 1,800+ words of dense, valuable content  // Reduced from 2,000+
 
 Total: 2,000+ words of dense, valuable content
 
-UNIQUE ANGLE FOR THIS ARTICLE:
-${this.getDataDrivenAngle(calculatorType, context)}
 ${context.newsContext.realNewsUsed ? `
 
 CURRENT NEWS CONTEXT:
@@ -682,65 +680,74 @@ generateCalculatorCTA(calculatorType) {
         const currentRate = this.verifiedData?.marketData?.rates?.thirtyYear || '7.125%';
         
         const ctas = {
-            mortgage: `
-## Ready to See Your Numbers?
+mortgage: `
+<div class="calculator-cta-section">
+<h2>Ready to See Your Numbers?</h2>
 
-Don't leave your biggest financial decision to guesswork. With mortgage rates at ${currentRate}, every calculation matters.
+<p>Don't leave your biggest financial decision to guesswork. With mortgage rates at <strong>${currentRate}</strong>, every calculation matters.</p>
 
-**[Use our free mortgage calculator](/)** to:
+<div class="cta-benefits">
+<div class="cta-benefit">✓ See your exact monthly payment</div>
+<div class="cta-benefit">✓ Compare 15 vs 30-year options</div>
+<div class="cta-benefit">✓ Calculate total interest savings</div>
+<div class="cta-benefit">✓ Find your affordable home price</div>
+</div>
 
-- See your exact monthly payment with today's rates
-- Compare 15-year vs 30-year options instantly  
-- Calculate how much home you can afford
-- Discover your total interest savings opportunities
+<a href="/#calculators" class="cta-button-primary">Calculate Your Mortgage Now →</a>
 
-**[Calculate Your Mortgage Now →](/#calculators)**
-
-*Takes less than 60 seconds. No email required to start.*`,            
+<p class="cta-note">Takes less than 60 seconds. No email required to start.</p>
+</div>`,            
             investment: `
-## Calculate Your Investment Growth
+<div class="calculator-cta-section">
+<h2>Calculate Your Investment Growth</h2>
 
-Market conditions are changing daily. See exactly how your money could grow with current opportunities.
+<p>Market conditions are changing daily. See exactly how your money could grow with current opportunities.</p>
 
-**[Try our investment calculator](/)** to:
-- Project your portfolio growth over time
-- Compare different investment strategies
-- See the real impact of starting today vs waiting
-- Calculate your path to financial independence
+<div class="cta-benefits">
+<div class="cta-benefit">✓ Project portfolio growth over time</div>
+<div class="cta-benefit">✓ Compare investment strategies</div>
+<div class="cta-benefit">✓ See impact of starting today</div>
+<div class="cta-benefit">✓ Calculate path to independence</div>
+</div>
 
-**[Start Your Calculation →](/#calculators)**
+<a href="/#calculators" class="cta-button-primary">Start Your Calculation →</a>
 
-*Free, instant results. No signup needed.*`,
-            
+<p class="cta-note">Free, instant results. No signup needed.</p>
+</div>`,            
             loan: `
-## Compare Your Loan Options
+<div class="calculator-cta-section">
+<h2>Compare Your Loan Options</h2>
 
-With current lending rates, the difference between loans can be thousands of dollars.
+<p>With current lending rates, the difference between loans can be thousands of dollars.</p>
 
-**[Use our loan calculator](/)** to:
-- Compare monthly payments across different terms
-- See total interest costs upfront
-- Find your break-even point for refinancing
-- Calculate debt consolidation savings
+<div class="cta-benefits">
+<div class="cta-benefit">✓ Compare monthly payments</div>
+<div class="cta-benefit">✓ See total interest costs</div>
+<div class="cta-benefit">✓ Find refinancing break-even</div>
+<div class="cta-benefit">✓ Calculate consolidation savings</div>
+</div>
 
-**[Calculate Your Best Option →](/#calculators)**
+<a href="/#calculators" class="cta-button-primary">Calculate Your Best Option →</a>
 
-*Get clarity in under a minute.*`,
-            
+<p class="cta-note">Get clarity in under a minute.</p>
+</div>`,            
             insurance: `
-## Get Your Coverage Estimate
+<div class="calculator-cta-section">
+<h2>Get Your Coverage Estimate</h2>
 
-Don't overpay or underinsure. Know exactly what coverage you need.
+<p>Don't overpay or underinsure. Know exactly what coverage you need.</p>
 
-**[Use our insurance calculator](/)** to:
-- Calculate your family's coverage needs
-- Compare term lengths and costs
-- See monthly premium estimates
-- Find your optimal coverage amount
+<div class="cta-benefits">
+<div class="cta-benefit">✓ Calculate coverage needs</div>
+<div class="cta-benefit">✓ Compare term lengths</div>
+<div class="cta-benefit">✓ See premium estimates</div>
+<div class="cta-benefit">✓ Find optimal coverage</div>
+</div>
 
-**[Calculate Your Coverage →](/#calculators)**
+<a href="/#calculators" class="cta-button-primary">Calculate Your Coverage →</a>
 
-*Fast, free, and no obligations.*`
+<p class="cta-note">Fast, free, and no obligations.</p>
+</div>`
         };
         
         return ctas[calculatorType] || ctas.mortgage;

@@ -2299,7 +2299,53 @@ this.app.post('/api/preview-prompt', async (req, res) => {
                     border-radius: 12px;
                     overflow: hidden;
                 }
-                
+
+.calculator-cta-section {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(123, 47, 247, 0.1) 100%);
+    border: 2px solid var(--accent-blue);
+    border-radius: 20px;
+    padding: 40px;
+    margin: 50px 0;
+    text-align: center;
+}
+
+.cta-benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.cta-benefit {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.cta-button-primary {
+    background: var(--accent-gradient);
+    color: white;
+    padding: 18px 45px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    display: inline-block;
+    margin: 20px 0;
+    box-shadow: 0 10px 30px rgba(123, 47, 247, 0.4);
+    transition: all 0.3s ease;
+}
+
+.cta-button-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(123, 47, 247, 0.5);
+}
+
+.cta-note {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 15px;
+}                
+
                 .blog-post th, .blog-post td {
                     padding: 15px;
                     text-align: left;
