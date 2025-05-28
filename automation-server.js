@@ -1430,10 +1430,6 @@ this.app.get('/api/automation-status', (req, res) => {
         // Newsletter statistics
         this.app.get('/api/newsletter-stats', async (req, res) => {
             try {
-
-        // Newsletter statistics
-        this.app.get('/api/newsletter-stats', async (req, res) => {
-            try {
                 const subscribers = await this.getNewsletterSubscriberCount();
                 const lastSent = await this.getLastNewsletterDate();
                 
