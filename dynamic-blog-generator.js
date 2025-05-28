@@ -565,6 +565,7 @@ generateCalculatorCTA(calculatorType) {
 Don't leave your biggest financial decision to guesswork. With mortgage rates at ${currentRate}, every calculation matters.
 
 **[Use our free mortgage calculator](/)** to:
+
 - See your exact monthly payment with today's rates
 - Compare 15-year vs 30-year options instantly  
 - Calculate how much home you can afford

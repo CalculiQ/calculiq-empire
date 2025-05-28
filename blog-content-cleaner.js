@@ -100,7 +100,8 @@ class BlogContentCleaner {
         
         // Convert italic text
         html = html.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
-        
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
         // Convert headers (must be at start of line)
         html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
@@ -108,7 +109,11 @@ class BlogContentCleaner {
         
         // Convert lists
         html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
-        
+        html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+
+// Also handle inline lists
+html = html.replace(/- ([^-\n]+)(?=-|$)/g, '<li>$1</li>');
+
         // Wrap consecutive <li> elements in <ul>
         html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
             return '<ul>' + match + '</ul>';
