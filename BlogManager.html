@@ -371,6 +371,31 @@
             </div>
         </div>
         
+<div class="card">
+                    <h3>📅 Post Scheduling</h3>
+                    <p>Schedule posts for specific times</p>
+                    <input type="datetime-local" id="scheduleTime">
+                    <select id="scheduleType">
+                        <option value="mortgage">Mortgage Post</option>
+                        <option value="investment">Investment Post</option>
+                        <option value="loan">Loan Post</option>
+                        <option value="insurance">Insurance Post</option>
+                    </select>
+                    <button onclick="schedulePost()" class="success">Schedule Post</button>
+                </div>
+                
+                <div class="card">
+                    <h3>🔍 Quality Assurance</h3>
+                    <p>Check prompt quality and uniqueness</p>
+                    <button onclick="previewPrompt('mortgage')" style="background: #3498db;">👁️ Preview Mortgage Prompt</button>
+                    <button onclick="previewPrompt('investment')" style="background: #3498db;">👁️ Preview Investment Prompt</button>
+                    <button onclick="previewPrompt('loan')" style="background: #3498db;">👁️ Preview Loan Prompt</button>
+                    <button onclick="previewPrompt('insurance')" style="background: #3498db;">👁️ Preview Insurance Prompt</button>
+                    <button onclick="checkRepetitionPatterns()" style="background: #9b59b6;">🔄 Check Repetition Patterns</button>
+                    <button onclick="verifyMarketData()" style="background: #2ecc71;">📊 Verify Market Data</button>
+                </div>
+            </div>
+
         <!-- Manage Tab -->
         <div id="manage-tab" class="tab-content">
             <div class="control-grid">
@@ -1013,6 +1038,112 @@
         function saveSettings() {
             setupAutoRefresh();
             log('💾 Settings saved', 'success');
+        }
+
+// Save settings
+        function saveSettings() {
+            setupAutoRefresh();
+            log('💾 Settings saved', 'success');
+        }
+        
+        // Preview prompt function
+        async function previewPrompt(type) {
+            log(`👁️ Previewing ${type} prompt generation...`, 'info');
+            
+            try {
+                const result = await makeRequest('/api/preview-prompt', {
+                    method: 'POST',
+                    body: JSON.stringify({ type: type })
+                });
+                
+                if (result.success) {
+                    // Show the prompt in a modal
+                    const promptModal = document.createElement('div');
+                    promptModal.className = 'modal';
+                    promptModal.style.display = 'block';
+                    promptModal.innerHTML = `
+                        <div class="modal-content" style="max-width: 900px;">
+                            <h2>${type.charAt(0).toUpperCase() + type.slice(1)} Prompt Preview</h2>
+                            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; max-height: 400px; overflow-y: auto;">
+                                <pre style="white-space: pre-wrap; font-size: 12px; font-family: monospace;">${result.prompt}</pre>
+                            </div>
+                            <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <strong>Fingerprint:</strong> ${result.fingerprint.cognitive_seed}<br>
+                                <strong>Timestamp:</strong> ${new Date(result.fingerprint.time).toLocaleString()}<br>
+                                <strong>Day of Year:</strong> ${result.fingerprint.dayOfYear}<br>
+                                <strong>Hour:</strong> ${result.fingerprint.hour}
+                            </div>
+                            <button onclick="this.closest('.modal').remove()" style="margin-top: 20px;">Close</button>
+                        </div>
+                    `;
+                    document.body.appendChild(promptModal);
+                    
+                    log(`✅ Prompt preview loaded for ${type}`, 'success');
+                }
+            } catch (error) {
+                log(`❌ Preview failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Check repetition patterns
+        async function checkRepetitionPatterns() {
+            log('🔄 Checking repetition patterns...', 'info');
+            
+            try {
+                const result = await makeRequest('/api/repetition-patterns');
+                
+                if (result.success && result.patterns) {
+                    log(`📝 Currently avoiding ${result.patterns.length} patterns`, 'info');
+                    log('🚫 Sample forbidden patterns:', 'warning');
+                    result.patterns.slice(0, 10).forEach(pattern => {
+                        log(`  - "${pattern}"`, 'warning');
+                    });
+                    
+                    // Show in modal
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.style.display = 'block';
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <h2>Repetition Patterns Being Avoided</h2>
+                            <p>These ${result.patterns.length} patterns from previous posts are being avoided:</p>
+                            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; max-height: 400px; overflow-y: auto;">
+                                ${result.patterns.map(pattern => `<div style="margin: 5px 0; padding: 5px; border-bottom: 1px solid #ddd;">• ${pattern}</div>`).join('')}
+                            </div>
+                            <button onclick="this.closest('.modal').remove()">Close</button>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                }
+            } catch (error) {
+                log('❌ Failed to check patterns', 'error');
+            }
+        }
+        
+        // Verify market data
+        async function verifyMarketData() {
+            log('📊 Verifying market data sources...', 'info');
+            
+            try {
+                // Generate a test prompt to see what data is being used
+                const result = await makeRequest('/api/preview-prompt', {
+                    method: 'POST',
+                    body: JSON.stringify({ type: 'mortgage' })
+                });
+                
+                if (result.success && result.context) {
+                    const data = result.context;
+                    log('✅ Market Data Verified:', 'success');
+                    log(`📈 30-Year Rate: ${data.marketData.rates.thirtyYear}`, 'info');
+                    log(`📈 15-Year Rate: ${data.marketData.rates.fifteenYear}`, 'info');
+                    log(`📊 Weekly Change: ${data.marketData.weeklyChange}`, 'info');
+                    log(`📅 Data Date: ${data.marketData.rates.dataDate}`, 'info');
+                    log(`🔄 Volatility: ${data.marketData.volatility}`, 'info');
+                    log(`🌟 Seasonal Factor: ${data.seasonalFactors}`, 'info');
+                }
+            } catch (error) {
+                log('❌ Failed to verify market data', 'error');
+            }
         }
         
         // Initialize on load

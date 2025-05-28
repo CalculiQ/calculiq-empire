@@ -1385,6 +1385,52 @@ this.app.get('/api/automation-status', (req, res) => {
             }
         });
 
+ // ADD THESE NEW ENDPOINTS HERE:
+        // Preview prompt endpoint
+        this.app.post('/api/preview-prompt', async (req, res) => {
+            try {
+                const { type } = req.body;
+                const generator = new DynamicBlogGenerator(this.db);
+                const result = await generator.generateArticle(type);
+                
+                // Return the prompt instead of generating content
+                res.json({
+                    success: true,
+                    prompt: result.content,
+                    fingerprint: result.fingerprint,
+                    context: result.context
+                });
+            } catch (error) {
+                res.status(500).json({ success: false, error: error.message });
+            }
+        });
+
+        // Repetition patterns endpoint
+        this.app.get('/api/repetition-patterns', async (req, res) => {
+            try {
+                if (!this.db) {
+                    return res.json({ success: true, patterns: [] });
+                }
+                
+                const result = await this.db.query(
+                    'SELECT title FROM blog_posts WHERE status = $1 ORDER BY published_at DESC LIMIT 20',
+                    ['published']
+                );
+                
+                const patterns = result.rows.map(row => 
+                    row.title.toLowerCase().substring(0, 50)
+                );
+                
+                res.json({ success: true, patterns });
+            } catch (error) {
+                res.status(500).json({ success: false, error: error.message });
+            }
+        });
+
+        // Newsletter statistics
+        this.app.get('/api/newsletter-stats', async (req, res) => {
+            try {
+
         // Newsletter statistics
         this.app.get('/api/newsletter-stats', async (req, res) => {
             try {
