@@ -750,46 +750,51 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         }
     }
 
-    async generateOpenAIBlog(calculatorType, marketData) {
-        // ... Keep existing OpenAI blog generation code ...
-        // (This is a backup method if you want to use OpenAI later)
-        
-        // Get variety in prompts based on date/time
-        const dayOfWeek = new Date().getDay();
-        const weekOfMonth = Math.floor(new Date().getDate() / 7);
-        const hour = new Date().getHours();
-        const varietyIndex = (dayOfWeek + weekOfMonth + hour) % 15;
-        
-        const titlePatterns = [
-            {
-                prefix: "How to",
-                examples: ["How to Save Thousands", "How to Get Better Rates", "How to Choose the Right"]
-            },
-            {
-                prefix: "The",
-                examples: ["The Smart Buyer's Guide", "The Hidden Truth About", "The Complete Playbook"]
-            },
-            {
-                prefix: "Why",
-                examples: ["Why Smart Buyers Choose", "Why Now Is the Time", "Why Rates Matter More Than Ever"]
-            },
-            {
-                prefix: "5/7/10",
-                examples: ["5 Proven Strategies", "7 Insider Secrets", "10 Must-Know Tips"]
-            },
-            {
-                prefix: "What",
-                examples: ["What You Need to Know", "What Experts Recommend", "What Changes Mean for You"]
-            }
-        ];
+async generateOpenAIBlog(calculatorType, marketData) {
+    // Get variety in prompts based on date/time
+    const dayOfWeek = new Date().getDay();
+    const weekOfMonth = Math.floor(new Date().getDate() / 7);
+    const hour = new Date().getHours();
+    const varietyIndex = (dayOfWeek + weekOfMonth + hour) % 15;
+    
+    const titlePatterns = [
+        {
+            prefix: "How to",
+            examples: ["How to Save Thousands", "How to Get Better Rates", "How to Choose the Right"]
+        },
+        {
+            prefix: "The",
+            examples: ["The Smart Buyer's Guide", "The Hidden Truth About", "The Complete Playbook"]
+        },
+        {
+            prefix: "Why",
+            examples: ["Why Smart Buyers Choose", "Why Now Is the Time", "Why Rates Matter More Than Ever"]
+        },
+        {
+            prefix: "5/7/10",
+            examples: ["5 Proven Strategies", "7 Insider Secrets", "10 Must-Know Tips"]
+        },
+        {
+            prefix: "What",
+            examples: ["What You Need to Know", "What Experts Recommend", "What Changes Mean for You"]
+        }
+    ];
 
-        const selectedPattern = titlePatterns[varietyIndex % titlePatterns.length];
-        
-        const prompts = {
-            mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
+    const selectedPattern = titlePatterns[varietyIndex % titlePatterns.length];
+    
+    const prompts = {
+        mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
 Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
 
-CRITICAL TITLE REQUIREMENTS:
+CRITICAL INSTRUCTIONS:
+1. Start with ONLY the title on the first line (no "Title:" prefix)
+2. Leave a blank line after the title
+3. Write the rest of the article in clean markdown format
+4. Use ** for bold text, not HTML tags
+5. Use ## for main headings, ### for subheadings
+6. Use * for bullet points
+
+TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
 - Be specific and benefit-focused
@@ -797,109 +802,134 @@ CRITICAL TITLE REQUIREMENTS:
 
 Within the article, naturally mention and link to our mortgage calculator as a helpful tool.`,
 
-            investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
+        investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
 Include: S&P 500 at ${marketData.markets.sp500}% change, current market conditions.
 
-CRITICAL TITLE REQUIREMENTS:
+CRITICAL INSTRUCTIONS:
+1. Start with ONLY the title on the first line (no "Title:" prefix)
+2. Leave a blank line after the title
+3. Write the rest of the article in clean markdown format
+4. Use ** for bold text, not HTML tags
+5. Use ## for main headings, ### for subheadings
+6. Use * for bullet points
+
+TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
 - Focus on specific outcomes
 
 Within the article, naturally mention and link to our investment calculator as a planning tool.`,
 
-            loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
+        loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
 Include: Current lending environment, consolidation opportunities.
 
-CRITICAL TITLE REQUIREMENTS:
+CRITICAL INSTRUCTIONS:
+1. Start with ONLY the title on the first line (no "Title:" prefix)
+2. Leave a blank line after the title
+3. Write the rest of the article in clean markdown format
+4. Use ** for bold text, not HTML tags
+5. Use ## for main headings, ### for subheadings
+6. Use * for bullet points
+
+TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
 - Address specific pain points
 
 Within the article, naturally mention and link to our loan calculator for comparing options.`,
 
-            insurance: `Write a comprehensive 1,500+ word blog post about protecting your family's financial future for ${new Date().toLocaleDateString()}.
+        insurance: `Write a comprehensive 1,500+ word blog post about protecting your family's financial future for ${new Date().toLocaleDateString()}.
 Include: Life insurance trends, coverage analysis.
 
-CRITICAL TITLE REQUIREMENTS:
+CRITICAL INSTRUCTIONS:
+1. Start with ONLY the title on the first line (no "Title:" prefix)
+2. Leave a blank line after the title
+3. Write the rest of the article in clean markdown format
+4. Use ** for bold text, not HTML tags
+5. Use ## for main headings, ### for subheadings
+6. Use * for bullet points
+
+TITLE REQUIREMENTS:
 - Start with "${selectedPattern.prefix}" pattern
 - Examples: ${selectedPattern.examples.join(', ')}
 - Make it personal and relatable
 
 Within the article, naturally mention and link to our insurance calculator for coverage estimates.`
-        };
+    };
 
-        if (!this.openai) {
-            throw new Error('OpenAI not configured');
-        }
-
-        const completion = await this.openai.chat.completions.create({
-            model: "gpt-4-turbo-preview",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are an expert financial writer creating varied, engaging content. Write in HTML format with proper tags.`
-                },
-                {
-                    role: "user",
-                    content: prompts[calculatorType]
-                }
-            ],
-            temperature: 0.85,
-            max_tokens: 4000
-        });
-
-        const responseText = completion.choices[0].message.content;
-        const cleanedResponse = responseText
-            .replace(/<!DOCTYPE.*?>/i, '')
-            .replace(/<\/?html.*?>/gi, '')
-            .replace(/<\/?head.*?>/gi, '')
-            .replace(/<\/?body.*?>/gi, '')
-            .replace(/<title.*?<\/title>/gi, '')
-            .trim();
-
-        const lines = cleanedResponse.split('\n');
-        const title = lines[0].replace(/^(<.*?>)+/, '').replace(/<.*?>/g, '').trim();
-        const content = lines.slice(1).join('\n');
-        const slug = this.createSlug(title + '-' + new Date().toISOString().split('T')[0]);
-        const htmlContent = this.convertMarkdownToHTML(content);
-
-        // Extract excerpt
-        const cleanTextContent = htmlContent
-            .replace(/<h[1-6]>.*?<\/h[1-6]>/gi, '')
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-        const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
-        let excerpt = '';
-
-        for (const sentence of sentences) {
-            const cleanSentence = sentence.trim();
-            if (cleanSentence.length > 50) {
-                excerpt = cleanSentence.length > 160 
-                    ? cleanSentence.substring(0, 157) + '...' 
-                    : cleanSentence;
-                break;
-            }
-        }
-
-        if (!excerpt && cleanTextContent.length > 50) {
-            excerpt = cleanTextContent.substring(0, 157) + '...';
-        }
-
-        if (!excerpt) {
-            excerpt = `Expert insights on ${calculatorType} strategies and financial planning.`;
-        }
-
-        return {
-            title,
-            content: htmlContent,
-            excerpt,
-            slug,
-            calculatorType,
-            metaDescription: excerpt
-        };
+    if (!this.openai) {
+        throw new Error('OpenAI not configured');
     }
+
+    const completion = await this.openai.chat.completions.create({
+        model: "gpt-4-turbo-preview",
+        messages: [
+            {
+                role: "system",
+                content: `You are an expert financial writer. Write in clean markdown format. Do NOT include any HTML tags or prefixes like "Title:" in your response.`
+            },
+            {
+                role: "user",
+                content: prompts[calculatorType]
+            }
+        ],
+        temperature: 0.85,
+        max_tokens: 4000
+    });
+
+    const responseText = completion.choices[0].message.content;
+    
+    // Use the cleaner to extract and process content
+    const cleaner = new BlogContentCleaner();
+    const extracted = cleaner.extractCleanContent(responseText);
+    
+    if (!extracted || !extracted.title) {
+        // Fallback parsing if extraction fails
+        const lines = responseText.split('\n');
+        const title = cleaner.cleanTitle(lines[0]);
+        const content = cleaner.cleanAndConvertContent(lines.slice(1).join('\n'));
+        
+        extracted = { title, content };
+    }
+    
+    const slug = this.createSlug(extracted.title + '-' + new Date().toISOString().split('T')[0]);
+    
+    // Extract excerpt from the cleaned content
+    const cleanTextContent = extracted.content
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
+    let excerpt = '';
+    
+    for (const sentence of sentences) {
+        const cleanSentence = sentence.trim();
+        if (cleanSentence.length > 50) {
+            excerpt = cleanSentence.length > 160 
+                ? cleanSentence.substring(0, 157) + '...' 
+                : cleanSentence;
+            break;
+        }
+    }
+    
+    if (!excerpt && cleanTextContent.length > 50) {
+        excerpt = cleanTextContent.substring(0, 157) + '...';
+    }
+    
+    if (!excerpt) {
+        excerpt = `Expert insights on ${calculatorType} strategies and financial planning.`;
+    }
+    
+    return {
+        title: extracted.title,
+        content: extracted.content,
+        excerpt: excerpt,
+        slug: slug,
+        calculatorType: calculatorType,
+        metaDescription: excerpt
+    };
+}
 
     // Fixed markdown conversion to handle bold text properly
     convertMarkdownToHTML(markdown) {

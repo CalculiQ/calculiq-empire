@@ -1,5 +1,5 @@
 // blog-content-cleaner.js
-// Cleans AI-generated blog content to remove unwanted prefixes and patterns
+// Fixed version - properly handles markdown and preserves content
 
 class BlogContentCleaner {
     constructor() {
@@ -29,7 +29,7 @@ class BlogContentCleaner {
     cleanBlogPost(blogPost) {
         return {
             title: this.cleanTitle(blogPost.title),
-            content: this.cleanContent(blogPost.content),
+            content: this.cleanAndConvertContent(blogPost.content),
             excerpt: this.cleanExcerpt(blogPost.excerpt),
             slug: blogPost.slug,
             calculatorType: blogPost.calculatorType,
@@ -50,6 +50,11 @@ class BlogContentCleaner {
         // Remove quotes if they wrap the entire title
         cleaned = cleaned.replace(/^["'](.+)["']$/, '$1');
         
+        // Remove any markdown formatting
+        cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1'); // Remove bold
+        cleaned = cleaned.replace(/\*(.+?)\*/g, '$1'); // Remove italic
+        cleaned = cleaned.replace(/^#+\s*/gm, ''); // Remove headers
+        
         // Trim whitespace
         cleaned = cleaned.trim();
         
@@ -61,42 +66,72 @@ class BlogContentCleaner {
         return cleaned;
     }
 
-    cleanContent(content) {
+    cleanAndConvertContent(content) {
         if (!content) return '';
         
         let cleaned = content;
         
-        // Split into lines for line-by-line processing
-        let lines = cleaned.split('\n');
+        // First, convert markdown to HTML
+        cleaned = this.convertMarkdownToHTML(cleaned);
         
-        // Process each line
-        lines = lines.map(line => {
-            // Remove unwanted prefixes from any line
-            let cleanedLine = line;
-            this.unwantedPrefixes.forEach(pattern => {
-                cleanedLine = cleanedLine.replace(pattern, '');
-            });
-            
-            // Remove repetitive opening patterns
-            this.repetitiveOpenings.forEach(pattern => {
-                cleanedLine = cleanedLine.replace(pattern, '');
-            });
-            
-            return cleanedLine.trim();
-        });
-        
-        // Remove empty lines at the beginning
-        while (lines.length > 0 && lines[0] === '') {
-            lines.shift();
-        }
-        
-        // Join lines back together
-        cleaned = lines.join('\n');
-        
-        // Clean up any remaining formatting issues
+        // Then clean up any formatting issues
         cleaned = this.fixFormatting(cleaned);
         
+        // Remove any unwanted prefixes from the beginning
+        const lines = cleaned.split('\n');
+        if (lines.length > 0) {
+            this.unwantedPrefixes.forEach(pattern => {
+                lines[0] = lines[0].replace(pattern, '');
+            });
+        }
+        
+        cleaned = lines.join('\n');
+        
         return cleaned;
+    }
+
+    convertMarkdownToHTML(markdown) {
+        if (!markdown) return '';
+        
+        let html = markdown;
+        
+        // Convert bold text FIRST (before other conversions)
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        
+        // Convert italic text
+        html = html.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+        
+        // Convert headers (must be at start of line)
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        
+        // Convert lists
+        html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+        
+        // Wrap consecutive <li> elements in <ul>
+        html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
+            return '<ul>' + match + '</ul>';
+        });
+        
+        // Convert paragraphs (split by double newlines)
+        const paragraphs = html.split(/\n\n+/);
+        html = paragraphs.map(para => {
+            para = para.trim();
+            
+            // Don't wrap if already has HTML tags
+            if (para && !para.match(/^<[^>]+>/)) {
+                return `<p>${para}</p>`;
+            }
+            return para;
+        }).join('\n\n');
+        
+        // Clean up spacing around block elements
+        html = html.replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
+        html = html.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
+        html = html.replace(/<\/ul>\s*<p>/g, '</ul>\n\n<p>');
+        
+        return html;
     }
 
     cleanExcerpt(excerpt) {
@@ -116,6 +151,10 @@ class BlogContentCleaner {
         
         // Remove HTML tags
         cleaned = cleaned.replace(/<[^>]+>/g, '');
+        
+        // Remove markdown formatting
+        cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1');
+        cleaned = cleaned.replace(/\*(.+?)\*/g, '$1');
         
         // Trim and limit length
         cleaned = cleaned.trim();
@@ -145,6 +184,9 @@ class BlogContentCleaner {
         content = content.replace(/<p>\s*<p>/g, '<p>');
         content = content.replace(/<\/p>\s*<\/p>/g, '</p>');
         
+        // Ensure lists are properly formatted
+        content = content.replace(/<\/li>\s*<li>/g, '</li>\n<li>');
+        
         return content.trim();
     }
 
@@ -161,6 +203,9 @@ class BlogContentCleaner {
         for (let pattern of this.repetitiveOpenings) {
             if (pattern.test(content)) return true;
         }
+        
+        // Check for markdown formatting
+        if (content.includes('**') || content.includes('##')) return true;
         
         return false;
     }
@@ -193,10 +238,11 @@ class BlogContentCleaner {
         let title = '';
         let contentStartIndex = 0;
         
-        // Check if first non-empty line is a title (no HTML tags)
-        for (let i = 0; i < lines.length; i++) {
+        // Look for a title (first non-empty line without HTML)
+        for (let i = 0; i < Math.min(lines.length, 5); i++) {
             const line = lines[i].trim();
             if (line && !line.startsWith('<')) {
+                // This could be our title
                 title = this.cleanTitle(line);
                 contentStartIndex = i + 1;
                 break;
@@ -208,7 +254,7 @@ class BlogContentCleaner {
         
         return {
             title: title,
-            content: this.cleanContent(content)
+            content: this.cleanAndConvertContent(content)
         };
     }
 }
