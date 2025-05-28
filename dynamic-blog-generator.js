@@ -67,7 +67,7 @@ const completion = await openai.chat.completions.create({
         }
     ],
     temperature: 0.8,
-    max_tokens: 8000  // Increased from 4000
+    max_tokens: 4096  // Increased from 4000
 });
 
         const responseText = completion.choices[0].message.content;
