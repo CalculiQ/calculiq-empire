@@ -2,7 +2,7 @@
 // Frontend API helper for CalculiQ dashboards
 
 class CalculiQAPI {
-    constructor(baseUrl = 'http://localhost:3001') {
+constructor(baseUrl = 'https://calculiq.com') {
         this.baseUrl = baseUrl;
     }
 
