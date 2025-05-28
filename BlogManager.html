@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CalculiQ Blog Manager Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #646cff 0%, #7b2ff7 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #646cff 0%, #7b2ff7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button {
+            background: #646cff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background: #5661ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(100, 108, 255, 0.3);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .danger { background: #e74c3c; }
+        .danger:hover { background: #c0392b; }
+        
+        .success { background: #27ae60; }
+        .success:hover { background: #229954; }
+        
+        .warning { background: #f39c12; }
+        .warning:hover { background: #e67e22; }
+        
+        input[type="text"], input[type="datetime-local"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #646cff;
+        }
+        
+        #console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-success { color: #4ec9b0; }
+        .log-error { color: #f14c4c; }
+        .log-info { color: #9cdcfe; }
+        .log-warning { color: #dcdcaa; }
+        
+        .post-item {
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+        
+        .post-item:hover {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .post-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .post-meta {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .post-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        #postsList {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding-right: 10px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin: 20px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background: #f8f9fa;
+        }
+        
+        .tab.active {
+            border-bottom-color: #646cff;
+            color: #646cff;
+            font-weight: 500;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #646cff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 CalculiQ Blog Manager Pro</h1>
+        <p>Advanced blog management interface with real-time analytics</p>
+    </div>
+    
+    <div class="container">
+        <!-- Statistics Dashboard -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalPosts">-</div>
+                <div class="stat-label">Total Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalViews">-</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgViews">-</div>
+                <div class="stat-label">Avg Views/Post</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="todayPosts">-</div>
+                <div class="stat-label">Today's Posts</div>
+            </div>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('generate')">Generate</div>
+            <div class="tab" onclick="switchTab('manage')">Manage</div>
+            <div class="tab" onclick="switchTab('analytics')">Analytics</div>
+            <div class="tab" onclick="switchTab('tools')">Tools</div>
+        </div>
+        
+        <!-- Generate Tab -->
+        <div id="generate-tab" class="tab-content active">
+            <div class="control-grid">
+                <div class="card">
+                    <h3>📝 Generate Blog Posts</h3>
+                    <p>Create new SEO-optimized blog posts</p>
+                    <button onclick="generatePost('mortgage')" class="success">🏠 Generate Mortgage Post</button>
+                    <button onclick="generatePost('investment')" class="success">📈 Generate Investment Post</button>
+                    <button onclick="generatePost('loan')" class="success">💰 Generate Loan Post</button>
+                    <button onclick="generatePost('insurance')" class="success">🛡️ Generate Insurance Post</button>
+                </div>
+                
+                <div class="card">
+                    <h3>⚡ Bulk Generation</h3>
+                    <p>Generate multiple posts at once</p>
+                    <button onclick="generateRandomPost()">🎲 Generate Random Post</button>
+                    <button onclick="generateAllTypes()" class="warning">🚀 Generate All Types (4 posts)</button>
+                    <button onclick="scheduleDailyPosts()" class="success">📅 Schedule Today's Posts</button>
+                </div>
+                
+                <div class="card">
+                    <h3>📅 Post Scheduling</h3>
+                    <p>Schedule posts for specific times</p>
+                    <input type="datetime-local" id="scheduleTime">
+                    <select id="scheduleType">
+                        <option value="mortgage">Mortgage Post</option>
+                        <option value="investment">Investment Post</option>
+                        <option value="loan">Loan Post</option>
+                        <option value="insurance">Insurance Post</option>
+                    </select>
+                    <button onclick="schedulePost()" class="success">Schedule Post</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manage Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="control-grid">
+                <div class="card">
+                    <h3>🔍 Search & Filter</h3>
+                    <input type="text" id="searchQuery" placeholder="Search posts by title..." onkeyup="searchPosts()">
+                    <select id="filterCategory" onchange="filterPosts()">
+                        <option value="">All Categories</option>
+                        <option value="Mortgage">Mortgage</option>
+                        <option value="Investment">Investment</option>
+                        <option value="Loan">Loan</option>
+                        <option value="Insurance">Insurance</option>
+                    </select>
+                    <button onclick="loadAllPosts()">🔄 Refresh Posts</button>
+                </div>
+                
+                <div class="card">
+                    <h3>🗑️ Delete Posts</h3>
+                    <p>Remove posts by slug or bulk delete</p>
+                    <input type="text" id="deleteSlug" placeholder="Enter post slug">
+                    <button onclick="deletePost()" class="danger">Delete Single Post</button>
+                    <button onclick="deleteOldPosts()" class="danger">Delete Posts > 30 Days</button>
+                </div>
+                
+                <div class="card">
+                    <h3>📊 Export/Import</h3>
+                    <p>Backup and restore blog data</p>
+                    <button onclick="exportPosts()">📥 Export All Posts</button>
+                    <button onclick="exportStats()">📊 Export Analytics</button>
+                    <input type="file" id="importFile" style="display: none;" onchange="importPosts(event)">
+                    <button onclick="document.getElementById('importFile').click()">📤 Import Posts</button>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 20px;">
+                <h3>📋 All Blog Posts <span id="postsCount"></span></h3>
+                <div id="postsList">
+                    <p style="text-align: center; color: #666;">Click "Refresh Posts" to load</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="control-grid">
+                <div class="card">
+                    <h3>📈 Performance Metrics</h3>
+                    <div id="performanceMetrics">
+                        <p>Loading analytics...</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🏆 Top Performing Posts</h3>
+                    <div id="topPosts">
+                        <p>Loading top posts...</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>📊 Category Distribution</h3>
+                    <div id="categoryStats">
+                        <p>Loading category stats...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tools Tab -->
+        <div id="tools-tab" class="tab-content">
+            <div class="control-grid">
+                <div class="card">
+                    <h3>🔧 System Tools</h3>
+                    <button onclick="testConnection()">🔗 Test Connection</button>
+                    <button onclick="checkNewsletterStats()">📧 Newsletter Stats</button>
+                    <button onclick="clearConsole()">🧹 Clear Console</button>
+                    <button onclick="refreshAllStats()">🔄 Refresh Everything</button>
+                </div>
+                
+                <div class="card">
+                    <h3>🛠️ Maintenance</h3>
+                    <button onclick="regenerateExcerpts()" class="warning">🔄 Regenerate All Excerpts</button>
+                    <button onclick="optimizeDatabase()" class="warning">💾 Optimize Database</button>
+                    <button onclick="clearCache()" class="warning">🗑️ Clear Cache</button>
+                </div>
+                
+                <div class="card">
+                    <h3>⚙️ Settings</h3>
+                    <label>
+                        <input type="checkbox" id="autoRefresh" checked> Auto-refresh stats (30s)
+                    </label>
+                    <br><br>
+                    <label>
+                        <input type="checkbox" id="verboseLogging"> Verbose logging
+                    </label>
+                    <br><br>
+                    <button onclick="saveSettings()">💾 Save Settings</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Console -->
+        <div id="console">
+            <div class="log-entry log-info">🚀 CalculiQ Blog Manager Pro initialized</div>
+            <div class="log-entry log-info">📍 Target: https://calculiq.com</div>
+            <div class="log-entry log-info">⏰ Time: ${new Date().toLocaleString()}</div>
+        </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Blog Post</h2>
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" id="editTitle">
+            </div>
+            <div class="form-group">
+                <label>Excerpt:</label>
+                <textarea id="editExcerpt" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Category:</label>
+                <select id="editCategory">
+                    <option value="Mortgage">Mortgage</option>
+                    <option value="Investment">Investment</option>
+                    <option value="Loan">Loan</option>
+                    <option value="Insurance">Insurance</option>
+                </select>
+            </div>
+            <div style="margin-top: 30px; display: flex; gap: 10px;">
+                <button onclick="saveEdit()" class="success">Save Changes</button>
+                <button onclick="closeEditModal()" style="background: #6c757d;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://calculiq.com';
+        let allPosts = [];
+        let currentEditSlug = '';
+        let autoRefreshInterval = null;
+        
+        // Logging function
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            console.appendChild(entry);
+            console.scrollTop = console.scrollHeight;
+            
+            // Keep only last 100 entries
+            while (console.children.length > 100) {
+                console.removeChild(console.firstChild);
+            }
+        }
+        
+        // API request handler with retry logic
+        async function makeRequest(endpoint, options = {}, retries = 3) {
+            const verboseLogging = document.getElementById('verboseLogging')?.checked;
+            
+            if (verboseLogging) {
+                log(`📡 ${options.method || 'GET'} ${endpoint}`, 'info');
+            }
+            
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const fetchOptions = {
+                        method: options.method || 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        }
+                    };
+                    
+                    if (options.body) {
+                        fetchOptions.body = options.body;
+                    }
+                    
+                    const response = await fetch(`${API_BASE}${endpoint}`, fetchOptions);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    if (i === retries - 1) {
+                        log(`❌ Request failed after ${retries} attempts: ${error.message}`, 'error');
+                        throw error;
+                    }
+                    if (verboseLogging) {
+                        log(`⚠️ Retry ${i + 1}/${retries} for ${endpoint}`, 'warning');
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                }
+            }
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'manage') {
+                loadAllPosts();
+            } else if (tabName === 'analytics') {
+                loadAnalytics();
+            }
+        }
+        
+        // Generate post
+        async function generatePost(type) {
+            log(`🚀 Generating ${type} blog post...`, 'info');
+            disableButtons(true);
+            
+            try {
+                const result = await makeRequest('/api/publish-test-blog', {
+                    method: 'POST',
+                    body: JSON.stringify({ type: type })
+                });
+                
+                if (result.success) {
+                    log(`✅ ${result.message}`, 'success');
+                    await refreshStats();
+                    
+                    // Show notification
+                    showNotification(`${type} post created successfully!`, 'success');
+                } else {
+                    log(`❌ Failed: ${result.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                disableButtons(false);
+            }
+        }
+        
+        // Generate random post
+        async function generateRandomPost() {
+            const types = ['mortgage', 'investment', 'loan', 'insurance'];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            await generatePost(randomType);
+        }
+        
+        // Generate all types
+        async function generateAllTypes() {
+            const types = ['mortgage', 'investment', 'loan', 'insurance'];
+            log('🚀 Generating all post types...', 'info');
+            
+            for (const type of types) {
+                await generatePost(type);
+                // Add delay between posts
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+            
+            log('✅ All post types generated!', 'success');
+        }
+        
+        // Load all posts
+        async function loadAllPosts() {
+            log('📋 Loading all blog posts...', 'info');
+            
+            try {
+                const response = await makeRequest('/api/blog-posts-admin');
+                
+                if (response.success && response.posts) {
+                    allPosts = response.posts;
+                    displayPostsList(response.posts);
+                    document.getElementById('postsCount').textContent = `(${response.posts.length})`;
+                    log(`✅ Loaded ${response.posts.length} posts`, 'success');
+                }
+            } catch (error) {
+                log('❌ Failed to load posts', 'error');
+                document.getElementById('postsList').innerHTML = '<p style="color: #e74c3c;">Failed to load posts</p>';
+            }
+        }
+        
+        // Display posts list
+        function displayPostsList(posts) {
+            const listContainer = document.getElementById('postsList');
+            
+            if (posts.length === 0) {
+                listContainer.innerHTML = '<p style="text-align: center; color: #666;">No posts found</p>';
+                return;
+            }
+            
+            listContainer.innerHTML = posts.map(post => `
+                <div class="post-item">
+                    <div class="post-title">${post.title}</div>
+                    <div class="post-meta">
+                        ${post.category} • ${new Date(post.published_at).toLocaleDateString()} • ${post.view_count || 0} views
+                    </div>
+                    <div class="post-actions">
+                        <button onclick="copySlug('${post.slug}')" style="background: #3498db;">📋 Copy Slug</button>
+                        <button onclick="viewPost('${post.slug}')" style="background: #9b59b6;">👁️ View</button>
+                        <button onclick="editPost('${post.slug}')" style="background: #f39c12;">✏️ Edit</button>
+                        <button onclick="deletePostConfirm('${post.slug}')" class="danger">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Copy slug to clipboard
+        function copySlug(slug) {
+            navigator.clipboard.writeText(slug).then(() => {
+                log(`📋 Copied slug: ${slug}`, 'success');
+                showNotification('Slug copied to clipboard!', 'success');
+            });
+        }
+        
+        // View post
+        function viewPost(slug) {
+            window.open(`${API_BASE}/blog/${slug}`, '_blank');
+        }
+        
+        // Edit post
+        async function editPost(slug) {
+            currentEditSlug = slug;
+            const post = allPosts.find(p => p.slug === slug);
+            
+            if (!post) {
+                log('❌ Post not found', 'error');
+                return;
+            }
+            
+            document.getElementById('editTitle').value = post.title;
+            document.getElementById('editExcerpt').value = post.excerpt;
+            document.getElementById('editCategory').value = post.category;
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+        
+        // Save edit
+        async function saveEdit() {
+            const updatedData = {
+                title: document.getElementById('editTitle').value,
+                excerpt: document.getElementById('editExcerpt').value,
+                category: document.getElementById('editCategory').value
+            };
+            
+            log(`📝 Updating post: ${currentEditSlug}`, 'info');
+            
+            try {
+                const result = await makeRequest(`/api/blog/${currentEditSlug}/update`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(updatedData)
+                });
+                
+                if (result.success) {
+                    log('✅ Post updated successfully', 'success');
+                    closeEditModal();
+                    loadAllPosts();
+                } else {
+                    log(`❌ Update failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error updating post: ${error.message}`, 'error');
+            }
+        }
+        
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditSlug = '';
+        }
+        
+        // Delete post with confirmation
+        function deletePostConfirm(slug) {
+            if (confirm(`Are you sure you want to delete this post?\n\nSlug: ${slug}`)) {
+                deletePostBySlug(slug);
+            }
+        }
+        
+        // Delete post
+        async function deletePost() {
+            const slug = document.getElementById('deleteSlug').value.trim();
+            if (!slug) {
+                log('⚠️ Please enter a post slug', 'warning');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete "${slug}"?`)) {
+                return;
+            }
+            
+            await deletePostBySlug(slug);
+            document.getElementById('deleteSlug').value = '';
+        }
+        
+        // Delete post by slug
+        async function deletePostBySlug(slug) {
+            log(`🗑️ Deleting post: ${slug}`, 'info');
+            disableButtons(true);
+            
+            try {
+                const result = await makeRequest(`/api/blog/${slug}`, {
+                    method: 'DELETE'
+                });
+                
+                if (result.success) {
+                    log(`✅ Successfully deleted: ${slug}`, 'success');
+                    await refreshStats();
+                    loadAllPosts();
+                } else {
+                    log(`❌ Failed to delete: ${result.error || 'Not found'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Delete error: ${error.message}`, 'error');
+            } finally {
+                disableButtons(false);
+            }
+        }
+        
+        // Search posts
+        function searchPosts() {
+            const query = document.getElementById('searchQuery').value.toLowerCase();
+            const filtered = allPosts.filter(post => 
+                post.title.toLowerCase().includes(query) ||
+                post.excerpt.toLowerCase().includes(query)
+            );
+            displayPostsList(filtered);
+        }
+        
+        // Filter posts
+        function filterPosts() {
+            const category = document.getElementById('filterCategory').value;
+            const filtered = category ? 
+                allPosts.filter(post => post.category === category) : 
+                allPosts;
+            displayPostsList(filtered);
+        }
+        
+        // Load analytics
+        async function loadAnalytics() {
+            log('📊 Loading analytics...', 'info');
+            
+            try {
+                const posts = allPosts.length > 0 ? allPosts : 
+                    (await makeRequest('/api/blog-posts-admin')).posts || [];
+                
+                // Calculate analytics
+                const totalViews = posts.reduce((sum, post) => sum + (post.view_count || 0), 0);
+                const avgViews = posts.length > 0 ? Math.round(totalViews / posts.length) : 0;
+                
+                // Top posts
+                const topPosts = posts
+                    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+                    .slice(0, 5);
+                
+                // Category distribution
+                const categoryStats = posts.reduce((acc, post) => {
+                    acc[post.category] = (acc[post.category] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                // Display analytics
+                displayAnalytics(topPosts, categoryStats, { totalViews, avgViews });
+            } catch (error) {
+                log('❌ Failed to load analytics', 'error');
+            }
+        }
+        
+        // Display analytics
+        function displayAnalytics(topPosts, categoryStats, metrics) {
+            // Performance metrics
+            document.getElementById('performanceMetrics').innerHTML = `
+                <p><strong>Total Views:</strong> ${metrics.totalViews.toLocaleString()}</p>
+                <p><strong>Average Views per Post:</strong> ${metrics.avgViews}</p>
+                <p><strong>Engagement Rate:</strong> ${((metrics.avgViews / 100) * 100).toFixed(1)}%</p>
+            `;
+            
+            // Top posts
+            document.getElementById('topPosts').innerHTML = topPosts.length > 0 ? 
+                topPosts.map((post, index) => `
+                    <div style="margin: 10px 0;">
+                        ${index + 1}. <strong>${post.title}</strong><br>
+                        <span style="color: #666;">${post.view_count || 0} views</span>
+                    </div>
+                `).join('') : 
+                '<p>No posts with views yet</p>';
+            
+            // Category stats
+            const categories = Object.entries(categoryStats);
+            document.getElementById('categoryStats').innerHTML = categories.length > 0 ?
+                categories.map(([category, count]) => `
+                    <div style="margin: 10px 0;">
+                        <strong>${category}:</strong> ${count} posts
+                    </div>
+                `).join('') :
+                '<p>No posts to analyze</p>';
+        }
+        
+        // Export posts
+        async function exportPosts() {
+            log('📥 Exporting all posts...', 'info');
+            
+            try {
+                const posts = allPosts.length > 0 ? allPosts :
+                    (await makeRequest('/api/blog-posts-admin')).posts || [];
+                
+                const dataStr = JSON.stringify(posts, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `calculiq-blog-export-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                log(`✅ Exported ${posts.length} posts`, 'success');
+            } catch (error) {
+                log('❌ Export failed', 'error');
+            }
+        }
+        
+        // Refresh statistics
+        async function refreshStats() {
+            try {
+                const stats = await makeRequest('/api/blog-stats');
+                
+                if (stats.success) {
+                    document.getElementById('totalPosts').textContent = stats.stats.totalPosts || '0';
+                    document.getElementById('totalViews').textContent = stats.stats.totalViews || '0';
+                    document.getElementById('avgViews').textContent = stats.stats.averageViews || '0';
+                    
+                    // Calculate today's posts
+                    if (allPosts.length > 0) {
+                        const today = new Date().toDateString();
+                        const todayPosts = allPosts.filter(post => 
+                            new Date(post.published_at).toDateString() === today
+                        ).length;
+                        document.getElementById('todayPosts').textContent = todayPosts;
+                    }
+                    
+                    log('📊 Statistics updated', 'success');
+                }
+            } catch (error) {
+                log('❌ Failed to load statistics', 'error');
+            }
+        }
+        
+        // Check newsletter stats
+        async function checkNewsletterStats() {
+            log('📧 Checking newsletter statistics...', 'info');
+            
+            try {
+                const stats = await makeRequest('/api/newsletter-stats');
+                
+                if (stats.success) {
+                    log(`📧 Newsletter Subscribers: ${stats.stats.totalSubscribers}`, 'success');
+                    log(`📅 Last Newsletter: ${stats.stats.lastNewsletterSent || 'Never'}`, 'info');
+                    log(`⏰ Next Scheduled: ${stats.stats.nextScheduled}`, 'info');
+                    log(`🟢 System Active: ${stats.stats.systemActive ? 'Yes' : 'No'}`, stats.stats.systemActive ? 'success' : 'warning');
+                }
+            } catch (error) {
+                log('❌ Failed to load newsletter stats', 'error');
+            }
+        }
+        
+        // Test connection
+        async function testConnection() {
+            log('🔗 Testing connection to CalculiQ server...', 'info');
+            
+            try {
+                const status = await makeRequest('/api/automation-status');
+                
+                if (status.success) {
+                    log('✅ Server connection successful!', 'success');
+                    log(`🟢 Database: ${status.status.databaseConnected ? 'Connected' : 'Error'}`, status.status.databaseConnected ? 'success' : 'error');
+                    log(`📧 Email System: ${status.status.emailSystemReady ? 'Ready' : 'Disabled'}`, 'info');
+                    log(`🌍 Environment: ${status.status.environment}`, 'info');
+                }
+            } catch (error) {
+                log('❌ Connection test failed', 'error');
+            }
+        }
+        
+        // Clear console
+        function clearConsole() {
+            const console = document.getElementById('console');
+            console.innerHTML = '';
+            log('🧹 Console cleared', 'info');
+        }
+        
+        // Refresh all stats
+        async function refreshAllStats() {
+            log('🔄 Refreshing all statistics...', 'info');
+            await refreshStats();
+            await loadAllPosts();
+            await checkNewsletterStats();
+            log('✅ All statistics refreshed', 'success');
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // You could implement a toast notification here
+            log(message, type);
+        }
+        
+        // Disable/enable buttons
+        function disableButtons(disabled) {
+            document.querySelectorAll('button').forEach(btn => {
+                if (!btn.classList.contains('no-disable')) {
+                    btn.disabled = disabled;
+                }
+            });
+        }
+        
+        // Auto-refresh setup
+        function setupAutoRefresh() {
+            const autoRefresh = document.getElementById('autoRefresh').checked;
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            
+            if (autoRefresh) {
+                autoRefreshInterval = setInterval(() => {
+                    refreshStats();
+                }, 30000); // Every 30 seconds
+                log('⏰ Auto-refresh enabled (30s)', 'info');
+            } else {
+                log('⏰ Auto-refresh disabled', 'info');
+            }
+        }
+        
+        // Save settings
+        function saveSettings() {
+            setupAutoRefresh();
+            log('💾 Settings saved', 'success');
+        }
+        
+        // Initialize on load
+        window.onload = async () => {
+            log('🔄 Initializing CalculiQ Blog Manager Pro...', 'info');
+            await refreshStats();
+            await testConnection();
+            setupAutoRefresh();
+        };
+        
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
