@@ -269,7 +269,13 @@ ${context.newsContext.currentNews.map((news, i) =>
 Key Market Themes:
 ${context.newsContext.themes.map(theme => `- ${theme}`).join('\n')}
 
-IMPORTANT: Reference these real events to explain WHY rates are moving and create urgency.
+CRITICAL REQUIREMENT: 
+1. Your TITLE must reference the most impactful news event from above, NOT just rate changes
+2. Your OPENING paragraph must mention at least ONE specific news headline by name
+3. Throughout the article, reference 2-3 of these REAL news events to explain market conditions
+4. Do NOT focus on tiny rate changes (0.030%) - focus on the NEWS STORIES and their impact
+
+Example: If news mentions "Insurance giant AIG announces restructuring", your title could be "AIG Restructuring Shakes Up Insurance Market - What It Means for Your Coverage"
 ` : ''}
 
 UNIQUE ANGLE FOR THIS ARTICLE:

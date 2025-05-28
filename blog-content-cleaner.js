@@ -106,38 +106,40 @@ class BlogContentCleaner {
         // Convert italic text
         html = html.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-        
-        // Convert lists
-        html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
-        html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
 
-// Also handle inline lists
-html = html.replace(/- ([^-\n]+)(?=-|$)/g, '<li>$1</li>');
+// Convert lists (only at start of lines)
+html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+
+// Wrap consecutive <li> elements in <ul>
+html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
+    return '<ul>' + match + '</ul>';
+});
 
         // Wrap consecutive <li> elements in <ul>
         html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
             return '<ul>' + match + '</ul>';
         });
         
-        // Convert paragraphs (split by double newlines)
-        const paragraphs = html.split(/\n\n+/);
-        html = paragraphs.map(para => {
-            para = para.trim();
-            
-            // Don't wrap if already has HTML tags
-            if (para && !para.match(/^<[^>]+>/)) {
-                return `<p>${para}</p>`;
-            }
-            return para;
-        }).join('\n\n');
-        
-        // Clean up spacing around block elements
-        html = html.replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
-        html = html.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
-        html = html.replace(/<\/ul>\s*<p>/g, '</ul>\n\n<p>');
-        
-        return html;
+// Convert paragraphs (split by double newlines)
+const paragraphs = html.split(/\n\n+/);
+html = paragraphs.map(para => {
+    para = para.trim();
+    
+    // Don't wrap if already has HTML tags or is empty
+    if (para && !para.match(/^<[^>]+>/) && para.length > 0) {
+        return `<p>${para}</p>`;
     }
+    return para;
+}).filter(p => p).join('\n\n');
+        
+// Clean up spacing around block elements
+html = html.replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
+html = html.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
+html = html.replace(/<\/ul>\s*<p>/g, '</ul>\n\n<p>');
+        
+return html;
+}
 
     cleanExcerpt(excerpt) {
         if (!excerpt) return '';
