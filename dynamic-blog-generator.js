@@ -1,5 +1,4 @@
 // dynamic-blog-generator.js
-// Complete OpenAI Prompt Engineering System for CalculiQ
 // Drop-in replacement - ready to use
 
 const crypto = require('crypto');
@@ -45,32 +44,42 @@ async generateArticle(calculatorType) {
         const megaPrompt = this.createSafeCreativePrompt(calculatorType, verifiedContext);
         
         // CALL OPENAI HERE
-        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
-            throw new Error('OpenAI API key not configured');
+       // At the top of the file, replace OpenAI import
+const Anthropic = require('@anthropic-ai/sdk');
+
+async generateArticle(calculatorType) {
+    try {
+        console.log(`Generating ${calculatorType} article with unique prompt engineering...`);
+        
+        // Load published patterns to avoid repetition
+        await this.loadPublishedPatterns();
+        
+        // Gather VERIFIED real-time data
+        const verifiedContext = await this.gatherVerifiedContext(calculatorType);
+        
+        // Generate the prompt
+        const megaPrompt = this.createSafeCreativePrompt(calculatorType, verifiedContext);
+        
+        // CALL CLAUDE API HERE
+        if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'your_anthropic_api_key_here') {
+            throw new Error('Anthropic API key not configured');
         }
 
-        const { OpenAI } = require('openai');
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
+        const anthropic = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY
         });
 
-const completion = await openai.chat.completions.create({
-    model: "gpt-4-turbo-preview",
-    messages: [
-        {
-            role: "system",
-            content: "You are an expert financial writer creating comprehensive, data-driven content. Always write detailed, thorough articles that fully explore each topic."
-        },
-        {
-            role: "user",
-            content: megaPrompt
-        }
-    ],
-    temperature: 0.8,
-    max_tokens: 4096  // Maximum supported by gpt-4-turbo-preview
-});
+        const message = await anthropic.messages.create({
+            model: 'claude-3-haiku-20240307', // Fast and cost-effective
+            max_tokens: 4096,
+            temperature: 0.8,
+            messages: [{
+                role: 'user',
+                content: megaPrompt
+            }]
+        });
 
-const responseText = completion.choices[0].message.content;
+        const responseText = message.content[0].text;
 
 // Parse the response to extract title and content
 const lines = responseText.split('\n');
@@ -266,6 +275,21 @@ Total: 2,000+ words of dense, valuable content
 
 UNIQUE ANGLE FOR THIS ARTICLE:
 ${this.getDataDrivenAngle(calculatorType, context)}
+${context.newsContext.realNewsUsed ? `
+
+CURRENT NEWS CONTEXT:
+${context.newsContext.currentNews.map((news, i) => 
+    `${i + 1}. "${news.headline}" - ${news.source} (${new Date(news.publishedAt).toLocaleDateString()})`
+).join('\n')}
+
+Key Market Themes:
+${context.newsContext.themes.map(theme => `- ${theme}`).join('\n')}
+
+IMPORTANT: Reference these real events to explain WHY rates are moving and create urgency.
+` : ''}
+
+UNIQUE ANGLE FOR THIS ARTICLE:
+${this.getDataDrivenAngle(calculatorType, context)}
 
 VOICE: ${this.getSafeVoiceRequirement()}
 
@@ -347,36 +371,145 @@ Begin with your analytical title and article:`;
         return 'high';
     }
 
-    async fetchVerifiedNews(calculatorType) {
-        const themes = {
-            mortgage: [
-                "Federal Reserve policy impacts on mortgage rates",
-                "Regional housing inventory variations",
-                "First-time buyer program updates"
-            ],
-            investment: [
-                "Inflation expectations and bond yields",
-                "Sector rotation patterns in current market",
-                "Tax-efficient investment strategies"
-            ],
-            loan: [
-                "Credit score requirement changes",
-                "Personal loan vs. credit card math",
-                "Regional lending competition"
-            ],
-            insurance: [
-                "Actuarial updates affecting premiums",
-                "Technology reducing application times",
-                "State regulatory changes"
-            ]
+async fetchVerifiedNews(calculatorType) {
+    try {
+        const newsAPIKey = process.env.NEWS_API_KEY;
+        if (!newsAPIKey) {
+            console.log('📰 News API not configured, using fallback themes');
+            return this.getFallbackNewsThemes(calculatorType);
+        }
+        
+        // Calculate date 7 days ago
+        const fromDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const queries = {
+            mortgage: 'mortgage rates OR "federal reserve" OR "housing market" OR "home prices"',
+            investment: '"stock market" OR "S&P 500" OR "market volatility" OR "federal reserve"',
+            loan: '"interest rates" OR "consumer credit" OR "personal loans" OR "federal reserve"',
+            insurance: '"insurance industry" OR "life insurance" OR "insurance rates" OR "insurance market"'
         };
         
-        return {
-            currentThemes: themes[calculatorType] || themes.mortgage,
-            disclaimer: "Trends based on industry analysis"
-        };
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+            params: {
+                q: queries[calculatorType],
+                from: fromDate,
+                sortBy: 'relevancy',
+                pageSize: 5,
+                apiKey: newsAPIKey,
+                language: 'en',
+                domains: 'reuters.com,bloomberg.com,wsj.com,cnbc.com,marketwatch.com,apnews.com'
+            }
+        });
+        
+        if (response.data.articles && response.data.articles.length > 0) {
+            const newsItems = response.data.articles.map(article => ({
+                headline: article.title,
+                summary: article.description,
+                source: article.source.name,
+                publishedAt: article.publishedAt,
+                url: article.url
+            }));
+            
+            // Extract key themes from headlines
+            const themes = this.extractNewsThemes(newsItems, calculatorType);
+            
+            console.log(`📰 Fetched ${newsItems.length} news items for ${calculatorType}`);
+            
+            return {
+                currentNews: newsItems,
+                topStory: newsItems[0],
+                themes: themes,
+                realNewsUsed: true
+            };
+        } else {
+            console.log('📰 No news articles found, using fallback');
+            return this.getFallbackNewsThemes(calculatorType);
+        }
+        
+    } catch (error) {
+        console.error('📰 News API error:', error.message);
+        return this.getFallbackNewsThemes(calculatorType);
     }
+}
 
+extractNewsThemes(newsItems, calculatorType) {
+    const themes = [];
+    const headlinesText = newsItems.map(item => item.headline).join(' ').toLowerCase();
+    
+    // Extract specific themes based on keywords
+    const themePatterns = {
+        mortgage: {
+            'Fed rate decision impact': /federal reserve|fed(?:eral)?.*rate/,
+            'Housing inventory shifts': /housing.*(?:inventory|shortage|supply)/,
+            'Regional market changes': /housing.*market|home.*prices/,
+            'Rate volatility': /rates?.*(?:rise|jump|fall|drop|volatile)/
+        },
+        investment: {
+            'Market volatility': /volatil|vix|uncertainty|turbulent/,
+            'Fed policy impact': /federal reserve|fed(?:eral)?.*policy/,
+            'Sector rotation': /tech.*stocks|financial.*sector|energy.*sector/,
+            'Earnings influence': /earnings.*(?:season|report|beat|miss)/
+        },
+        loan: {
+            'Rate environment': /interest.*rates?|lending.*rates?/,
+            'Credit conditions': /credit.*(?:tight|loose|conditions)/,
+            'Consumer demand': /consumer.*(?:debt|borrowing|spending)/,
+            'Banking changes': /bank.*(?:lending|standards|requirements)/
+        },
+        insurance: {
+            'Premium trends': /premium.*(?:increase|decrease|rise|fall)/,
+            'Industry changes': /insurance.*(?:industry|market|sector)/,
+            'Regulatory updates': /insurance.*(?:regulation|regulatory|compliance)/,
+            'Technology impact': /insurtech|digital.*insurance|AI.*insurance/
+        }
+    };
+    
+    const patterns = themePatterns[calculatorType] || themePatterns.mortgage;
+    
+    for (const [theme, pattern] of Object.entries(patterns)) {
+        if (pattern.test(headlinesText)) {
+            themes.push(theme);
+        }
+    }
+    
+    // If no specific themes found, extract from top headlines
+    if (themes.length === 0 && newsItems.length > 0) {
+        themes.push(`${newsItems[0].source}: ${newsItems[0].headline.substring(0, 50)}...`);
+    }
+    
+    return themes.slice(0, 3); // Return top 3 themes
+}
+
+getFallbackNewsThemes(calculatorType) {
+    const themes = {
+        mortgage: [
+            "Federal Reserve policy impacts on mortgage rates",
+            "Regional housing inventory variations",
+            "First-time buyer program updates"
+        ],
+        investment: [
+            "Market volatility and Fed policy expectations",
+            "Sector rotation patterns in current market",
+            "Global economic factors affecting portfolios"
+        ],
+        loan: [
+            "Credit score requirement changes by major lenders",
+            "Personal loan demand amid economic uncertainty",
+            "Regional lending competition intensifies"
+        ],
+        insurance: [
+            "Insurance premium adjustments for 2025",
+            "Technology reducing application processing times",
+            "State regulatory changes affecting coverage"
+        ]
+    };
+    
+    return {
+        currentThemes: themes[calculatorType] || themes.mortgage,
+        disclaimer: "Trends based on industry analysis",
+        realNewsUsed: false
+    };
+}
     generateRealCalculations(calculatorType) {
         const calculations = {
             mortgage: `

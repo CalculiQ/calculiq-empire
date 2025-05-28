@@ -67,9 +67,6 @@ class CalculiQAutomationServer {
             monthlyRevenue: 0
         };
         
-        // Initialize OpenAI if available
-        this.initializeOpenAI();
-        
         // Setup server components
         this.setupMiddleware();
         this.initializeDatabase();
@@ -78,24 +75,6 @@ class CalculiQAutomationServer {
         this.initializeBlogSystem();
         
         console.log('🚀 CalculiQ Automation Server Initializing...');
-    }
-
-    initializeOpenAI() {
-        if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
-            try {
-                const { OpenAI } = require('openai');
-                this.openai = new OpenAI({
-                    apiKey: process.env.OPENAI_API_KEY
-                });
-                console.log('✅ OpenAI initialized for unique content generation');
-            } catch (error) {
-                console.log('📝 OpenAI initialization failed:', error.message);
-                this.openai = null;
-            }
-        } else {
-            console.log('📝 OpenAI not configured - using template system');
-            this.openai = null;
-        }
     }
 
     setupMiddleware() {
