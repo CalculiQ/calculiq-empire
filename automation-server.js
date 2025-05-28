@@ -1385,26 +1385,29 @@ this.app.get('/api/automation-status', (req, res) => {
             }
         });
 
- // ADD THESE NEW ENDPOINTS HERE:
+// ADD THESE NEW ENDPOINTS HERE:
         // Preview prompt endpoint
-        this.app.post('/api/preview-prompt', async (req, res) => {
-            try {
-                const { type } = req.body;
-                const generator = new DynamicBlogGenerator(this.db);
-                const result = await generator.generateArticle(type);
-                
-                // Return the prompt instead of generating content
-                res.json({
-                    success: true,
-                    prompt: result.content,
-                    fingerprint: result.fingerprint,
-                    context: result.context
-                });
-            } catch (error) {
-                res.status(500).json({ success: false, error: error.message });
-            }
+this.app.post('/api/preview-prompt', async (req, res) => {
+    try {
+        const { type } = req.body;
+        const generator = new DynamicBlogGenerator(this.db);
+        
+        // Load patterns and gather context WITHOUT calling OpenAI
+        await generator.loadPublishedPatterns();
+        const verifiedContext = await generator.gatherVerifiedContext(type);
+        const megaPrompt = generator.createSafeCreativePrompt(type, verifiedContext);
+        
+        res.json({
+            success: true,
+            prompt: megaPrompt,
+            fingerprint: generator.sessionFingerprint,
+            context: verifiedContext
         });
-
+    } catch (error) {
+        console.error('Preview prompt error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
         // Repetition patterns endpoint
         this.app.get('/api/repetition-patterns', async (req, res) => {
             try {
