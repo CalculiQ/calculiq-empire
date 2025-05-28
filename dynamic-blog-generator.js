@@ -28,6 +28,7 @@ class DynamicBlogGenerator {
             dayOfYear,
             cognitive_seed: `${time}-${random}-${hour}-${dayOfYear}`
         };
+    }
 
 async generateArticle(calculatorType) {
     try {
