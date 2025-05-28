@@ -3,6 +3,7 @@
 
 const crypto = require('crypto');
 const axios = require('axios');
+const Anthropic = require('@anthropic-ai/sdk');
 
 class DynamicBlogGenerator {
     constructor(db) {
