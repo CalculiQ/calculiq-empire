@@ -40,23 +40,6 @@ async generateArticle(calculatorType) {
         // Gather VERIFIED real-time data
         const verifiedContext = await this.gatherVerifiedContext(calculatorType);
         
-        // Generate the OpenAI prompt
-        const megaPrompt = this.createSafeCreativePrompt(calculatorType, verifiedContext);
-        
-        // CALL OPENAI HERE
-       // At the top of the file, replace OpenAI import
-const Anthropic = require('@anthropic-ai/sdk');
-
-async generateArticle(calculatorType) {
-    try {
-        console.log(`Generating ${calculatorType} article with unique prompt engineering...`);
-        
-        // Load published patterns to avoid repetition
-        await this.loadPublishedPatterns();
-        
-        // Gather VERIFIED real-time data
-        const verifiedContext = await this.gatherVerifiedContext(calculatorType);
-        
         // Generate the prompt
         const megaPrompt = this.createSafeCreativePrompt(calculatorType, verifiedContext);
         
