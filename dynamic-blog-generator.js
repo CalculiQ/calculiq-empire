@@ -54,36 +54,38 @@ async generateArticle(calculatorType) {
             apiKey: process.env.OPENAI_API_KEY
         });
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4-turbo-preview",
-            messages: [
-                {
-                    role: "system",
-                    content: "You are an expert financial writer creating engaging, data-driven content."
-                },
-                {
-                    role: "user",
-                    content: megaPrompt
-                }
-            ],
-            temperature: 0.8,
-            max_tokens: 4000
-        });
+const completion = await openai.chat.completions.create({
+    model: "gpt-4-turbo-preview",
+    messages: [
+        {
+            role: "system",
+            content: "You are an expert financial writer creating comprehensive, data-driven content. Always write detailed, thorough articles that fully explore each topic."
+        },
+        {
+            role: "user",
+            content: megaPrompt
+        }
+    ],
+    temperature: 0.8,
+    max_tokens: 8000  // Increased from 4000
+});
 
         const responseText = completion.choices[0].message.content;
         
         // Parse the response to extract title and content
         const lines = responseText.split('\n');
-        const title = lines[0].replace(/^#\s*/, '').trim();
+	const title = lines[0].replace(/^#\s*/, '').replace(/^Title:\s*/i, '').trim();
         const content = lines.slice(1).join('\n').trim();
         
         const slug = this.createSlug(title);
         
         // Extract first paragraph for excerpt
-        const firstParagraph = content.match(/<p>([^<]+)<\/p>/);
-        const excerpt = firstParagraph ? 
-            firstParagraph[1].substring(0, 160) + '...' : 
-            'Click to read more...';
+const paragraphs = content.split('\n\n');
+const firstPara = paragraphs.find(p => p.trim().length > 50) || paragraphs[0] || '';
+const cleanFirstPara = firstPara.replace(/[*#_\[\]`]/g, '').trim();
+const excerpt = cleanFirstPara.length > 160 
+    ? cleanFirstPara.substring(0, 157) + '...' 
+    : (cleanFirstPara || 'Click to read more...');
         
         return {
             title,
@@ -174,13 +176,20 @@ SEO REQUIREMENTS:
 - Front-load the most important information in the first paragraph
 - Write a compelling meta description (155 characters) at the end
 
-MANDATORY ARTICLE SECTIONS (minimum word counts):
-1. Today's Market Reality (200 words)
-   - Open with this week's most important development
-   - Current ${calculatorType} rates and what changed
-   - Why this matters RIGHT NOW
+CRITICAL LENGTH REQUIREMENT: This article MUST be at least 2,000 words. Short articles will be rejected.
 
-2. Three Detailed Scenarios (500 words)
+MANDATORY ARTICLE SECTIONS (MINIMUM word counts - aim for MORE):
+1. Today's Market Reality (300+ words)
+   - Open with this week's most important development
+   - Current ${calculatorType} rates and what changed  
+   - Why this matters RIGHT NOW
+   - Include specific examples and calculations
+
+2. Three Detailed Scenarios (800+ words)
+   - DETAILED walkthrough of each scenario
+   - Show full calculations and monthly/yearly impacts
+   - Compare multiple options within each scenario
+   - Include tables or detailed breakdowns
    - Use these calculations: ${context.calculations}
    - Show how this week's rates affect each scenario
    - Include specific dollar amounts and timeframes
@@ -214,6 +223,7 @@ ${this.getDataDrivenAngle(calculatorType, context)}
 VOICE: ${this.getSafeVoiceRequirement()}
 
 TITLE REQUIREMENTS:
+- DO NOT include "Title:" or any prefix - just write the title directly
 - Include current rate (${context.marketData.rates.thirtyYear}) or rate change (${context.marketData.weeklyChange})
 - Make it newsworthy and specific to this week
 - Avoid generic phrases like "Ultimate Guide" or "Everything You Need"
@@ -225,6 +235,8 @@ BEFORE WRITING, CONFIRM YOU UNDERSTAND:
 3. This article will be outdated in 7 days - write accordingly
 4. Readers need to make decisions THIS WEEK
 5. Generic advice = failure. Specific, timely analysis = success
+
+FINAL REQUIREMENT: Before submitting, ensure your article is AT LEAST 2,000 words. If it's shorter, expand each section with more examples, more detailed explanations, additional scenarios, and deeper analysis. Quality AND quantity matter.
 
 Begin with your analytical title and article:`;
 

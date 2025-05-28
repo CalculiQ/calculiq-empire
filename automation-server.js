@@ -726,19 +726,24 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             const cleaner = new BlogContentCleaner();
             
             // Generate article
-            let article = await generator.generateArticle(calculatorType);
-            
-            // Save to database
-            await this.saveBlogPost({
-                slug: article.slug,
-                title: article.title,
-                content: article.content,
-                excerpt: article.excerpt,
-                category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
-                tags: `${article.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
-                meta_description: article.metaDescription || article.excerpt,
-                status: 'published'
-            });
+// Generate article
+let article = await generator.generateArticle(calculatorType);
+
+// Clean the article using the cleaner
+const cleaner = new BlogContentCleaner();
+const cleanedArticle = cleaner.cleanBlogPost(article);
+
+// Save to database
+await this.saveBlogPost({
+    slug: cleanedArticle.slug,
+    title: cleanedArticle.title,
+    content: cleanedArticle.content,  // This will now be properly converted HTML
+    excerpt: cleanedArticle.excerpt,
+    category: cleanedArticle.calculatorType.charAt(0).toUpperCase() + cleanedArticle.calculatorType.slice(1),
+    tags: `${cleanedArticle.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
+    meta_description: cleanedArticle.metaDescription || cleanedArticle.excerpt,
+    status: 'published'
+});
             
             console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
             
