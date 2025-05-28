@@ -2139,16 +2139,21 @@ this.app.post('/api/preview-prompt', async (req, res) => {
                     font-size: 1.8rem;
                     font-weight: 700;
                     margin: 40px 0 20px 0;
-                    line-height: 1.3;
+    		    padding-top: 20px;
                 }
-                
+
                 .blog-post h3 {
                     color: var(--text-primary);
                     font-size: 1.4rem;
                     font-weight: 600;
                     margin: 30px 0 15px 0;
+		    padding-top: 15px;
                 }
                 
+		.blog-post p + h2,
+		.blog-post p + h3 {
+    		    margin-top: 50px;
+
                 .post-meta {
                     color: var(--text-secondary);
                     font-size: 0.95rem;

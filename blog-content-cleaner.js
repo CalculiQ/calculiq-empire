@@ -94,6 +94,11 @@ class BlogContentCleaner {
         if (!markdown) return '';
         
         let html = markdown;
+
+        // Convert headers (must be at start of line)
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
         
         // Convert bold text FIRST (before other conversions)
         html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -101,11 +106,6 @@ class BlogContentCleaner {
         // Convert italic text
         html = html.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-
-        // Convert headers (must be at start of line)
-        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
         
         // Convert lists
         html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
