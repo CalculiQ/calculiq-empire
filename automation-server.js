@@ -876,26 +876,21 @@ Within the article, naturally mention and link to our insurance calculator for c
 
     const responseText = completion.choices[0].message.content;
     
-    // Use the cleaner to extract and process content
-    const cleaner = new BlogContentCleaner();
-    const extracted = cleaner.extractCleanContent(responseText);
-    
-    if (!extracted || !extracted.title) {
-        // Fallback parsing if extraction fails
-        const lines = responseText.split('\n');
-        const title = cleaner.cleanTitle(lines[0]);
-        const content = cleaner.cleanAndConvertContent(lines.slice(1).join('\n'));
-        
-        extracted = { title, content };
-    }
+// Parse the response manually to keep content as markdown
+const cleaner = new BlogContentCleaner();
+const lines = responseText.split('\n');
+const title = cleaner.cleanTitle(lines[0]);
+const content = lines.slice(1).join('\n'); // Keep as raw markdown
+
+const extracted = { title, content };
     
     const slug = this.createSlug(extracted.title + '-' + new Date().toISOString().split('T')[0]);
     
     // Extract excerpt from the cleaned content
-    const cleanTextContent = extracted.content
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+const cleanTextContent = extracted.content
+    .replace(/[#*_\[\]`]/g, '')  // Remove markdown formatting
+    .replace(/\s+/g, ' ')
+    .trim();
     
     const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
     let excerpt = '';
