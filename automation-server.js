@@ -704,12 +704,15 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
             const generator = new DynamicBlogGenerator();
             const cleaner = new BlogContentCleaner();
             
-            // Generate article
 // Generate article
 let article = await generator.generateArticle(calculatorType);
 
+console.log('📝 BEFORE CLEANING - First 500 chars:', article.content.substring(0, 500));
+
 // Clean the article using the cleaner
 const cleanedArticle = cleaner.cleanBlogPost(article);
+
+console.log('📝 AFTER CLEANING - First 500 chars:', cleanedArticle.content.substring(0, 500));
 
 // Save to database
 await this.saveBlogPost({
