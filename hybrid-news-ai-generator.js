@@ -275,15 +275,15 @@ class HybridNewsAIGenerator {
         // AI Insight (if available)
         if (aiEnhancements.insight) {
             content += `
-                <div class="ai-insight-section">
+                <div class="market-analysis-section">
                     <h2>Market Analysis</h2>
                     <p>${aiEnhancements.insight}</p>
                 </div>
             `;
-        } else {
-            // Add a basic insight if AI is not available
-            content += this.createBasicInsight(calculatorType, marketData);
         }
+        
+        // Always add comprehensive analysis even without AI
+        content += this.createBasicInsight(calculatorType, marketData);
         
         // News section
         if (newsItems && newsItems.length > 0) {
@@ -374,32 +374,40 @@ class HybridNewsAIGenerator {
     createBasicInsight(calculatorType, marketData) {
         const insights = {
             mortgage: `
-                <div class="market-insight">
-                    <h2>What This Means for You</h2>
-                    <p>With rates at ${marketData.mortgageRate30}%, a $400,000 mortgage would cost approximately $${this.calculateMonthlyPayment(400000, marketData.mortgageRate30, 30).toLocaleString()} per month. ${marketData.direction === 'up' ? 'Rising rates mean locking in soon could save thousands over the loan term.' : 'Lower rates create opportunities for both buyers and refinancers.'}</p>
+                <div class="market-analysis-section">
+                    <h2>Market Analysis</h2>
+                    <p>With mortgage rates at ${marketData.mortgageRate30}%, we're seeing significant impacts across the housing market. A $400,000 mortgage would cost approximately ${this.calculateMonthlyPayment(400000, marketData.mortgageRate30, 30).toLocaleString()} per month in principal and interest.</p>
+                    <p>${marketData.direction === 'up' ? 'Rising rates are putting pressure on affordability, making it crucial for buyers to lock in rates soon. Each 0.25% increase adds roughly $50-75 to monthly payments on a typical loan.' : marketData.direction === 'down' ? 'Falling rates are creating opportunities for both new buyers and those looking to refinance. This could save homeowners hundreds of dollars monthly.' : 'Stable rates provide a predictable environment for planning your home purchase or refinance decision.'}</p>
+                    <p>Key consideration: Pre-approval locks in today's rate for 60-90 days, protecting you from future increases while you shop for homes.</p>
                 </div>
             `,
             investment: `
-                <div class="market-insight">
-                    <h2>Investment Implications</h2>
-                    <p>Current rate environment suggests a balanced approach between growth and income investments. Consider diversifying across asset classes to manage risk while capturing opportunities.</p>
+                <div class="market-analysis-section">
+                    <h2>Market Analysis</h2>
+                    <p>The current interest rate environment at ${marketData.mortgageRate30}% is reshaping investment strategies across asset classes. Higher rates typically benefit savers and fixed-income investors while creating headwinds for growth stocks.</p>
+                    <p>Smart investors are adapting by balancing their portfolios between dividend-paying stocks, which offer income similar to bonds, and growth opportunities in sectors less sensitive to interest rates. Technology and healthcare remain attractive for long-term growth despite rate pressures.</p>
+                    <p>Consider this: A diversified portfolio with 60% stocks and 40% bonds has historically weathered various rate environments while providing steady returns. Use our investment calculator to model different allocation strategies based on your risk tolerance and time horizon.</p>
                 </div>
             `,
             loan: `
-                <div class="market-insight">
-                    <h2>Borrowing Strategy</h2>
-                    <p>In this rate environment, comparing multiple lenders is crucial. Even a 1% difference in APR can save hundreds or thousands over your loan term.</p>
+                <div class="market-analysis-section">
+                    <h2>Market Analysis</h2>
+                    <p>Personal loan rates are closely following the broader interest rate environment, with base rates at ${marketData.mortgageRate30}%. Most personal loans now range from 7% to 36% APR, depending heavily on credit score and loan purpose.</p>
+                    <p>The current environment makes strategic borrowing more important than ever. Consolidating high-interest credit card debt (averaging 24% APR) into a personal loan at 12-15% APR could save thousands in interest charges. However, borrowing for discretionary purchases becomes less attractive as rates rise.</p>
+                    <p>Pro tip: Improving your credit score by just 50 points could lower your loan rate by 2-3%, potentially saving hundreds of dollars over the loan term. Check multiple lenders as rates can vary significantly.</p>
                 </div>
             `,
             insurance: `
-                <div class="market-insight">
-                    <h2>Coverage Considerations</h2>
-                    <p>Economic volatility makes adequate coverage more important than ever. Review your policies annually to ensure they match your current needs and financial situation.</p>
+                <div class="market-analysis-section">
+                    <h2>Market Analysis</h2>
+                    <p>Insurance markets are adapting to the economic environment marked by ${marketData.mortgageRate30}% interest rates. Insurance companies invest premiums in bonds and other fixed-income securities, so rate changes directly impact their profitability and pricing strategies.</p>
+                    <p>We're seeing insurers adjust their product offerings, with some companies offering more competitive rates on term life insurance while others focus on permanent life products with cash value components. Health insurance premiums continue to rise, but at a slower pace than previous years.</p>
+                    <p>Strategic move: This is an excellent time to review and compare insurance policies. Many consumers can find better coverage at lower costs by shopping around, especially if their life circumstances have changed since they first purchased their policies.</p>
                 </div>
             `
         };
         
-        return insights[calculatorType] || '';
+        return insights[calculatorType] || insights.mortgage;
     }
 
     createNewsSection(newsItems) {
