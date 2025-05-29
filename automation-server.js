@@ -946,14 +946,17 @@ this.app.get('/api/automation-status', (req, res) => {
         });
 
         // Blog routes
-        this.app.get('/blog', async (req, res) => {
-            try {
-                const posts = await this.getRecentPosts(10);
-                res.send(this.generateBlogIndexPage(posts));
-            } catch (error) {
-                res.status(500).send('Blog temporarily unavailable');
-            }
-        });
+this.app.get('/blog', async (req, res) => {
+    try {
+        console.log('📝 Fetching blog posts...');
+        const posts = await this.getRecentPosts(10);
+        console.log(`📝 Found ${posts.length} posts`);
+        res.send(this.generateBlogIndexPage(posts));
+    } catch (error) {
+        console.error('❌ Blog page error:', error);
+        res.status(500).send('Blog temporarily unavailable');
+    }
+});
 
         this.app.get('/blog/:slug', async (req, res) => {
             try {
