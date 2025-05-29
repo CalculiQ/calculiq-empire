@@ -877,6 +877,17 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
     generateUID() {
         return 'cq_' + crypto.randomBytes(8).toString('hex') + '_' + Date.now().toString(36);
     }
+
+    // Helper method to strip markdown from titles
+    stripMarkdown(text) {
+        if (!text) return '';
+        return text
+            .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold
+            .replace(/\*(.+?)\*/g, '$1') // Remove italic
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+            .replace(/[#_`]/g, '') // Remove other markdown
+            .trim();
+    }
     
     calculateLeadPrice(leadData) {
         const basePrice = 25;
