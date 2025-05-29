@@ -1,5 +1,5 @@
-// blog-content-cleaner.js
-// Fixed version - properly handles markdown and preserves content
+// blog-content-cleaner-enhanced.js
+// Enhanced version with professional formatting rules
 
 class BlogContentCleaner {
     constructor() {
@@ -74,6 +74,9 @@ class BlogContentCleaner {
         // First, clean up any formatting issues
         cleaned = this.fixFormatting(cleaned);
         
+        // Add professional formatting enhancements
+        cleaned = this.addProfessionalFormatting(cleaned);
+        
         // Then convert markdown to HTML
         cleaned = this.convertMarkdownToHTML(cleaned);
         
@@ -87,7 +90,26 @@ class BlogContentCleaner {
         
         cleaned = lines.join('\n');
         
+        // Final formatting pass
+        cleaned = this.finalFormattingPass(cleaned);
+        
         return cleaned;
+    }
+
+    addProfessionalFormatting(content) {
+        // Add visual separators between major sections
+        content = content.replace(/\n## /g, '\n\n---\n\n## ');
+        
+        // Enhance key callouts
+        content = content.replace(/💡 \*\*Key Insight:\*\*/g, '<div class="key-insight">💡 <strong>Key Insight:</strong>');
+        content = content.replace(/📊 \*\*By the Numbers:\*\*/g, '<div class="by-numbers">📊 <strong>By the Numbers:</strong>');
+        content = content.replace(/⚡ \*\*Quick Tip:\*\*/g, '<div class="quick-tip">⚡ <strong>Quick Tip:</strong>');
+        content = content.replace(/📌 \*\*Note:\*\*/g, '<div class="note">📌 <strong>Note:</strong>');
+        
+        // Close the divs after the paragraph
+        content = content.replace(/(<div class="[^"]+">.*?)(\n\n)/gs, '$1</div>$2');
+        
+        return content;
     }
 
     convertMarkdownToHTML(markdown) {
@@ -95,57 +117,18 @@ class BlogContentCleaner {
         
         let html = markdown;
 
-        // First, detect and convert plain-text headers (lines that look like headers but don't have ##)
-        // These are typically short lines (< 60 chars) that might be headers
-        const lines = html.split('\n');
-        const processedLines = lines.map((line, index) => {
-            const trimmedLine = line.trim();
-            
-            // Check if this looks like a header:
-            // - It's relatively short (less than 60 characters)
-            // - It doesn't end with common punctuation (. , ! ?)
-            // - It's preceded and followed by blank lines or is at start/end
-            // - It doesn't start with HTML tags or markdown symbols
-            if (trimmedLine.length > 0 && 
-                trimmedLine.length < 60 && 
-                !trimmedLine.endsWith('.') && 
-                !trimmedLine.endsWith(',') && 
-                !trimmedLine.endsWith('!') && 
-                !trimmedLine.endsWith('?') && 
-                !trimmedLine.endsWith(':') &&
-                !trimmedLine.startsWith('<') &&
-                !trimmedLine.startsWith('#') &&
-                !trimmedLine.startsWith('-') &&
-                !trimmedLine.startsWith('*') &&
-                !trimmedLine.match(/^\d+\./) &&
-                (index === 0 || lines[index - 1].trim() === '') &&
-                (index === lines.length - 1 || lines[index + 1].trim() === '')) {
-                
-                // This looks like a header - convert it
-                // Determine header level based on common patterns
-                if (trimmedLine.match(/^(Today's|This Week's|Current|Breaking|Alert)/i) ||
-                    trimmedLine.includes('Reality') ||
-                    trimmedLine.includes('Scenarios') ||
-                    trimmedLine.includes('Opportunities') ||
-                    trimmedLine.includes('Mistakes') ||
-                    trimmedLine.includes('Action Plan')) {
-                    return `## ${trimmedLine}`;
-                }
-            }
-            
-            return line;
-        });
+        // Process in specific order for clean conversion
         
-        html = processedLines.join('\n');
-
-        // CRITICAL: Convert headers FIRST (must be at start of line)
+        // 1. Convert horizontal rules first
+        html = html.replace(/^---$/gm, '<hr class="section-divider">');
+        
+        // 2. Convert headers (must be at start of line)
         html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
         html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
         
-        // Convert bold text - but NOT inside URLs or existing HTML tags
+        // 3. Convert bold text (but not inside URLs)
         html = html.replace(/\*\*([^*]+)\*\*/g, function(match, content, offset, string) {
-            // Check if we're inside a URL
             const beforeText = string.substring(Math.max(0, offset - 50), offset);
             const afterText = string.substring(offset + match.length, offset + match.length + 50);
             
@@ -155,56 +138,88 @@ class BlogContentCleaner {
             return '<strong>' + content + '</strong>';
         });
         
-        // Convert italic text
+        // 4. Convert italic text
         html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
         
-        // Convert links AFTER bold/italic
+        // 5. Convert links
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
-        // Convert lists - only at start of lines
-        html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
-        html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-        html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-
-        // Wrap consecutive <li> elements in <ul>
-        html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
-            return '<ul>' + match + '</ul>';
-        });
+        // 6. Convert lists
+        html = this.convertLists(html);
         
-        // Handle numbered lists separately
-        html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match, offset, string) {
-            // Check if this was originally a numbered list
-            const originalSection = markdown.substring(
-                Math.max(0, string.lastIndexOf('\n\n', offset)),
-                string.indexOf('\n\n', offset + match.length)
-            );
-            
-            if (/^\d+\./m.test(originalSection)) {
-                return '<ol>' + match + '</ol>';
-            }
-            return '<ul>' + match + '</ul>';
-        });
+        // 7. Convert paragraphs (complex)
+        html = this.convertParagraphs(html);
+        
+        // 8. Clean up spacing
+        html = this.cleanupSpacing(html);
+        
+        return html;
+    }
 
-        // Convert paragraphs - this is the tricky part
-        // First, protect existing HTML blocks
+    convertLists(html) {
+        // Split by double newlines to process sections
+        const sections = html.split(/\n\n+/);
+        
+        return sections.map(section => {
+            // Check if this section is a list
+            const lines = section.split('\n');
+            const listLines = [];
+            let inList = false;
+            let listType = null;
+            
+            for (const line of lines) {
+                if (line.match(/^\* /) || line.match(/^- /)) {
+                    inList = true;
+                    listType = 'ul';
+                    listLines.push('<li>' + line.substring(2) + '</li>');
+                } else if (line.match(/^\d+\. /)) {
+                    inList = true;
+                    listType = 'ol';
+                    listLines.push('<li>' + line.replace(/^\d+\. /, '') + '</li>');
+                } else if (inList && line.trim() === '') {
+                    // Empty line in list - ignore
+                } else if (inList) {
+                    // Non-list line - close the list
+                    const listHtml = `<${listType}>${listLines.join('')}</${listType}>`;
+                    return listHtml + '\n' + line;
+                } else {
+                    return line;
+                }
+            }
+            
+            if (inList && listLines.length > 0) {
+                return `<${listType}>${listLines.join('')}</${listType}>`;
+            }
+            
+            return section;
+        }).join('\n\n');
+    }
+
+    convertParagraphs(html) {
+        // Protect existing HTML blocks
         const htmlBlocks = [];
         let blockIndex = 0;
         
-        // Protect headers, lists, and other HTML elements
-        html = html.replace(/(<h[1-6]>.*?<\/h[1-6]>|<ul>.*?<\/ul>|<ol>.*?<\/ol>|<div.*?>.*?<\/div>)/gs, function(match) {
+        // Protect all HTML elements
+        html = html.replace(/(<[^>]+>.*?<\/[^>]+>|<[^>]+\/>|<hr[^>]*>)/gs, function(match) {
             const placeholder = `<!--HTMLBLOCK${blockIndex}-->`;
             htmlBlocks[blockIndex] = match;
             blockIndex++;
             return placeholder;
         });
         
-        // Now convert paragraphs (double newline separated text)
+        // Now convert paragraphs
         const sections = html.split(/\n\n+/);
         html = sections.map(section => {
             section = section.trim();
             
-            // Skip if it's a placeholder or already has HTML
-            if (!section || section.includes('<!--HTMLBLOCK') || section.match(/^<[^>]+>/)) {
+            // Skip if it's a placeholder or starts with HTML
+            if (!section || section.includes('<!--HTMLBLOCK')) {
+                return section;
+            }
+            
+            // Check if it's already wrapped or is a special element
+            if (section.match(/^<[^>]+>/) || section.match(/^---$/)) {
                 return section;
             }
             
@@ -217,20 +232,50 @@ class BlogContentCleaner {
             html = html.replace(`<!--HTMLBLOCK${index}-->`, block);
         });
         
-        // Clean up spacing around block elements
+        return html;
+    }
+
+    cleanupSpacing(html) {
+        // Ensure proper spacing between elements
         html = html.replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
-        html = html.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
+        html = html.replace(/<\/h2>\s*<p>/g, '</h2>\n\n<p>');
+        html = html.replace(/<\/h3>\s*<p>/g, '</h3>\n\n<p>');
+        html = html.replace(/<\/p>\s*<h2>/g, '</p>\n\n<h2>');
+        html = html.replace(/<\/p>\s*<h3>/g, '</p>\n\n<h3>');
         html = html.replace(/<\/ul>\s*<p>/g, '</ul>\n\n<p>');
         html = html.replace(/<\/ol>\s*<p>/g, '</ol>\n\n<p>');
-        html = html.replace(/<\/p>\s*<h([1-6])>/g, '</p>\n\n<h$1>');
-        html = html.replace(/<\/p>\s*<ul>/g, '</p>\n\n<ul>');
-        
-        // Fix any double-wrapped paragraphs
-        html = html.replace(/<p>\s*<p>/g, '<p>');
-        html = html.replace(/<\/p>\s*<\/p>/g, '</p>');
+        html = html.replace(/<hr class="section-divider">\s*<h2>/g, '<hr class="section-divider">\n\n<h2>');
         
         // Remove empty paragraphs
         html = html.replace(/<p>\s*<\/p>/g, '');
+        
+        // Fix any double-wrapped elements
+        html = html.replace(/<p>\s*<p>/g, '<p>');
+        html = html.replace(/<\/p>\s*<\/p>/g, '</p>');
+        
+        return html;
+    }
+
+    finalFormattingPass(html) {
+        // Add professional CSS classes for styling
+        html = html.replace(/<h2>/g, '<h2 class="section-header">');
+        html = html.replace(/<h3>/g, '<h3 class="subsection-header">');
+        
+        // Enhance tables if present
+        html = html.replace(/<table>/g, '<table class="data-table">');
+        
+        // Add classes to lists for better styling
+        html = html.replace(/<ul>/g, '<ul class="content-list">');
+        html = html.replace(/<ol>/g, '<ol class="numbered-list">');
+        
+        // Ensure calculator CTAs have proper styling
+        html = html.replace(/(<div class="calculator-cta-section">)/g, '$1');
+        html = html.replace(/(<a[^>]*href=["'][^"']*#calculators["'][^>]*>)/g, function(match) {
+            if (!match.includes('class=')) {
+                return match.replace('>', ' class="calculator-link">');
+            }
+            return match;
+        });
         
         return html;
     }
@@ -257,6 +302,7 @@ class BlogContentCleaner {
         cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1');
         cleaned = cleaned.replace(/\*(.+?)\*/g, '$1');
         cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+        cleaned = cleaned.replace(/[#_`]/g, '');
         
         // Trim and limit length
         cleaned = cleaned.trim();
@@ -289,81 +335,89 @@ class BlogContentCleaner {
         return content.trim();
     }
 
-    // Check if content needs cleaning
-    needsCleaning(content) {
-        if (!content) return false;
-        
-        // Check for any unwanted prefixes
-        for (let pattern of this.unwantedPrefixes) {
-            if (pattern.test(content)) return true;
-        }
-        
-        // Check for repetitive openings
-        for (let pattern of this.repetitiveOpenings) {
-            if (pattern.test(content)) return true;
-        }
-        
-        // Check for markdown formatting
-        if (content.includes('**') || content.includes('##')) return true;
-        
-        return false;
-    }
-
-    // Extract clean content from AI response
-    extractCleanContent(aiResponse) {
-        if (!aiResponse) return null;
-        
-        // Remove any meta instructions or labels
-        let cleaned = aiResponse;
-        
-        // Remove lines that are just labels
-        const labelPatterns = [
-            /^Title:.*$/gim,
-            /^Opening:.*$/gim,
-            /^Body:.*$/gim,
-            /^Conclusion:.*$/gim,
-            /^Meta Description:.*$/gim,
-            /^SEO Title:.*$/gim,
-            /^Keywords:.*$/gim,
-            /^Tags:.*$/gim
-        ];
-        
-        labelPatterns.forEach(pattern => {
-            cleaned = cleaned.replace(pattern, '');
-        });
-        
-        // Extract title if it exists on its own line at the start
-        const lines = cleaned.trim().split('\n');
-        let title = '';
-        let contentStartIndex = 0;
-        
-        // Look for a title (first non-empty line without HTML or markdown)
-        for (let i = 0; i < Math.min(lines.length, 5); i++) {
-            const line = lines[i].trim();
-            if (line && !line.startsWith('<') && !line.startsWith('#')) {
-                // This could be our title
-                title = this.cleanTitle(line);
-                contentStartIndex = i + 1;
-                break;
+    // Method to add custom styling to blog post page
+    getProfessionalStyles() {
+        return `
+            .section-divider {
+                margin: 50px 0;
+                border: none;
+                height: 1px;
+                background: linear-gradient(to right, transparent, var(--glass-border), transparent);
             }
-        }
-        
-        // Get the rest as content
-        const content = lines.slice(contentStartIndex).join('\n').trim();
-        
-        return {
-            title: title,
-            content: this.cleanAndConvertContent(content)
-        };
-    }
-
-    // Additional method to fix already-published posts
-    fixPublishedPost(post) {
-        // This method can be used to fix posts that are already in the database
-        return {
-            ...post,
-            content: this.cleanAndConvertContent(post.content)
-        };
+            
+            .section-header {
+                margin-top: 50px;
+                padding-top: 20px;
+            }
+            
+            .subsection-header {
+                margin-top: 35px;
+                padding-top: 15px;
+            }
+            
+            .key-insight, .by-numbers, .quick-tip, .note {
+                background: var(--glass-bg);
+                border-left: 4px solid var(--accent-blue);
+                padding: 20px 25px;
+                margin: 30px 0;
+                border-radius: 8px;
+            }
+            
+            .by-numbers {
+                border-left-color: var(--accent-purple);
+            }
+            
+            .quick-tip {
+                border-left-color: #ffa726;
+            }
+            
+            .note {
+                border-left-color: #66bb6a;
+            }
+            
+            .data-table {
+                margin: 30px 0;
+                width: 100%;
+                border-collapse: collapse;
+                background: var(--glass-bg);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            
+            .data-table th {
+                background: var(--secondary-dark);
+                color: var(--accent-blue);
+                padding: 15px;
+                font-weight: 600;
+            }
+            
+            .data-table td {
+                padding: 12px 15px;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            
+            .content-list, .numbered-list {
+                margin: 25px 0;
+                padding-left: 25px;
+            }
+            
+            .content-list li, .numbered-list li {
+                margin: 12px 0;
+                line-height: 1.7;
+            }
+            
+            .calculator-link {
+                color: var(--accent-blue);
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.3s ease;
+            }
+            
+            .calculator-link:hover {
+                color: var(--accent-purple);
+                text-decoration: underline;
+            }
+        `;
     }
 }
 
