@@ -948,9 +948,9 @@ this.app.get('/api/automation-status', (req, res) => {
         // Blog routes
 this.app.get('/blog', async (req, res) => {
     try {
-        console.log('📝 Fetching blog posts...');
+        console.log('📝 Blog page requested');
         const posts = await this.getRecentPosts(10);
-        console.log(`📝 Found ${posts.length} posts`);
+        console.log(`📝 Got ${posts.length} posts from database`);
         res.send(this.generateBlogIndexPage(posts));
     } catch (error) {
         console.error('❌ Blog page error:', error);
