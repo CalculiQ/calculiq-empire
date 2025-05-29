@@ -337,64 +337,39 @@
         </div>
         
         <!-- Generate Tab -->
-        <div id="generate-tab" class="tab-content active">
-            <div class="control-grid">
-                <div class="card">
-                    <h3>📝 Generate Blog Posts</h3>
-                    <p>Create new SEO-optimized blog posts</p>
-                    <button onclick="generatePost('mortgage')" class="success">🏠 Generate Mortgage Post</button>
-                    <button onclick="generatePost('investment')" class="success">📈 Generate Investment Post</button>
-                    <button onclick="generatePost('loan')" class="success">💰 Generate Loan Post</button>
-                    <button onclick="generatePost('insurance')" class="success">🛡️ Generate Insurance Post</button>
-                </div>
-                
-                <div class="card">
-                    <h3>⚡ Bulk Generation</h3>
-                    <p>Generate multiple posts at once</p>
-                    <button onclick="generateRandomPost()">🎲 Generate Random Post</button>
-                    <button onclick="generateAllTypes()" class="warning">🚀 Generate All Types (4 posts)</button>
-                    <button onclick="scheduleDailyPosts()" class="success">📅 Schedule Today's Posts</button>
-                </div>
-                
-                <div class="card">
-                    <h3>📅 Post Scheduling</h3>
-                    <p>Schedule posts for specific times</p>
-                    <input type="datetime-local" id="scheduleTime">
-                    <select id="scheduleType">
-                        <option value="mortgage">Mortgage Post</option>
-                        <option value="investment">Investment Post</option>
-                        <option value="loan">Loan Post</option>
-                        <option value="insurance">Insurance Post</option>
-                    </select>
-                    <button onclick="schedulePost()" class="success">Schedule Post</button>
-                </div>
-            </div>
+            <div id="generate-tab" class="tab-content active">
+    <div class="control-grid">
+        <div class="card">
+            <h3>📰 Generate News Roundup</h3>
+            <p>Create daily market news roundup with AI insights</p>
+            <button onclick="generatePost('mortgage')" class="success">🏠 Generate Mortgage Roundup</button>
+            <button onclick="generatePost('investment')" class="success">📈 Generate Investment Roundup</button>
+            <button onclick="generatePost('loan')" class="success">💰 Generate Loan Roundup</button>
+            <button onclick="generatePost('insurance')" class="success">🛡️ Generate Insurance Roundup</button>
         </div>
         
-<div class="card">
-                    <h3>📅 Post Scheduling</h3>
-                    <p>Schedule posts for specific times</p>
-                    <input type="datetime-local" id="scheduleTime">
-                    <select id="scheduleType">
-                        <option value="mortgage">Mortgage Post</option>
-                        <option value="investment">Investment Post</option>
-                        <option value="loan">Loan Post</option>
-                        <option value="insurance">Insurance Post</option>
-                    </select>
-                    <button onclick="schedulePost()" class="success">Schedule Post</button>
-                </div>
-                
-                <div class="card">
-                    <h3>🔍 Quality Assurance</h3>
-                    <p>Check prompt quality and uniqueness</p>
-                    <button onclick="previewPrompt('mortgage')" style="background: #3498db;">👁️ Preview Mortgage Prompt</button>
-                    <button onclick="previewPrompt('investment')" style="background: #3498db;">👁️ Preview Investment Prompt</button>
-                    <button onclick="previewPrompt('loan')" style="background: #3498db;">👁️ Preview Loan Prompt</button>
-                    <button onclick="previewPrompt('insurance')" style="background: #3498db;">👁️ Preview Insurance Prompt</button>
-                    <button onclick="checkRepetitionPatterns()" style="background: #9b59b6;">🔄 Check Repetition Patterns</button>
-                    <button onclick="verifyMarketData()" style="background: #2ecc71;">📊 Verify Market Data</button>
-                </div>
-            </div>
+        <div class="card">
+            <h3>⚡ Bulk Generation</h3>
+            <p>Generate multiple roundups at once</p>
+            <button onclick="generateRandomPost()">🎲 Generate Random Roundup</button>
+            <button onclick="generateAllTypes()" class="warning">🚀 Generate All Types (4 roundups)</button>
+            <button onclick="testNewsAPI()" style="background: #3498db;">🔍 Test News API</button>
+        </div>
+        
+        <div class="card">
+            <h3>📅 Post Scheduling</h3>
+            <p>Schedule roundups for specific times</p>
+            <input type="datetime-local" id="scheduleTime">
+            <select id="scheduleType">
+                <option value="mortgage">Mortgage Roundup</option>
+                <option value="investment">Investment Roundup</option>
+                <option value="loan">Loan Roundup</option>
+                <option value="insurance">Insurance Roundup</option>
+            </select>
+            <button onclick="schedulePost()" class="success">Schedule Roundup</button>
+        </div>
+    </div>
+</div>
 
         <!-- Manage Tab -->
         <div id="manage-tab" class="tab-content">
@@ -1040,12 +1015,46 @@
             log('💾 Settings saved', 'success');
         }
 
-// Save settings
-        function saveSettings() {
-            setupAutoRefresh();
-            log('💾 Settings saved', 'success');
+// Test News API function
+        async function testNewsAPI() {
+            log('🔍 Testing News API connection...', 'info');
+            
+            try {
+                const result = await makeRequest('/api/test-news-api');
+                
+                if (result.success) {
+                    log(`✅ News API working! Found ${result.articleCount} articles`, 'success');
+                    log(`📰 Sample headlines:`, 'info');
+                    result.sampleHeadlines.forEach(headline => {
+                        log(`  - ${headline}`, 'info');
+                    });
+                } else {
+                    log('❌ News API test failed', 'error');
+                }
+            } catch (error) {
+                log(`❌ News API error: ${error.message}`, 'error');
+            }
         }
-        
+
+        // Check AI status function
+        async function checkAIStatus() {
+            log('🤖 Checking AI enhancement status...', 'info');
+            
+            try {
+                const result = await makeRequest('/api/ai-status');
+                
+                if (result.aiEnabled) {
+                    log('✅ AI enhancements are ENABLED', 'success');
+                    log('🤖 Using Claude for headlines, insights, and tips', 'info');
+                } else {
+                    log('⚠️ AI enhancements are DISABLED', 'warning');
+                    log('📰 Running in news-only mode', 'info');
+                }
+            } catch (error) {
+                log('❌ Could not check AI status', 'error');
+            }
+        }
+
         // Preview prompt function
         async function previewPrompt(type) {
             log(`👁️ Previewing ${type} prompt generation...`, 'info');

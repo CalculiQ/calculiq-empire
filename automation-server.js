@@ -24,8 +24,7 @@ const fs = require('fs').promises;
 require('dotenv').config();
 console.log('✅ Dotenv loaded');
 
-// Then require local modules
-const DynamicBlogGenerator = require('./dynamic-blog-generator');
+const HybridNewsAIGenerator = require('./hybrid-news-ai-generator');
 const BlogContentCleaner = require('./blog-content-cleaner');
 
 // Initialize module systems that might use require() early
@@ -383,28 +382,65 @@ async initializeDatabase() {
         }
     }
 
-    async initializeBlogSystem() {
-        try {
-            // PST Schedule (UTC - 8 hours, or UTC - 7 during daylight saving)
-            cron.schedule('0 16 * * *', async () => {  // 4 PM UTC = 8 AM PST
-                console.log('📝 Morning blog: Mortgage focus (8 AM PST)...');
-                await this.generateAndPublishTopicalBlog('mortgage');
-            });
-            
-            cron.schedule('0 20 * * *', async () => {  // 8 PM UTC = 12 PM PST
-                console.log('📝 Noon blog: Investment focus (12 PM PST)...');
-                await this.generateAndPublishTopicalBlog('investment');
-            });
-            
-            cron.schedule('0 0 * * *', async () => {   // Midnight UTC = 4 PM PST
-                console.log('📝 Afternoon blog: Loan focus (4 PM PST)...');
-                await this.generateAndPublishTopicalBlog('loan');
-            });
-            
-            cron.schedule('0 4 * * *', async () => {   // 4 AM UTC = 8 PM PST
-                console.log('📝 Evening blog: Insurance focus (8 PM PST)...');
-                await this.generateAndPublishTopicalBlog('insurance');
-            });
+async initializeBlogSystem() {
+    try {
+        // Import the new generator at the top of your file
+        const HybridNewsAIGenerator = require('./hybrid-news-ai-generator');
+        
+        // Keep 4 posts per day but as news roundups
+        cron.schedule('0 16 * * *', async () => {  // 4 PM UTC = 8 AM PST
+            console.log('📰 Morning roundup: Mortgage focus (8 AM PST)...');
+            await this.generateAndPublishNewsRoundup('mortgage');
+        });
+        
+        cron.schedule('0 20 * * *', async () => {  // 8 PM UTC = 12 PM PST
+            console.log('📰 Noon roundup: Investment focus (12 PM PST)...');
+            await this.generateAndPublishNewsRoundup('investment');
+        });
+        
+        cron.schedule('0 0 * * *', async () => {   // Midnight UTC = 4 PM PST
+            console.log('📰 Afternoon roundup: Loan focus (4 PM PST)...');
+            await this.generateAndPublishNewsRoundup('loan');
+        });
+        
+        cron.schedule('0 4 * * *', async () => {   // 4 AM UTC = 8 PM PST
+            console.log('📰 Evening roundup: Insurance focus (8 PM PST)...');
+            await this.generateAndPublishNewsRoundup('insurance');
+        });
+        
+        console.log('✅ Blog automation: 4 news roundups daily (PST times)');
+        
+    } catch (error) {
+        console.log('📝 Blog system initialization error:', error.message);
+    }
+}
+
+// Add this new method to your class
+async generateAndPublishNewsRoundup(calculatorType) {
+    try {
+        console.log(`📰 Generating ${calculatorType} news roundup...`);
+        
+        const generator = new HybridNewsAIGenerator(this.db);
+        const article = await generator.generateDailyRoundup(calculatorType);
+        
+        // Save to database
+        await this.saveBlogPost({
+            slug: article.slug,
+            title: article.title,
+            content: article.content,
+            excerpt: article.excerpt,
+            category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+            tags: `${article.calculatorType},market update,${new Date().getFullYear()},news roundup`,
+            meta_description: article.metaDescription,
+            status: 'published'
+        });
+        
+        console.log(`✅ ${calculatorType} roundup published: "${article.title}"`);
+        
+    } catch (error) {
+        console.error(`❌ ${calculatorType} roundup failed:`, error);
+    }
+}
             
             console.log('✅ Blog automation: 4 calculator-focused posts daily (PST times)');
         } catch (error) {
@@ -696,248 +732,31 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
     }
 
     // Blog System Methods
-    async generateAndPublishTopicalBlog(calculatorType) {
+ // Blog System Methods
+    async generateAndPublishNewsRoundup(calculatorType) {
         try {
-            console.log(`📝 Generating ${calculatorType} blog with dynamic generator...`);
+            console.log(`📰 Generating ${calculatorType} news roundup...`);
             
-            // Always use your dynamic generator (it's better than AI)
-            const generator = new DynamicBlogGenerator();
-            const cleaner = new BlogContentCleaner();
+            const generator = new HybridNewsAIGenerator(this.db);
+            const article = await generator.generateDailyRoundup(calculatorType);
             
-// Generate article
-let article = await generator.generateArticle(calculatorType);
-
-console.log('📝 BEFORE CLEANING - First 500 chars:', article.content.substring(0, 500));
-
-// Clean the article using the cleaner
-const cleanedArticle = cleaner.cleanBlogPost(article);
-
-console.log('📝 AFTER CLEANING - First 500 chars:', cleanedArticle.content.substring(0, 500));
-
-// Save to database
-await this.saveBlogPost({
-    slug: cleanedArticle.slug,
-    title: cleanedArticle.title,
-    content: cleanedArticle.content,  // This will now be properly converted HTML
-    excerpt: cleanedArticle.excerpt,
-    category: cleanedArticle.calculatorType.charAt(0).toUpperCase() + cleanedArticle.calculatorType.slice(1),
-    tags: `${cleanedArticle.calculatorType},calculator,${new Date().getFullYear()},financial calculator`,
-    meta_description: cleanedArticle.metaDescription || cleanedArticle.excerpt,
-    status: 'published'
-});
+            // Save to database
+            await this.saveBlogPost({
+                slug: article.slug,
+                title: article.title,
+                content: article.content,
+                excerpt: article.excerpt,
+                category: article.calculatorType.charAt(0).toUpperCase() + article.calculatorType.slice(1),
+                tags: `${article.calculatorType},market update,${new Date().getFullYear()},news roundup`,
+                meta_description: article.metaDescription,
+                status: 'published'
+            });
             
-            console.log(`✅ ${calculatorType} blog published: "${article.title}"`);
+            console.log(`✅ ${calculatorType} roundup published: "${article.title}"`);
             
         } catch (error) {
-            console.error(`❌ ${calculatorType} blog generation failed:`, error);
+            console.error(`❌ ${calculatorType} roundup failed:`, error);
         }
-    }
-
-async generateOpenAIBlog(calculatorType, marketData) {
-    // Get variety in prompts based on date/time
-    const dayOfWeek = new Date().getDay();
-    const weekOfMonth = Math.floor(new Date().getDate() / 7);
-    const hour = new Date().getHours();
-    const varietyIndex = (dayOfWeek + weekOfMonth + hour) % 15;
-    
-    const titlePatterns = [
-        {
-            prefix: "How to",
-            examples: ["How to Save Thousands", "How to Get Better Rates", "How to Choose the Right"]
-        },
-        {
-            prefix: "The",
-            examples: ["The Smart Buyer's Guide", "The Hidden Truth About", "The Complete Playbook"]
-        },
-        {
-            prefix: "Why",
-            examples: ["Why Smart Buyers Choose", "Why Now Is the Time", "Why Rates Matter More Than Ever"]
-        },
-        {
-            prefix: "5/7/10",
-            examples: ["5 Proven Strategies", "7 Insider Secrets", "10 Must-Know Tips"]
-        },
-        {
-            prefix: "What",
-            examples: ["What You Need to Know", "What Experts Recommend", "What Changes Mean for You"]
-        }
-    ];
-
-    const selectedPattern = titlePatterns[varietyIndex % titlePatterns.length];
-    
-    const prompts = {
-        mortgage: `Write a comprehensive 1,500+ word blog post about home buying and mortgage strategies for ${new Date().toLocaleDateString()}.
-Include: Current 30-year rate at ${marketData.rates.mortgage.thirtyYear}%, 15-year at ${marketData.rates.mortgage.fifteenYear}%.
-
-CRITICAL INSTRUCTIONS:
-1. Start with ONLY the title on the first line (no "Title:" prefix)
-2. Leave a blank line after the title
-3. Write the rest of the article in clean markdown format
-4. Use ** for bold text, not HTML tags
-5. Use ## for main headings, ### for subheadings
-6. Use * for bullet points
-
-TITLE REQUIREMENTS:
-- Start with "${selectedPattern.prefix}" pattern
-- Examples: ${selectedPattern.examples.join(', ')}
-- Be specific and benefit-focused
-- Include numbers when relevant
-
-Within the article, naturally mention and link to our mortgage calculator as a helpful tool.`,
-
-        investment: `Write a comprehensive 1,500+ word blog post about wealth building and investment strategies for ${new Date().toLocaleDateString()}.
-Include: S&P 500 at ${marketData.markets.sp500}% change, current market conditions.
-
-CRITICAL INSTRUCTIONS:
-1. Start with ONLY the title on the first line (no "Title:" prefix)
-2. Leave a blank line after the title
-3. Write the rest of the article in clean markdown format
-4. Use ** for bold text, not HTML tags
-5. Use ## for main headings, ### for subheadings
-6. Use * for bullet points
-
-TITLE REQUIREMENTS:
-- Start with "${selectedPattern.prefix}" pattern
-- Examples: ${selectedPattern.examples.join(', ')}
-- Focus on specific outcomes
-
-Within the article, naturally mention and link to our investment calculator as a planning tool.`,
-
-        loan: `Write a comprehensive 1,500+ word blog post about smart borrowing and debt management for ${new Date().toLocaleDateString()}.
-Include: Current lending environment, consolidation opportunities.
-
-CRITICAL INSTRUCTIONS:
-1. Start with ONLY the title on the first line (no "Title:" prefix)
-2. Leave a blank line after the title
-3. Write the rest of the article in clean markdown format
-4. Use ** for bold text, not HTML tags
-5. Use ## for main headings, ### for subheadings
-6. Use * for bullet points
-
-TITLE REQUIREMENTS:
-- Start with "${selectedPattern.prefix}" pattern
-- Examples: ${selectedPattern.examples.join(', ')}
-- Address specific pain points
-
-Within the article, naturally mention and link to our loan calculator for comparing options.`,
-
-        insurance: `Write a comprehensive 1,500+ word blog post about protecting your family's financial future for ${new Date().toLocaleDateString()}.
-Include: Life insurance trends, coverage analysis.
-
-CRITICAL INSTRUCTIONS:
-1. Start with ONLY the title on the first line (no "Title:" prefix)
-2. Leave a blank line after the title
-3. Write the rest of the article in clean markdown format
-4. Use ** for bold text, not HTML tags
-5. Use ## for main headings, ### for subheadings
-6. Use * for bullet points
-
-TITLE REQUIREMENTS:
-- Start with "${selectedPattern.prefix}" pattern
-- Examples: ${selectedPattern.examples.join(', ')}
-- Make it personal and relatable
-
-Within the article, naturally mention and link to our insurance calculator for coverage estimates.`
-    };
-
-    if (!this.openai) {
-        throw new Error('OpenAI not configured');
-    }
-
-    const completion = await this.openai.chat.completions.create({
-        model: "gpt-4-turbo-preview",
-        messages: [
-            {
-                role: "system",
-                content: `You are an expert financial writer. Write in clean markdown format. Do NOT include any HTML tags or prefixes like "Title:" in your response.`
-            },
-            {
-                role: "user",
-                content: prompts[calculatorType]
-            }
-        ],
-        temperature: 0.85,
-        max_tokens: 4000
-    });
-
-    const responseText = completion.choices[0].message.content;
-    
-// Parse the response manually to keep content as markdown
-const cleaner = new BlogContentCleaner();
-const lines = responseText.split('\n');
-const title = cleaner.cleanTitle(lines[0]);
-const content = lines.slice(1).join('\n'); // Keep as raw markdown
-
-const extracted = { title, content };
-    
-    const slug = this.createSlug(extracted.title + '-' + new Date().toISOString().split('T')[0]);
-    
-    // Extract excerpt from the cleaned content
-const cleanTextContent = extracted.content
-    .replace(/[#*_\[\]`]/g, '')  // Remove markdown formatting
-    .replace(/\s+/g, ' ')
-    .trim();
-    
-    const sentences = cleanTextContent.match(/[^.!?]+[.!?]+/g) || [];
-    let excerpt = '';
-    
-    for (const sentence of sentences) {
-        const cleanSentence = sentence.trim();
-        if (cleanSentence.length > 50) {
-            excerpt = cleanSentence.length > 160 
-                ? cleanSentence.substring(0, 157) + '...' 
-                : cleanSentence;
-            break;
-        }
-    }
-    
-    if (!excerpt && cleanTextContent.length > 50) {
-        excerpt = cleanTextContent.substring(0, 157) + '...';
-    }
-    
-    if (!excerpt) {
-        excerpt = `Expert insights on ${calculatorType} strategies and financial planning.`;
-    }
-    
-    return {
-        title: extracted.title,
-        content: extracted.content,
-        excerpt: excerpt,
-        slug: slug,
-        calculatorType: calculatorType,
-        metaDescription: excerpt
-    };
-}
-
-    // Fixed markdown conversion to handle bold text properly
-    convertMarkdownToHTML(markdown) {
-        return markdown
-            // Handle bold text FIRST before other conversions
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            // Then handle headers
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            // Handle lists
-            .replace(/^\* (.+)$/gim, '<li>$1</li>')
-            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-            // Handle paragraphs
-            .split('\n\n')
-            .map(para => para.trim() ? `<p>${para}</p>` : '')
-            .join('\n')
-            .replace(/<\/li>\n<li>/g, '</li><li>')
-            .replace(/<p><ul>/g, '<ul>')
-            .replace(/<\/ul><\/p>/g, '</ul>');
-    }
-
-    // Helper method to strip markdown from titles
-    stripMarkdown(text) {
-        return text
-            .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold
-            .replace(/\*(.+?)\*/g, '$1') // Remove italic
-            .replace(/^#+\s*/gm, '') // Remove headers
-            .replace(/\[(.+?)\]\(.+?\)/g, '$1') // Remove links
-            .trim();
     }
 
     async saveBlogPost(blogPost) {
