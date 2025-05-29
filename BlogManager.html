@@ -337,36 +337,37 @@
         </div>
         
         <!-- Generate Tab -->
-            <div id="generate-tab" class="tab-content active">
+            <!-- Generate Tab -->
+<div id="generate-tab" class="tab-content active">
     <div class="control-grid">
         <div class="card">
-            <h3>📰 Generate News Roundup</h3>
-            <p>Create daily market news roundup with AI insights</p>
-            <button onclick="generatePost('mortgage')" class="success">🏠 Generate Mortgage Roundup</button>
-            <button onclick="generatePost('investment')" class="success">📈 Generate Investment Roundup</button>
-            <button onclick="generatePost('loan')" class="success">💰 Generate Loan Roundup</button>
-            <button onclick="generatePost('insurance')" class="success">🛡️ Generate Insurance Roundup</button>
+            <h3>🎯 Generate SEO Articles</h3>
+            <p>Create keyword-focused articles that rank</p>
+            <button onclick="generatePost('mortgage')" class="success">🏠 Generate Mortgage Article</button>
+            <button onclick="generatePost('investment')" class="success">📈 Generate Investment Article</button>
+            <button onclick="generatePost('loan')" class="success">💰 Generate Loan Article</button>
+            <button onclick="generatePost('insurance')" class="success">🛡️ Generate Insurance Article</button>
         </div>
         
         <div class="card">
             <h3>⚡ Bulk Generation</h3>
-            <p>Generate multiple roundups at once</p>
-            <button onclick="generateRandomPost()">🎲 Generate Random Roundup</button>
-            <button onclick="generateAllTypes()" class="warning">🚀 Generate All Types (4 roundups)</button>
-            <button onclick="testNewsAPI()" style="background: #3498db;">🔍 Test News API</button>
+            <p>Generate multiple SEO articles at once</p>
+            <button onclick="generateRandomPost()">🎲 Generate Random Article</button>
+            <button onclick="generateAllTypes()" class="warning">🚀 Generate All Types (4 articles)</button>
+            <button onclick="previewNextTitle()" style="background: #3498db;">👁️ Preview Next Title</button>
         </div>
         
         <div class="card">
             <h3>📅 Post Scheduling</h3>
-            <p>Schedule roundups for specific times</p>
+            <p>Schedule SEO articles for specific times</p>
             <input type="datetime-local" id="scheduleTime">
             <select id="scheduleType">
-                <option value="mortgage">Mortgage Roundup</option>
-                <option value="investment">Investment Roundup</option>
-                <option value="loan">Loan Roundup</option>
-                <option value="insurance">Insurance Roundup</option>
+                <option value="mortgage">Mortgage Article</option>
+                <option value="investment">Investment Article</option>
+                <option value="loan">Loan Article</option>
+                <option value="insurance">Insurance Article</option>
             </select>
-            <button onclick="schedulePost()" class="success">Schedule Roundup</button>
+            <button onclick="schedulePost()" class="success">Schedule Article</button>
         </div>
     </div>
 </div>
@@ -1054,6 +1055,44 @@
                 log('❌ Could not check AI status', 'error');
             }
         }
+
+// Preview what the next title will be
+async function previewNextTitle() {
+    log('👁️ Previewing next article title...', 'info');
+    
+    const types = ['mortgage', 'investment', 'loan', 'insurance'];
+    const dayOfMonth = new Date().getDate();
+    
+    const previews = {
+        mortgage: [
+            "How Much House Can I Afford With a $X Salary in 2025?",
+            "Should I Refinance My Mortgage at X%? Complete 2025 Guide",
+            "X% Down Payment: How Much House Can You Buy in 2025?",
+            "Mortgage Calculator: [City] Home Buying Guide 2025"
+        ],
+        investment: [
+            "$X Investment: How Much Will It Grow in Y Years?",
+            "Roth IRA vs 401k Calculator: Which Saves You More Taxes in 2025?",
+            "Dollar Cost Averaging Calculator: Is It Worth It in 2025's Market?"
+        ],
+        loan: [
+            "Personal Loan Calculator: How Much Can I Borrow With a X Credit Score?",
+            "Debt Consolidation Calculator: Save $X on Credit Card Interest"
+        ],
+        insurance: [
+            "Life Insurance Calculator: How Much Coverage Does a X Year Old Need?",
+            "Term vs Whole Life Insurance Calculator: 2025 Cost Comparison"
+        ]
+    };
+    
+    types.forEach(type => {
+        const templates = previews[type];
+        const template = templates[dayOfMonth % templates.length];
+        log(`${type.toUpperCase()}: ${template}`, 'info');
+    });
+    
+    log('✅ These are template patterns - actual values will be filled in', 'success');
+}
 
         // Preview prompt function
         async function previewPrompt(type) {
