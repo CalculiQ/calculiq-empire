@@ -97,17 +97,12 @@ class BlogContentCleaner {
     }
 
     addProfessionalFormatting(content) {
-        // Add visual separators between major sections
-        content = content.replace(/\n## /g, '\n\n---\n\n## ');
+        // Keep it simple - just ensure good spacing
+        // Don't add complex HTML that will break
         
-        // Enhance key callouts
-        content = content.replace(/💡 \*\*Key Insight:\*\*/g, '<div class="key-insight">💡 <strong>Key Insight:</strong>');
-        content = content.replace(/📊 \*\*By the Numbers:\*\*/g, '<div class="by-numbers">📊 <strong>By the Numbers:</strong>');
-        content = content.replace(/⚡ \*\*Quick Tip:\*\*/g, '<div class="quick-tip">⚡ <strong>Quick Tip:</strong>');
-        content = content.replace(/📌 \*\*Note:\*\*/g, '<div class="note">📌 <strong>Note:</strong>');
-        
-        // Close the divs after the paragraph
-        content = content.replace(/(<div class="[^"]+">.*?)(\n\n)/gs, '$1</div>$2');
+        // Ensure headers have good spacing
+        content = content.replace(/([.!?])\n(## )/g, '$1\n\n$2');
+        content = content.replace(/(## .+)\n([^#\n])/g, '$1\n\n$2');
         
         return content;
     }
@@ -117,41 +112,83 @@ class BlogContentCleaner {
         
         let html = markdown;
 
-        // Process in specific order for clean conversion
-        
-        // 1. Convert horizontal rules first
-        html = html.replace(/^---$/gm, '<hr class="section-divider">');
-        
-        // 2. Convert headers (must be at start of line)
+        // Convert headers FIRST - they must be at start of line
         html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
         html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
         
-        // 3. Convert bold text (but not inside URLs)
+        // Convert bold - but check we're not in a link
         html = html.replace(/\*\*([^*]+)\*\*/g, function(match, content, offset, string) {
-            const beforeText = string.substring(Math.max(0, offset - 50), offset);
-            const afterText = string.substring(offset + match.length, offset + match.length + 50);
+            // Simple check - if there's a ]( before or ) after, skip
+            const before = string.substring(Math.max(0, offset - 2), offset);
+            const after = string.substring(offset + match.length, offset + match.length + 1);
             
-            if (beforeText.includes('](') || afterText.includes(')')) {
-                return match; // Don't convert if part of a markdown link
+            if (before.includes('](') || after.includes(')')) {
+                return match;
             }
             return '<strong>' + content + '</strong>';
         });
         
-        // 4. Convert italic text
-        html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+        // Convert italic
+        html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
         
-        // 5. Convert links
+        // Convert links
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
-        // 6. Convert lists
-        html = this.convertLists(html);
+        // Convert bullet lists properly
+        const lines = html.split('\n');
+        let inList = false;
+        let processedLines = [];
         
-        // 7. Convert paragraphs (complex)
-        html = this.convertParagraphs(html);
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmed = line.trim();
+            
+            if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                if (!inList) {
+                    processedLines.push('<ul>');
+                    inList = true;
+                }
+                processedLines.push('<li>' + trimmed.substring(2) + '</li>');
+            } else if (inList && trimmed === '') {
+                // Empty line - might be end of list
+                if (i + 1 < lines.length && !lines[i + 1].trim().startsWith('* ') && !lines[i + 1].trim().startsWith('- ')) {
+                    processedLines.push('</ul>');
+                    processedLines.push('');
+                    inList = false;
+                }
+            } else {
+                if (inList) {
+                    processedLines.push('</ul>');
+                    inList = false;
+                }
+                processedLines.push(line);
+            }
+        }
         
-        // 8. Clean up spacing
-        html = this.cleanupSpacing(html);
+        if (inList) {
+            processedLines.push('</ul>');
+        }
+        
+        html = processedLines.join('\n');
+        
+        // Convert paragraphs - simple approach
+        html = html.split('\n\n').map(section => {
+            section = section.trim();
+            
+            // Don't wrap if it's already HTML or empty
+            if (!section || section.startsWith('<')) {
+                return section;
+            }
+            
+            return '<p>' + section + '</p>';
+        }).join('\n\n');
+        
+        // Clean up spacing
+        html = html.replace(/<\/p>\n\n<ul>/g, '</p>\n<ul>');
+        html = html.replace(/<\/ul>\n\n<p>/g, '</ul>\n<p>');
+        html = html.replace(/<\/h2>\n\n<p>/g, '</h2>\n<p>');
+        html = html.replace(/<\/h3>\n\n<p>/g, '</h3>\n<p>');
         
         return html;
     }
@@ -257,25 +294,16 @@ class BlogContentCleaner {
     }
 
     finalFormattingPass(html) {
-        // Add professional CSS classes for styling
-        html = html.replace(/<h2>/g, '<h2 class="section-header">');
-        html = html.replace(/<h3>/g, '<h3 class="subsection-header">');
+        // Keep formatting simple - don't add complex classes that might break
         
-        // Enhance tables if present
-        html = html.replace(/<table>/g, '<table class="data-table">');
+        // Just ensure good spacing
+        html = html.replace(/<\/p>\s*<h2>/g, '</p>\n\n<h2>');
+        html = html.replace(/<\/h2>\s*<p>/g, '</h2>\n\n<p>');
+        html = html.replace(/<\/p>\s*<h3>/g, '</p>\n\n<h3>');
+        html = html.replace(/<\/h3>\s*<p>/g, '</h3>\n\n<p>');
         
-        // Add classes to lists for better styling
-        html = html.replace(/<ul>/g, '<ul class="content-list">');
-        html = html.replace(/<ol>/g, '<ol class="numbered-list">');
-        
-        // Ensure calculator CTAs have proper styling
-        html = html.replace(/(<div class="calculator-cta-section">)/g, '$1');
-        html = html.replace(/(<a[^>]*href=["'][^"']*#calculators["'][^>]*>)/g, function(match) {
-            if (!match.includes('class=')) {
-                return match.replace('>', ' class="calculator-link">');
-            }
-            return match;
-        });
+        // Remove any empty paragraphs
+        html = html.replace(/<p>\s*<\/p>/g, '');
         
         return html;
     }
@@ -335,87 +363,91 @@ class BlogContentCleaner {
         return content.trim();
     }
 
-    // Method to add custom styling to blog post page
+    // Method to add professional styling to blog post page
     getProfessionalStyles() {
         return `
-            .section-divider {
-                margin: 50px 0;
-                border: none;
-                height: 1px;
-                background: linear-gradient(to right, transparent, var(--glass-border), transparent);
+            /* Better typography */
+            .blog-post p {
+                margin-bottom: 1.5em;
+                line-height: 1.8;
             }
             
-            .section-header {
-                margin-top: 50px;
-                padding-top: 20px;
+            .blog-post h2 {
+                margin-top: 2.5em;
+                margin-bottom: 1em;
+                padding-top: 0.5em;
+                color: var(--text-primary);
             }
             
-            .subsection-header {
-                margin-top: 35px;
-                padding-top: 15px;
+            .blog-post h3 {
+                margin-top: 2em;
+                margin-bottom: 0.8em;
+                color: var(--text-primary);
             }
             
-            .key-insight, .by-numbers, .quick-tip, .note {
-                background: var(--glass-bg);
-                border-left: 4px solid var(--accent-blue);
-                padding: 20px 25px;
-                margin: 30px 0;
-                border-radius: 8px;
+            /* Better list styling */
+            .blog-post ul, .blog-post ol {
+                margin: 1.5em 0;
+                padding-left: 2em;
             }
             
-            .by-numbers {
-                border-left-color: var(--accent-purple);
-            }
-            
-            .quick-tip {
-                border-left-color: #ffa726;
-            }
-            
-            .note {
-                border-left-color: #66bb6a;
-            }
-            
-            .data-table {
-                margin: 30px 0;
-                width: 100%;
-                border-collapse: collapse;
-                background: var(--glass-bg);
-                border-radius: 10px;
-                overflow: hidden;
-            }
-            
-            .data-table th {
-                background: var(--secondary-dark);
-                color: var(--accent-blue);
-                padding: 15px;
-                font-weight: 600;
-            }
-            
-            .data-table td {
-                padding: 12px 15px;
-                border-bottom: 1px solid var(--glass-border);
-            }
-            
-            .content-list, .numbered-list {
-                margin: 25px 0;
-                padding-left: 25px;
-            }
-            
-            .content-list li, .numbered-list li {
-                margin: 12px 0;
+            .blog-post li {
+                margin: 0.5em 0;
                 line-height: 1.7;
             }
             
-            .calculator-link {
-                color: var(--accent-blue);
-                font-weight: 600;
-                text-decoration: none;
-                transition: all 0.3s ease;
+            /* Make the content feel more spacious */
+            .blog-post {
+                font-size: 1.125rem;
             }
             
-            .calculator-link:hover {
-                color: var(--accent-purple);
-                text-decoration: underline;
+            /* Better link styling */
+            .blog-post a {
+                color: var(--accent-blue);
+                font-weight: 500;
+                text-decoration: none;
+                border-bottom: 1px solid transparent;
+                transition: all 0.2s ease;
+            }
+            
+            .blog-post a:hover {
+                border-bottom-color: var(--accent-blue);
+            }
+            
+            /* Style strong text */
+            .blog-post strong {
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+            
+            /* Add some visual interest to the CTA section */
+            .blog-post h2:last-of-type {
+                margin-top: 3em;
+                text-align: center;
+                background: var(--accent-gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            
+            /* Make the CTA link stand out - targeting the link after "Calculate Your" */
+            .blog-post p a[href*="#calculators"] {
+                display: inline-block;
+                margin-top: 1em;
+                padding: 0.8em 2em;
+                background: var(--accent-gradient);
+                color: white !important;
+                border-radius: 30px;
+                font-weight: 600;
+                text-decoration: none;
+                border: none;
+                transition: all 0.3s ease;
+                box-shadow: 0 10px 30px rgba(123, 47, 247, 0.3);
+            }
+            
+            .blog-post p a[href*="#calculators"]:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 15px 40px rgba(123, 47, 247, 0.4);
+                border-bottom: none;
             }
         `;
     }

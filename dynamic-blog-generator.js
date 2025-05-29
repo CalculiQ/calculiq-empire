@@ -117,11 +117,10 @@ PROFESSIONAL FORMATTING REQUIREMENTS:
 1. Use clean, consistent markdown formatting throughout
 2. ALL section headers MUST use ## (with blank lines before and after)
 3. ALL subsection headers MUST use ### (with blank lines before and after)
-4. Use **bold text** for emphasis on key points and important numbers
+4. Use **bold text** sparingly for key points and important numbers
 5. Break up long paragraphs - maximum 4-5 sentences per paragraph
-6. Include visual breaks between major sections
-7. Use bullet points or numbered lists when presenting multiple items
-8. Add data tables when comparing options or rates
+6. Use bullet points or numbered lists when presenting multiple items
+7. Keep formatting simple - let CSS handle the styling
 
 CONTENT STRUCTURE (STRICT):
 1. NO fictional quotes or made-up people
@@ -136,7 +135,7 @@ VERIFIED DATA TO USE:
 - Data date: ${context.marketData.rates.dataDate}
 - Source: Federal Reserve Economic Data (FRED)
 
-ARTICLE SECTIONS (with professional formatting):
+ARTICLE SECTIONS (with clean formatting):
 
 ## Opening Hook (200+ words)
 - Start with current market reality or surprising statistic
@@ -146,14 +145,13 @@ ARTICLE SECTIONS (with professional formatting):
 ## The Current Landscape (400+ words)
 - Present data in easily scannable format
 - Use bullet points for key statistics
-- Include a comparison table if relevant
-- Bold important numbers and percentages
+- Bold only the most important numbers
 
 ## Three Actionable Strategies (600+ words)
 ### Strategy 1: [Specific Approach]
 - Detailed explanation with calculations
 - Real example with numbers
-- Pros and cons in bullet format
+- Clear pros and cons
 
 ### Strategy 2: [Different Approach]  
 - Another detailed walkthrough
@@ -180,17 +178,16 @@ ARTICLE SECTIONS (with professional formatting):
 - Specific resources to use
 - Timeline for decisions
 
-## Professional Calculator CTA (Required)
+## Calculator CTA (Required)
 - Must link to appropriate calculator
 - Emphasize immediate value
 - Clear call-to-action
 
-VISUAL ENHANCEMENT REQUIREMENTS:
-- Use horizontal rules (---) to separate major sections
-- Include "💡 **Key Insight:**" boxes for important points
-- Add "📊 **By the Numbers:**" sections for statistics
-- Use "⚡ **Quick Tip:**" for actionable advice
-- Create visual hierarchy with consistent formatting
+FORMATTING GUIDELINES:
+- Keep it simple - no complex HTML or special divs
+- Use standard markdown: ##, ###, **, *, []()
+- Let the blog's CSS handle the visual styling
+- Focus on clear, readable content structure
 
 FORBIDDEN PATTERNS to avoid:
 ${forbiddenPatterns.length > 0 ? forbiddenPatterns.map(p => `- "${p}"`).join('\n') : '- None yet'}
@@ -208,22 +205,19 @@ Begin with your title (no prefix) and professional article:`;
     }
 
     enhanceContentFormatting(content, calculatorType) {
-        // Add visual separators between major sections
-        content = content.replace(/\n## /g, '\n\n---\n\n## ');
+        // Just ensure proper spacing - don't add complex formatting
         
-        // Enhance key insights with visual markers
-        content = content.replace(/Key insight:/gi, '💡 **Key Insight:**');
-        content = content.replace(/Important:/gi, '⚠️ **Important:**');
-        content = content.replace(/Tip:/gi, '⚡ **Quick Tip:**');
-        content = content.replace(/Note:/gi, '📌 **Note:**');
+        // Add space before headers
+        content = content.replace(/([.!?])\n(#{2,3} )/g, '$1\n\n$2');
         
-        // Add emphasis to percentages and dollar amounts
-        content = content.replace(/(\$[\d,]+)/g, '**$1**');
-        content = content.replace(/(\d+\.?\d*%)/g, '**$1**');
+        // Ensure lists have proper spacing
+        content = content.replace(/([.!?])\n(\* )/g, '$1\n\n$2');
         
-        // Ensure proper spacing around lists
-        content = content.replace(/([.!?])\n\*/g, '$1\n\n*');
-        content = content.replace(/\*([^\n]+)\n([^*])/g, '* $1\n\n$2');
+        // Bold only important large dollar amounts (not every number)
+        content = content.replace(/\$(\d{1,3},\d{3,})/g, '**\$1**');
+        
+        // Bold percentages only when they have important context
+        content = content.replace(/(\d+\.?\d*%) (increase|decrease|higher|lower|change|growth|return|rate)/g, '**$1** $2');
         
         return content;
     }
@@ -249,96 +243,60 @@ Begin with your title (no prefix) and professional article:`;
         
         const ctas = {
             mortgage: `
----
+## Ready to Calculate Your Mortgage?
 
-## 🏠 Ready to See Your Exact Numbers?
+With rates at **${currentRate}**, every calculation matters. Our mortgage calculator helps you:
 
-With mortgage rates at **${currentRate}** and market conditions changing daily, every calculation matters for your financial future.
+* See your exact monthly payment
+* Compare 15 vs 30-year options  
+* Calculate total interest costs
+* Find your affordable home price
 
-### What Our Mortgage Calculator Shows You:
+**[Calculate Your Mortgage Payment →](/#calculators)**
 
-✅ **Exact Monthly Payment** - Down to the penny, including principal and interest  
-✅ **Total Interest Cost** - See how much you'll pay over the life of your loan  
-✅ **15 vs 30 Year Comparison** - Side-by-side analysis to find your best option  
-✅ **Affordability Analysis** - Discover your maximum home price based on income  
-✅ **Amortization Schedule** - Month-by-month breakdown of your payments  
-
-💡 **Why Calculate Now:** Rates changed ${this.verifiedData?.marketData?.weeklyChange || '+0.125%'} this week. A small rate difference can mean thousands in savings.
-
-### [🧮 Calculate Your Mortgage Payment Now →](/#calculators)
-
-*Takes less than 60 seconds • No email required • 100% free*
-
----`,
+*Takes less than 60 seconds • No email required*`,
 
             investment: `
----
+## Calculate Your Investment Growth
 
-## 📈 Calculate Your Investment Growth Potential
+See how your money could grow with our investment calculator:
 
-Market volatility creates opportunities. See exactly how your money could grow with smart investment strategies.
+* Project your portfolio value over time
+* Compare different investment strategies
+* See the impact of starting today vs waiting
+* Plan for retirement or other goals
 
-### What Our Investment Calculator Reveals:
+**[Start Your Investment Calculation →](/#calculators)**
 
-✅ **Future Portfolio Value** - Project your wealth over 5, 10, 20+ years  
-✅ **Compound Interest Magic** - Watch how reinvesting accelerates growth  
-✅ **Multiple Scenarios** - Compare conservative vs aggressive strategies  
-✅ **Time Value Analysis** - See the cost of waiting to start investing  
-✅ **Goal Planning** - Calculate what you need for retirement or other goals  
-
-💡 **Market Insight:** Starting just 5 years earlier can double your retirement fund due to compounding.
-
-### [🧮 Start Your Investment Calculation →](/#calculators)
-
-*Free instant results • No signup needed • Updated with current market data*
-
----`,
+*Free instant results • No signup needed*`,
 
             loan: `
----
+## Compare Your Loan Options
 
-## 💰 Compare Your Loan Options Instantly
+Make smarter borrowing decisions with our loan calculator:
 
-Don't overpay on your loans. Our calculator helps you find the most affordable option for your situation.
+* Calculate monthly payments
+* See total interest costs
+* Compare different loan terms
+* Find consolidation savings
 
-### What You'll Discover:
+**[Calculate Your Best Loan Option →](/#calculators)**
 
-✅ **True Monthly Payment** - Including all fees and interest  
-✅ **Total Interest Costs** - See the real price of borrowing  
-✅ **Payoff Strategies** - Calculate savings from extra payments  
-✅ **Consolidation Analysis** - Find out if combining loans saves money  
-✅ **Break-Even Calculator** - Determine when refinancing makes sense  
-
-💡 **Smart Money Move:** Even a 1% rate difference saves thousands on a typical personal loan.
-
-### [🧮 Calculate Your Best Loan Option →](/#calculators)
-
-*Compare unlimited scenarios • No personal info required • Results in seconds*
-
----`,
+*Compare unlimited scenarios • Results in seconds*`,
 
             insurance: `
----
+## Get Your Coverage Estimate
 
-## 🛡️ Calculate Your Optimal Coverage
+Find the right insurance coverage with our calculator:
 
-Protect your family without overpaying. Get a personalized insurance needs analysis in minutes.
+* Determine coverage needs
+* Compare term lengths
+* See premium estimates
+* Calculate income replacement
 
-### Our Calculator Helps You Determine:
+**[Calculate Your Coverage Needs →](/#calculators)**
 
-✅ **Exact Coverage Needed** - Based on income, debts, and family size  
-✅ **Term Length Options** - Compare 10, 20, and 30-year policies  
-✅ **Premium Estimates** - See monthly costs for your coverage amount  
-✅ **Income Replacement** - Calculate what your family needs  
-✅ **Debt Protection** - Ensure all obligations are covered  
-
-💡 **Critical Insight:** Most families need 7-10x annual income in coverage, but 4 in 10 are underinsured.
-
-### [🛡️ Calculate Your Coverage Needs →](/#calculators)
-
-*Personalized analysis • No agent calls • Get clarity in 60 seconds*
-
----`
+*Personalized analysis • No agent calls*`
         };
         
         return ctas[calculatorType] || ctas.mortgage;
