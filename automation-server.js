@@ -2040,14 +2040,7 @@ this.app.post('/api/preview-prompt', async (req, res) => {
 
 // Dark Theme Blog Post Page
     generateBlogPostPage(post) {
-        // Ensure content is properly formatted HTML
-        let processedContent = post.content;
-        
-        // If content appears to be markdown, convert it
-        if (processedContent.includes('##') || processedContent.includes('**')) {
-            const cleaner = new BlogContentCleaner();
-            processedContent = cleaner.convertMarkdownToHTML(processedContent);
-        }
+let processedContent = post.content;
         
         // Ensure the content is properly spaced
         processedContent = processedContent
