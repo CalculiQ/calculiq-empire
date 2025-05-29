@@ -24,7 +24,7 @@ const fs = require('fs').promises;
 require('dotenv').config();
 console.log('✅ Dotenv loaded');
 
-const HybridNewsAIGenerator = require('./hybrid-news-ai-generator');
+const SEOOptimizedBlogGenerator = require('./seo-optimized-blog-generator');
 const BlogContentCleaner = require('./blog-content-cleaner');
 
 // Initialize module systems that might use require() early
@@ -420,8 +420,8 @@ async generateAndPublishNewsRoundup(calculatorType) {
     try {
         console.log(`📰 Generating ${calculatorType} news roundup...`);
         
-        const generator = new HybridNewsAIGenerator(this.db);
-        const article = await generator.generateDailyRoundup(calculatorType);
+const generator = new SEOOptimizedBlogGenerator(this.db);
+const article = await generator.generateSEOArticle(calculatorType);
         
         // Save to database
         await this.saveBlogPost({
