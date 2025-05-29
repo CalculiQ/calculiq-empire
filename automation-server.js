@@ -1198,7 +1198,7 @@ this.app.get('/api/automation-status', (req, res) => {
                 const types = ['mortgage', 'investment', 'loan', 'insurance'];
                 const selectedType = type && types.includes(type) ? type : types[Math.floor(Math.random() * types.length)];
                 
-                await this.generateAndPublishTopicalBlog(selectedType);
+                await this.generateAndPublishNewsRoundup(selectedType);
                 res.json({ success: true, message: `Test ${selectedType} blog published successfully` });
             } catch (error) {
                 console.error('Test blog error:', error);
