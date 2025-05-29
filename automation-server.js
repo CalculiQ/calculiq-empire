@@ -441,11 +441,6 @@ async generateAndPublishNewsRoundup(calculatorType) {
         console.error(`❌ ${calculatorType} roundup failed:`, error);
     }
 }
-            
-        } catch (error) {
-            console.log('📝 Blog system initialization skipped:', error.message);
-        }
-    }
 
     // Newsletter System Methods
     async generateAndSendWeeklyNewsletter() {
