@@ -1103,8 +1103,8 @@ this.app.get('/health', (req, res) => {
 });
 
 this.app.get('/api/automation-status', (req, res) => {
-    res.json({ 
-        success: true, 
+    res.json({
+        success: true,
         status: {
             serverRunning: true,
             databaseConnected: this.db !== null,
@@ -2035,8 +2035,24 @@ this.app.post('/api/preview-prompt', async (req, res) => {
         `;
     }
 
-    // Dark Theme Blog Post Page
+// Dark Theme Blog Post Page
     generateBlogPostPage(post) {
+        // Ensure content is properly formatted HTML
+        let processedContent = post.content;
+        
+        // If content appears to be markdown, convert it
+        if (processedContent.includes('##') || processedContent.includes('**')) {
+            const cleaner = new BlogContentCleaner();
+            processedContent = cleaner.convertMarkdownToHTML(processedContent);
+        }
+        
+        // Ensure the content is properly spaced
+        processedContent = processedContent
+            .replace(/<\/h2>\s*<p>/g, '</h2>\n\n<p>')
+            .replace(/<\/h3>\s*<p>/g, '</h3>\n\n<p>')
+            .replace(/<\/p>\s*<h2>/g, '</p>\n\n<h2>')
+            .replace(/<\/p>\s*<h3>/g, '</p>\n\n<h3>');
+        
         return `
         <!DOCTYPE html>
         <html lang="en">
@@ -2417,7 +2433,7 @@ this.app.post('/api/preview-prompt', async (req, res) => {
                     <span class="post-category">${post.category || 'Finance'}</span>
                 </div>
                 
-${post.content}
+${processedContent}
 </article>
             
             <div class="footer-nav">
