@@ -436,13 +436,12 @@ async generateAndPublishNewsRoundup(calculatorType) {
         });
         
         console.log(`✅ ${calculatorType} roundup published: "${article.title}"`);
-        
+
     } catch (error) {
         console.error(`❌ ${calculatorType} roundup failed:`, error);
     }
 }
             
-            console.log('✅ Blog automation: 4 calculator-focused posts daily (PST times)');
         } catch (error) {
             console.log('📝 Blog system initialization skipped:', error.message);
         }
