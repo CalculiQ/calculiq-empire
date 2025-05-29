@@ -1,5 +1,6 @@
 // blog-content-cleaner.js
 // Fixed version - properly handles markdown and preserves content
+// FIXED: string.lastIndexOf error
 
 class BlogContentCleaner {
     constructor() {
@@ -71,11 +72,11 @@ class BlogContentCleaner {
         
         let cleaned = content;
         
-        // First, convert markdown to HTML
-        cleaned = this.convertMarkdownToHTML(cleaned);
-        
-        // Then clean up any formatting issues
+        // First, clean up any formatting issues
         cleaned = this.fixFormatting(cleaned);
+        
+        // Then convert markdown to HTML
+        cleaned = this.convertMarkdownToHTML(cleaned);
         
         // Remove any unwanted prefixes from the beginning
         const lines = cleaned.split('\n');
@@ -90,58 +91,121 @@ class BlogContentCleaner {
         return cleaned;
     }
 
-convertMarkdownToHTML(markdown) {
-    if (!markdown) return '';
-    
-    let html = markdown;
+    convertMarkdownToHTML(markdown) {
+        if (!markdown) return '';
+        
+        let html = markdown;
 
-    // Convert headers FIRST (must be at start of line)
-    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2>$2</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-    
-    // Convert bold text (but not in URLs)
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    
-    // Convert italic text
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    // Convert links AFTER bold/italic
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-
-    // Convert lists (only at start of lines)
-    html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
-    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-
-// Wrap consecutive <li> elements in <ul>
-html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
-    return '<ul>' + match + '</ul>';
-});
-
-        // Wrap consecutive <li> elements in <ul>
-        html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
-            return '<ul>' + match + '</ul>';
+        // CRITICAL: Convert headers FIRST (must be at start of line)
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        
+        // Convert bold text - but NOT inside URLs or existing HTML tags
+        html = html.replace(/\*\*([^*]+)\*\*/g, function(match, content, offset, string) {
+            // Check if we're inside a URL
+            const beforeText = string.substring(Math.max(0, offset - 50), offset);
+            const afterText = string.substring(offset + match.length, offset + match.length + 50);
+            
+            if (beforeText.includes('](') || afterText.includes(')')) {
+                return match; // Don't convert if part of a markdown link
+            }
+            return '<strong>' + content + '</strong>';
         });
         
-// Convert paragraphs (split by double newlines)
-const paragraphs = html.split(/\n\n+/);
-html = paragraphs.map(para => {
-    para = para.trim();
-    
-    // Don't wrap if already has HTML tags or is empty
-    if (para && !para.match(/^<[^>]+>/) && para.length > 0) {
-        return `<p>${para}</p>`;
+        // Convert italic text (fixed regex for better compatibility)
+        html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        
+        // Convert links AFTER bold/italic
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+        // Convert lists - only at start of lines
+        html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+        html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+        html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+        // Wrap consecutive <li> elements in <ul> or <ol>
+        let inList = false;
+        let listType = null;
+        const lines = html.split('\n');
+        const processedLines = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const isListItem = line.trim().startsWith('<li>');
+            
+            if (isListItem && !inList) {
+                // Starting a new list
+                inList = true;
+                // Check original markdown to determine list type
+                const originalLine = markdown.split('\n')[i] || '';
+                listType = /^\d+\./.test(originalLine) ? 'ol' : 'ul';
+                processedLines.push(`<${listType}>`);
+            } else if (!isListItem && inList) {
+                // Ending a list
+                processedLines.push(`</${listType}>`);
+                inList = false;
+                listType = null;
+            }
+            
+            processedLines.push(line);
+        }
+        
+        // Close any unclosed list
+        if (inList) {
+            processedLines.push(`</${listType}>`);
+        }
+        
+        html = processedLines.join('\n');
+
+        // Convert paragraphs - protect existing HTML blocks
+        const htmlBlocks = [];
+        let blockIndex = 0;
+        
+        // Protect headers, lists, and other HTML elements
+        html = html.replace(/(<h[1-6]>.*?<\/h[1-6]>|<ul>.*?<\/ul>|<ol>.*?<\/ol>|<div.*?>.*?<\/div>)/gs, function(match) {
+            const placeholder = `<!--HTMLBLOCK${blockIndex}-->`;
+            htmlBlocks[blockIndex] = match;
+            blockIndex++;
+            return placeholder;
+        });
+        
+        // Now convert paragraphs (double newline separated text)
+        const sections = html.split(/\n\n+/);
+        html = sections.map(section => {
+            section = section.trim();
+            
+            // Skip if it's a placeholder or already has HTML
+            if (!section || section.includes('<!--HTMLBLOCK') || section.match(/^<[^>]+>/)) {
+                return section;
+            }
+            
+            // Wrap in paragraph tags
+            return `<p>${section}</p>`;
+        }).filter(s => s).join('\n\n');
+        
+        // Restore HTML blocks
+        htmlBlocks.forEach((block, index) => {
+            html = html.replace(`<!--HTMLBLOCK${index}-->`, block);
+        });
+        
+        // Clean up spacing around block elements
+        html = html.replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
+        html = html.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
+        html = html.replace(/<\/ul>\s*<p>/g, '</ul>\n\n<p>');
+        html = html.replace(/<\/ol>\s*<p>/g, '</ol>\n\n<p>');
+        html = html.replace(/<\/p>\s*<h([1-6])>/g, '</p>\n\n<h$1>');
+        html = html.replace(/<\/p>\s*<ul>/g, '</p>\n\n<ul>');
+        
+        // Fix any double-wrapped paragraphs
+        html = html.replace(/<p>\s*<p>/g, '<p>');
+        html = html.replace(/<\/p>\s*<\/p>/g, '</p>');
+        
+        // Remove empty paragraphs
+        html = html.replace(/<p>\s*<\/p>/g, '');
+        
+        return html;
     }
-    return para;
-}).filter(p => p).join('\n\n');
-        
-// Clean up spacing around block elements
-html = html.replace(/<\/p>\s*<p>/g, '</p>\n\n<p>');
-html = html.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
-html = html.replace(/<\/ul>\s*<p>/g, '</ul>\n\n<p>');
-        
-return html;
-}
 
     cleanExcerpt(excerpt) {
         if (!excerpt) return '';
@@ -164,6 +228,7 @@ return html;
         // Remove markdown formatting
         cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1');
         cleaned = cleaned.replace(/\*(.+?)\*/g, '$1');
+        cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
         
         // Trim and limit length
         cleaned = cleaned.trim();
@@ -179,22 +244,19 @@ return html;
     }
 
     fixFormatting(content) {
-        // Fix multiple line breaks
+        // Fix multiple line breaks (more than 2 becomes 2)
         content = content.replace(/\n{3,}/g, '\n\n');
-        
-        // Fix spacing around HTML tags
-        content = content.replace(/>\s+</g, '><');
         
         // Ensure proper spacing after punctuation
         content = content.replace(/([.!?])\s*([A-Z])/g, '$1 $2');
         
-        // Fix common HTML issues
-        content = content.replace(/<p>\s*<\/p>/g, '');
-        content = content.replace(/<p>\s*<p>/g, '<p>');
-        content = content.replace(/<\/p>\s*<\/p>/g, '</p>');
+        // Fix common markdown issues
+        content = content.replace(/\*\*\s+/g, '**'); // Remove space after opening bold
+        content = content.replace(/\s+\*\*/g, '**'); // Remove space before closing bold
         
-        // Ensure lists are properly formatted
-        content = content.replace(/<\/li>\s*<li>/g, '</li>\n<li>');
+        // Ensure headers have proper spacing
+        content = content.replace(/([^\n])\n(#{1,3} )/g, '$1\n\n$2');
+        content = content.replace(/(#{1,3} [^\n]+)\n([^\n])/g, '$1\n\n$2');
         
         return content.trim();
     }
@@ -247,10 +309,10 @@ return html;
         let title = '';
         let contentStartIndex = 0;
         
-        // Look for a title (first non-empty line without HTML)
+        // Look for a title (first non-empty line without HTML or markdown)
         for (let i = 0; i < Math.min(lines.length, 5); i++) {
             const line = lines[i].trim();
-            if (line && !line.startsWith('<')) {
+            if (line && !line.startsWith('<') && !line.startsWith('#')) {
                 // This could be our title
                 title = this.cleanTitle(line);
                 contentStartIndex = i + 1;
@@ -264,6 +326,15 @@ return html;
         return {
             title: title,
             content: this.cleanAndConvertContent(content)
+        };
+    }
+
+    // Additional method to fix already-published posts
+    fixPublishedPost(post) {
+        // This method can be used to fix posts that are already in the database
+        return {
+            ...post,
+            content: this.cleanAndConvertContent(post.content)
         };
     }
 }
