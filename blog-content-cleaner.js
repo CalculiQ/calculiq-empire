@@ -1,6 +1,5 @@
 // blog-content-cleaner.js
 // Fixed version - properly handles markdown and preserves content
-// FIXED: string.lastIndexOf error
 
 class BlogContentCleaner {
     constructor() {
@@ -96,6 +95,49 @@ class BlogContentCleaner {
         
         let html = markdown;
 
+        // First, detect and convert plain-text headers (lines that look like headers but don't have ##)
+        // These are typically short lines (< 60 chars) that might be headers
+        const lines = html.split('\n');
+        const processedLines = lines.map((line, index) => {
+            const trimmedLine = line.trim();
+            
+            // Check if this looks like a header:
+            // - It's relatively short (less than 60 characters)
+            // - It doesn't end with common punctuation (. , ! ?)
+            // - It's preceded and followed by blank lines or is at start/end
+            // - It doesn't start with HTML tags or markdown symbols
+            if (trimmedLine.length > 0 && 
+                trimmedLine.length < 60 && 
+                !trimmedLine.endsWith('.') && 
+                !trimmedLine.endsWith(',') && 
+                !trimmedLine.endsWith('!') && 
+                !trimmedLine.endsWith('?') && 
+                !trimmedLine.endsWith(':') &&
+                !trimmedLine.startsWith('<') &&
+                !trimmedLine.startsWith('#') &&
+                !trimmedLine.startsWith('-') &&
+                !trimmedLine.startsWith('*') &&
+                !trimmedLine.match(/^\d+\./) &&
+                (index === 0 || lines[index - 1].trim() === '') &&
+                (index === lines.length - 1 || lines[index + 1].trim() === '')) {
+                
+                // This looks like a header - convert it
+                // Determine header level based on common patterns
+                if (trimmedLine.match(/^(Today's|This Week's|Current|Breaking|Alert)/i) ||
+                    trimmedLine.includes('Reality') ||
+                    trimmedLine.includes('Scenarios') ||
+                    trimmedLine.includes('Opportunities') ||
+                    trimmedLine.includes('Mistakes') ||
+                    trimmedLine.includes('Action Plan')) {
+                    return `## ${trimmedLine}`;
+                }
+            }
+            
+            return line;
+        });
+        
+        html = processedLines.join('\n');
+
         // CRITICAL: Convert headers FIRST (must be at start of line)
         html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
@@ -113,8 +155,8 @@ class BlogContentCleaner {
             return '<strong>' + content + '</strong>';
         });
         
-        // Convert italic text (fixed regex for better compatibility)
-        html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        // Convert italic text
+        html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
         
         // Convert links AFTER bold/italic
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
@@ -124,41 +166,27 @@ class BlogContentCleaner {
         html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
         html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
-        // Wrap consecutive <li> elements in <ul> or <ol>
-        let inList = false;
-        let listType = null;
-        const lines = html.split('\n');
-        const processedLines = [];
+        // Wrap consecutive <li> elements in <ul>
+        html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match) {
+            return '<ul>' + match + '</ul>';
+        });
         
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const isListItem = line.trim().startsWith('<li>');
+        // Handle numbered lists separately
+        html = html.replace(/(<li>.*?<\/li>\s*)+/gs, function(match, offset, string) {
+            // Check if this was originally a numbered list
+            const originalSection = markdown.substring(
+                Math.max(0, string.lastIndexOf('\n\n', offset)),
+                string.indexOf('\n\n', offset + match.length)
+            );
             
-            if (isListItem && !inList) {
-                // Starting a new list
-                inList = true;
-                // Check original markdown to determine list type
-                const originalLine = markdown.split('\n')[i] || '';
-                listType = /^\d+\./.test(originalLine) ? 'ol' : 'ul';
-                processedLines.push(`<${listType}>`);
-            } else if (!isListItem && inList) {
-                // Ending a list
-                processedLines.push(`</${listType}>`);
-                inList = false;
-                listType = null;
+            if (/^\d+\./m.test(originalSection)) {
+                return '<ol>' + match + '</ol>';
             }
-            
-            processedLines.push(line);
-        }
-        
-        // Close any unclosed list
-        if (inList) {
-            processedLines.push(`</${listType}>`);
-        }
-        
-        html = processedLines.join('\n');
+            return '<ul>' + match + '</ul>';
+        });
 
-        // Convert paragraphs - protect existing HTML blocks
+        // Convert paragraphs - this is the tricky part
+        // First, protect existing HTML blocks
         const htmlBlocks = [];
         let blockIndex = 0;
         

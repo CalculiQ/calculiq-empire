@@ -164,7 +164,7 @@ async gatherVerifiedContext(calculatorType) {
         
         const prompt = `You are a financial writer creating data-driven, analytical content about ${calculatorType} for ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
 
-CRITICAL SAFETY REQUIREMENTS:
+CRITICAL MARKDOWN FORMATTING RULES:
 1. NO fictional quotes or made-up people - use only:
    - General industry wisdom (e.g., "Financial advisors often recommend...")
    - Statistical insights (e.g., "Data shows that 73% of borrowers...")
@@ -182,6 +182,14 @@ CRITICAL SAFETY REQUIREMENTS:
    - Include: "This analysis is for educational purposes. Consult qualified professionals for personal advice."
    - Use conditional language: "may," "could," "potentially," "generally"
    - Focus on education and analysis, not prescriptive advice
+
+CRITICAL MARKDOWN FORMATTING:
+- ALL section headers MUST use ## (e.g., ## Today's Market Reality)
+- ALL subsection headers MUST use ### (e.g., ### First-Time Buyers)
+- Use **text** for bold emphasis
+- Use * or - for bullet points
+- Use proper markdown formatting throughout
+- Headers must be on their own line with blank lines before and after
 
 CREATIVE CONSTRAINTS (to ensure uniqueness):
 
@@ -294,6 +302,25 @@ BEFORE WRITING, CONFIRM YOU UNDERSTAND:
 3. This article will be outdated in 7 days - write accordingly
 4. Readers need to make decisions THIS WEEK
 5. Generic advice = failure. Specific, timely analysis = success
+6. ALL HEADERS MUST USE ## or ### markdown format
+7. Headers must be on their own line with blank lines before/after
+
+MARKDOWN FORMAT EXAMPLE:
+First paragraph of introduction text here.
+
+## Today's Market Reality
+
+Content for this section here.
+
+## Three Detailed Scenarios
+
+### Scenario 1: First-Time Buyers
+
+Details here with **bold text** for emphasis.
+
+### Scenario 2: Refinancers
+
+More content here.
 
 FINAL REQUIREMENT: Before submitting, ensure your article is AT LEAST 2,000 words. If it's shorter, expand each section with more examples, more detailed explanations, additional scenarios, and deeper analysis. Quality AND quantity matter.
 
