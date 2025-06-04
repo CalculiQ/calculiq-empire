@@ -26,7 +26,7 @@ console.log('✅ Dotenv loaded');
 
 const SEOOptimizedBlogGenerator = require('./seo-optimized-blog-generator');
 const BlogContentCleaner = require('./blog-content-cleaner');
-const EnhancedArticleFormatter = require('./enhanced-article-formatter');
+// const EnhancedArticleFormatter = require('./enhanced-article-formatter');
 
 // Initialize module systems that might use require() early
 const CalculiQLeadCapture = require('./lead-capture-system');
