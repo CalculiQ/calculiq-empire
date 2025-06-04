@@ -2132,14 +2132,16 @@ start() {
 }  // This closes the start() method
 
 generateBlogPostPage(post) {
-    const formatter = new EnhancedArticleFormatter();
-    return formatter.formatArticle(post.content, {
-        title: post.title,
-        published_at: post.published_at,
-        category: post.category,
-        excerpt: post.excerpt,
-        meta_description: post.meta_description
-    });
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head><title>${post.title}</title></head>
+        <body>
+            <h1>${post.title}</h1>
+            <div>${post.content}</div>
+        </body>
+        </html>
+    `;
 }
 
 }  // This closes the class
