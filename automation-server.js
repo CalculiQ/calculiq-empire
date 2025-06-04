@@ -2133,14 +2133,91 @@ start() {
 
 generateBlogPostPage(post) {
     return `
-        <!DOCTYPE html>
-        <html>
-        <head><title>${post.title}</title></head>
-        <body>
-            <h1>${post.title}</h1>
-            <div>${post.content}</div>
-        </body>
-        </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${post.title} - CalculiQ</title>
+    <style>
+        :root {
+            --primary-dark: #0a0e27;
+            --accent-blue: #00d4ff;
+            --accent-purple: #7b2ff7;
+            --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d6;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-dark);
+            color: var(--text-primary);
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        h1 {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        
+        .article-meta {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+        
+        .article-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .article-content h2 {
+            color: var(--accent-blue);
+            margin: 30px 0 20px;
+        }
+        
+        .article-content p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        .nav-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="article-container">
+        <h1>${post.title}</h1>
+        <div class="article-meta">
+            ${post.category} • ${new Date(post.published_at).toLocaleDateString()}
+        </div>
+        <div class="article-content">
+            ${post.content}
+        </div>
+        <a href="/blog" class="nav-link">← Back to Blog</a>
+    </div>
+</body>
+</html>
     `;
 }
 
