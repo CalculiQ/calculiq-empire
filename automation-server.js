@@ -963,7 +963,9 @@ this.app.get('/blog', async (req, res) => {
         console.log('📝 Blog page requested');
         const posts = await this.getRecentPosts(10);
         console.log(`📝 Got ${posts.length} posts from database`);
-        res.send(this.generateBlogIndexPage(posts));
+        console.log('DEBUG: posts type:', typeof posts, 'length:', posts.length);
+console.log('DEBUG: first post:', posts[0]);
+res.send(this.generateBlogIndexPage(posts));
     } catch (error) {
         console.error('❌ Blog page error:', error);
         res.status(500).send('Blog temporarily unavailable');
