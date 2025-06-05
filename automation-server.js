@@ -95,10 +95,10 @@ class CalculiQAutomationServer {
         this.app.use(express.json());
         
         // Serve static files from root directory
-        this.app.use(express.static(path.join(__dirname)));
+        // this.app.use(express.static(path.join(__dirname)));
         
         // Also serve from public directory if it exists
-        this.app.use(express.static(path.join(__dirname, 'public')));
+        // this.app.use(express.static(path.join(__dirname, 'public')));
 
         // Request logging
         this.app.use((req, res, next) => {
@@ -1538,6 +1538,10 @@ this.app.get('/admin', basicAuth, (req, res) => {
 this.app.get('/BlogManager.html', basicAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'BlogManager.html'));
 });
+
+// Add static files AFTER all routes
+this.app.use(express.static(path.join(__dirname)));
+this.app.use(express.static(path.join(__dirname, 'public')));
 
         // Catch all route for undefined endpoints
         this.app.use('*', (req, res) => {
