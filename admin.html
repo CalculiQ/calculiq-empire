@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CalculiQ Admin</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .admin-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .admin-btn {
+            background: #646cff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .admin-btn:hover {
+            background: #5661ff;
+        }
+        .danger { background: #e74c3c; }
+        .danger:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+    <h1>CalculiQ Admin Panel</h1>
+    
+    <div class="admin-card">
+        <h2>📝 Blog Management</h2>
+        <a href="/BlogManager.html" class="admin-btn">Open Blog Manager</a>
+        <button onclick="testBlogPost()" class="admin-btn">Test Blog Post</button>
+    </div>
+    
+    <div class="admin-card">
+        <h2>📊 Analytics</h2>
+        <a href="/leads-dashboard.html" class="admin-btn">Leads Dashboard</a>
+        <button onclick="viewStats()" class="admin-btn">View Stats</button>
+    </div>
+    
+    <div class="admin-card">
+        <h2>📧 Newsletter</h2>
+        <button onclick="sendTestNewsletter()" class="admin-btn">Send Test Newsletter</button>
+        <button onclick="viewSubscribers()" class="admin-btn">View Subscribers</button>
+    </div>
+    
+    <div class="admin-card">
+        <h2>⚙️ System</h2>
+        <button onclick="checkStatus()" class="admin-btn">System Status</button>
+        <a href="/" class="admin-btn">View Main Site</a>
+    </div>
+
+    <script>
+        async function testBlogPost() {
+            const type = prompt('Enter type (mortgage/investment/loan/insurance):');
+            if (type) {
+                const response = await fetch('/api/publish-test-blog', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                alert(response.ok ? 'Blog post created!' : 'Failed to create post');
+            }
+        }
+        
+        async function sendTestNewsletter() {
+            if (confirm('Send test newsletter?')) {
+                const response = await fetch('/api/send-test-newsletter', {
+                    method: 'POST'
+                });
+                alert(response.ok ? 'Newsletter sent!' : 'Failed to send');
+            }
+        }
+        
+        async function checkStatus() {
+            const response = await fetch('/api/automation-status');
+            const data = await response.json();
+            alert(`System Status:\n\nServer: ${data.status.serverRunning ? '✅' : '❌'}\nDatabase: ${data.status.databaseConnected ? '✅' : '❌'}`);
+        }
+        
+        async function viewStats() {
+            const response = await fetch('/api/blog-stats');
+            const data = await response.json();
+            alert(`Blog Stats:\n\nTotal Posts: ${data.stats.totalPosts}\nTotal Views: ${data.stats.totalViews}`);
+        }
+        
+        async function viewSubscribers() {
+            const response = await fetch('/api/newsletter-stats');
+            const data = await response.json();
+            alert(`Newsletter Stats:\n\nSubscribers: ${data.stats.totalSubscribers}`);
+        }
+    </script>
+</body>
+</html>

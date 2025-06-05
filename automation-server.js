@@ -19,6 +19,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs').promises;
+const rateLimit = require('express-rate-limit');
 
 // Load environment variables FIRST
 require('dotenv').config();
@@ -41,6 +42,12 @@ const basicAuth = (req, res, next) => {
         return res.status(401).send('Authentication required');
     }
     
+// Create rate limiter
+const leadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10 // limit each IP to 10 requests per windowMs
+});
+
     const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
     const username = credentials[0];
     const password = credentials[1];
@@ -52,6 +59,12 @@ const basicAuth = (req, res, next) => {
         res.status(401).send('Invalid credentials');
     }
 };
+
+// Create rate limiter
+const leadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10 // limit each IP to 10 requests per windowMs
+});
 
 class CalculiQAutomationServer {
     constructor() {
@@ -66,7 +79,7 @@ class CalculiQAutomationServer {
             avgRevenuePerVisitor: 0,
             monthlyRevenue: 0
         };
-        
+      
         // Setup server components
         this.setupMiddleware();
         this.initializeDatabase();
@@ -386,7 +399,7 @@ async initializeDatabase() {
 async initializeBlogSystem() {
     try {
         // Import the new generator at the top of your file
-        const HybridNewsAIGenerator = require('./hybrid-news-ai-generator');
+        const FinancialIntelligenceNetwork = require('./financial-intelligence-network');
         
         // Keep 4 posts per day but as news roundups
         cron.schedule('0 16 * * *', async () => {  // 4 PM UTC = 8 AM PST
@@ -732,8 +745,8 @@ Unsubscribe: {{UNSUBSCRIBE_LINK}}
         try {
             console.log(`📰 Generating ${calculatorType} news roundup...`);
             
-            const generator = new HybridNewsAIGenerator(this.db);
-            const article = await generator.generateDailyRoundup(calculatorType);
+            const generator = new FinancialIntelligenceNetwork(this.db);
+const article = await generator.generateDailyRoundup(calculatorType);
             
             // Save to database
             await this.saveBlogPost({
@@ -986,7 +999,7 @@ res.send(this.generateBlogIndexPage(posts));
         });
 
         // Delete blog post endpoint
-        this.app.delete('/api/blog/:slug', async (req, res) => {
+        this.app.delete('/api/blog/:slug', basicAuth, async (req, res) => {
             try {
                 const { slug } = req.params;
                 
@@ -1022,7 +1035,7 @@ res.send(this.generateBlogIndexPage(posts));
         });
 
         // Update blog post
-        this.app.patch('/api/blog/:slug/update', async (req, res) => {
+        this.app.patch('/api/blog/:slug/update', basicAuth, async (req, res) => {
             try {
                 const { slug } = req.params;
                 const { title, excerpt, category } = req.body;
@@ -1070,7 +1083,7 @@ res.send(this.generateBlogIndexPage(posts));
         });
 
         // Lead capture endpoints using the subsystem
-        this.app.post('/api/capture-lead-email', async (req, res) => {
+        this.app.post('/api/capture-lead-email', leadLimiter, async (req, res) => {
             try {
                 if (this.leadCapture) {
                     // Use the lead capture subsystem
@@ -1198,7 +1211,7 @@ res.send(this.generateBlogIndexPage(posts));
         });
 
         // Manual newsletter trigger (for testing)
-        this.app.post('/api/send-test-newsletter', async (req, res) => {
+        this.app.post('/api/send-test-newsletter', basicAuth, async (req, res) => {
             try {
                 await this.generateAndSendWeeklyNewsletter();
                 res.json({ success: true, message: 'Test newsletter sent successfully' });
@@ -1209,7 +1222,7 @@ res.send(this.generateBlogIndexPage(posts));
         });
 
         // Test blog endpoint
-        this.app.post('/api/publish-test-blog', async (req, res) => {
+        this.app.post('/api/publish-test-blog', basicAuth, async (req, res) => {
             try {
                 const { type } = req.body;
                 const types = ['mortgage', 'investment', 'loan', 'insurance'];
@@ -1515,6 +1528,11 @@ this.app.post('/api/preview-prompt', async (req, res) => {
         this.app.get('/do-not-sell', (req, res) => {
             res.send(this.generateDoNotSellPage());
         });
+
+// Add admin panel route HERE
+this.app.get('/admin', basicAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
 
         // Catch all route for undefined endpoints
         this.app.use('*', (req, res) => {
