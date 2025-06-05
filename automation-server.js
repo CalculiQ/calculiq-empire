@@ -1528,6 +1528,17 @@ this.app.get('/admin', basicAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// ADD DEBUG ROUTE HERE
+this.app.get('/debug-auth', (req, res) => {
+    res.json({
+        hasUsername: !!process.env.ADMIN_USERNAME,
+        hasPassword: !!process.env.ADMIN_PASSWORD,
+        nodeEnv: process.env.NODE_ENV,
+        usernameFirstChar: process.env.ADMIN_USERNAME ? process.env.ADMIN_USERNAME[0] : 'not set',
+        passwordLength: process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.length : 0
+    });
+});
+
 // ADD THIS:
 this.app.get('/BlogManager.html', basicAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'BlogManager.html'));
