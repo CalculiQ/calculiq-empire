@@ -1534,6 +1534,11 @@ this.app.get('/admin', basicAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+// ADD THIS:
+this.app.get('/BlogManager.html', basicAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, 'BlogManager.html'));
+});
+
         // Catch all route for undefined endpoints
         this.app.use('*', (req, res) => {
             res.status(404).json({
