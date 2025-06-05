@@ -41,12 +41,6 @@ const basicAuth = (req, res, next) => {
         res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
         return res.status(401).send('Authentication required');
     }
-    
-// Create rate limiter
-const leadLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10 // limit each IP to 10 requests per windowMs
-});
 
     const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
     const username = credentials[0];
