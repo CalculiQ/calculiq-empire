@@ -1523,7 +1523,6 @@ this.app.post('/api/preview-prompt', async (req, res) => {
             res.send(this.generateDoNotSellPage());
         });
 
-// Add admin panel route HERE
 this.app.get('/admin', basicAuth, (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
